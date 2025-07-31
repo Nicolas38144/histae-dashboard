@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      __APP_ENV__: JSON.stringify(env.VITE_ENV), // optionnel
+      __APP_ENV__: JSON.stringify(env.VITE_ENV),
     },
     server: {
       proxy: {

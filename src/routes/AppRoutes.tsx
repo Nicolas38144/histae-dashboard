@@ -1,23 +1,20 @@
+// src/routes/AppRoutes.tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-import ProtectedLayout from './ProtectedLayout';
-import AuthenticatedLayout from './AuthenticatedLayout';
-
 import Login from '../pages/Login';
 import Home from '../pages/Home';
-import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
-import User from '../pages/User';
 import Vibe from '../pages/Vibe';
+import User from '../pages/User';
+import ProtectedLayout from '../layouts/ProtectedLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
 
-const AppRoutes = () => (
+const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => (
   <BrowserRouter>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedLayout />}>
-        <Route element={<AuthenticatedLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<DashboardLayout toggleTheme={toggleTheme} mode={mode} />}>
+          <Route path="/home" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/user" element={<User />} />
           <Route path="/vibe" element={<Vibe />} />
