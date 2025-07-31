@@ -4,5 +4,6 @@ dist
 package-lock.json
 
 # Keep environment variables out of version control
+.env
 .env.development
 .env.production
