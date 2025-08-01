@@ -1,5 +1,5 @@
-import api from './http';
-import type { IDecryptedUser as IUser } from '../types/user.interface';
+import api from './http.service';
+import type { IDecryptedUser as IUser } from '../interfaces/user.interface';
 
 export const getUsers = async (): Promise<IUser[] | null> => {
   try {

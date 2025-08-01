@@ -1,4 +1,4 @@
-import api from './http';
+import api from './http.service';
 import { AUTH_KEY } from '../utils/constants';
 
 export const login = async (phone_number: string): Promise<boolean> => {

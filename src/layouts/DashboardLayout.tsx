@@ -17,7 +17,7 @@ import {
   Brightness7 as Brightness7Icon,
 } from '@mui/icons-material';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { logout } from '../services/auth';
+import { logout } from '../services/auth.service';
 
 const drawerWidth = 200;
 

@@ -1,6 +1,6 @@
-import api from './http';
+import api from './http.service';
 import { AUTH_KEY } from '../utils/constants';
-import type { IVibe } from '../types/vibe.interface';
+import type { IVibe } from '../interfaces/vibe.interface';
 
 export const getVibes = async (): Promise<IVibe[]> => {
   try {
