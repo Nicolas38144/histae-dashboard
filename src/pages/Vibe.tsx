@@ -1,6 +1,7 @@
-// components/Vibe.tsx
 import { useEffect } from 'react';
 import { useVibeStore } from '../stores/vibe.store';
+import { CircularProgress, Typography, Box } from '@mui/material';
+import DataTable from '../components/DataTable';
 
 const Vibe = () => {
   const { vibes, loading, error, fetchVibes } = useVibeStore();
@@ -11,19 +12,47 @@ const Vibe = () => {
     }
   }, [vibes.length, fetchVibes]);
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" align="center" mt={4}>
+        {error}
+      </Typography>
+    );
+  }
+
+  const columns = [
+    { field: 'id', headerName: 'ID' },
+    { field: 'vibe', headerName: 'Vibe' },
+  ];
+
   return (
-    <div>
-      <h2>Liste des Vibes</h2>
-      {loading && <p>Chargement...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {!loading && !error && (
-        <ul>
-          {vibes.map((vibe) => (
-            <li key={vibe.id}>{vibe.vibe}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <Box
+      className="page-vibe"
+      sx={{ display: 'flex', flexDirection: 'column'}}
+    >
+      <h1>Vibes</h1>
+
+      <DataTable
+        columns={columns}
+        rows={vibes}
+        searchableField="vibe"
+        searchLabel="Recherche de vibes"
+        onDelete={(id) => {
+          console.log('Supprimer :', id);
+        }}
+        onEdit={(id, updatedRow) => {
+          console.log('Éditer :', id, updatedRow);
+        }}
+      />
+    </Box>
   );
 };
 

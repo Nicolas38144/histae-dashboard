@@ -86,8 +86,7 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
             </ListItemButton>
         </Box>
       </Drawer>
-
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main">
         <Toolbar />
         <Outlet />
       </Box>
