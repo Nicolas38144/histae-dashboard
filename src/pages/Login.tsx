@@ -14,7 +14,7 @@ const Login = () => {
     const success = await login(phone);
 
     if (success) {
-      navigate('/');
+      navigate('/home');
     } else {
       alert('Échec de la connexion');
     }

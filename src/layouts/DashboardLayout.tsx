@@ -12,16 +12,14 @@ import {
   Typography,
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   Logout as LogoutIcon,
   Brightness4 as Brightness4Icon,
   Brightness7 as Brightness7Icon,
 } from '@mui/icons-material';
-import { useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { useState } from 'react';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { logout } from '../services/auth';
 
-const drawerWidth = 240;
+const drawerWidth = 200;
 
 const menuItems = [
   { label: 'Accueil', path: '/' },
@@ -30,10 +28,7 @@ const menuItems = [
   { label: 'Vibes', path: '/vibe' },
 ];
 
-// const location = useLocation();
-
 const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => {
-  const [open, setOpen] = useState(true);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -47,9 +42,6 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
 
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
         <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={() => setOpen(!open)} sx={{ mr: 2 }}>
-            <MenuIcon />
-          </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Dashboard Viboa
           </Typography>
@@ -62,7 +54,7 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
       <Drawer
         variant="persistent"
         anchor="left"
-        open={open}
+        open={true}
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -85,26 +77,6 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
               </ListItemButton>
             ))}
           </List>
-          {/* <List>
-            {menuItems.map((item) => {
-              const isActive = location.pathname === item.path;
-
-              return (
-                <ListItemButton
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    backgroundColor: isActive ? 'action.selected' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: 'action.hover',
-                    },
-                  }}
-                >
-                  <ListItemText primary={item.label} />
-                </ListItemButton>
-              );
-            })}
-          </List> */}
           <Divider />
         </Box> 
         <Box sx={{ p: 2 }}>
