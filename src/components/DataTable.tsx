@@ -55,25 +55,30 @@ const DataTable = ({
 
     return [
       ...dynamicCols,
-      {
+      ...( (onRequestEdit || onRequestDelete) ? [{
         field: 'actions',
         headerName: 'Actions',
         width: 100,
         sortable: false,
         filterable: false,
-        renderCell: ({ row }) => (
+        renderCell: ({ row }: any) => (
           <>
-            <IconButton onClick={() => onRequestEdit?.(row.id)} size="small">
-              <Edit fontSize="small" />
-            </IconButton>
-            <IconButton onClick={() => onRequestDelete?.(row.id)} size="small">
-              <Delete fontSize="small" color="error" />
-            </IconButton>
+            {onRequestEdit &&
+              <IconButton onClick={() => onRequestEdit(row.id)} size="small">
+                <Edit fontSize="small" />
+              </IconButton>
+            }
+            {onRequestDelete &&
+              <IconButton onClick={() => onRequestDelete(row.id)} size="small">
+                <Delete fontSize="small" color="error" />
+              </IconButton>
+            }
           </>
         ),
-      },
+      }] : [])
     ];
   }, [columns, filteredRows, onRequestEdit, onRequestDelete]);
+      
 
   useEffect(() => {
     const updateHeight = () => {

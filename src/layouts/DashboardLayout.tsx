@@ -26,6 +26,7 @@ const menuItems = [
   { label: 'Profil', path: '/profile' },
   { label: 'Utilisateurs', path: '/user' },
   { label: 'Vibes', path: '/vibe' },
+  { label: 'Messages', path: '/message' },
 ];
 
 const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => {

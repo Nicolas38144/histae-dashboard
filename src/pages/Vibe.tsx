@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useVibeStore } from '../stores/vibe.store';
-import { CircularProgress, Typography, Box, Button } from '@mui/material';
+import { CircularProgress, Typography, Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import type { GridRowId } from '@mui/x-data-grid';
 import RowDialog from '../components/RowDialog';
