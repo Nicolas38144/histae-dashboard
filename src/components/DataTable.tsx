@@ -1,22 +1,8 @@
-import {
-  Box,
-  TextField,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-} from '@mui/material';
+import { Box, TextField, IconButton, Button } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { useMemo, useRef, useState, useEffect } from 'react';
-import {
-  DataGrid,
-  type GridColDef,
-  type GridRowsProp,
-  type GridRowId,
-} from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
+import type { DataTableProps } from '../types/dataTableProps.type';
 
 const getTextWidth = (text: string, font = '14px Roboto') => {
   const canvas = document.createElement('canvas');
@@ -28,28 +14,17 @@ const getTextWidth = (text: string, font = '14px Roboto') => {
   return 100;
 };
 
-type DataTableProps = {
-  columns: GridColDef[];
-  rows: GridRowsProp;
-  searchLabel?: string;
-  searchableField?: string;
-  onEdit?: (id: GridRowId, updatedRow: any) => void;
-  onDelete?: (id: GridRowId) => void;
-};
-
 const DataTable = ({
   columns,
   rows,
   searchLabel = 'Recherche',
   searchableField,
-  onEdit,
-  onDelete,
+  onRequestAdd,
+  onRequestEdit,
+  onRequestDelete,
 }: DataTableProps) => {
   const [searchText, setSearchText] = useState('');
   const [tableHeight, setTableHeight] = useState(400);
-  const [selectedId, setSelectedId] = useState<GridRowId | null>(null);
-  const [dialogType, setDialogType] = useState<'edit' | 'delete' | null>(null);
-  const [editData, setEditData] = useState<any>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   const filteredRows = useMemo(() => {
@@ -61,39 +36,6 @@ const DataTable = ({
         .includes(searchText.toLowerCase())
     );
   }, [rows, searchText, searchableField]);
-
-  const handleOpenDialog = (type: 'edit' | 'delete', id: GridRowId) => {
-    setSelectedId(id);
-    setDialogType(type);
-    if (type === 'edit') {
-      const rowToEdit = rows.find((r) => r.id === id);
-      if (rowToEdit) {
-        const { id, ...rest } = rowToEdit;
-        setEditData(rest);
-      }
-    }
-  };
-
-  const handleCloseDialog = () => {
-    setDialogType(null);
-    setSelectedId(null);
-    setEditData({});
-  };
-
-  const handleEditFieldChange = (field: string, value: string) => {
-    setEditData((prev: any) => ({ ...prev, [field]: value }));
-  };
-
-  const handleConfirm = () => {
-    if (dialogType === 'delete' && selectedId !== null && onDelete) {
-      onDelete(selectedId);
-    }
-    if (dialogType === 'edit' && selectedId !== null && onEdit) {
-      const updatedRow = { id: selectedId, ...editData };
-      onEdit(selectedId, updatedRow);
-    }
-    handleCloseDialog();
-  };
 
   const autoSizedColumns = useMemo(() => {
     const padding = 40;
@@ -121,24 +63,17 @@ const DataTable = ({
         filterable: false,
         renderCell: ({ row }) => (
           <>
-            <IconButton onClick={() => handleOpenDialog('edit', row.id)} size="small">
+            <IconButton onClick={() => onRequestEdit?.(row.id)} size="small">
               <Edit fontSize="small" />
             </IconButton>
-            <IconButton onClick={() => handleOpenDialog('delete', row.id)} size="small">
+            <IconButton onClick={() => onRequestDelete?.(row.id)} size="small">
               <Delete fontSize="small" color="error" />
             </IconButton>
           </>
         ),
       },
     ];
-  }, [columns, filteredRows]);
-
-  const firstInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (dialogType === 'edit' && firstInputRef.current) {
-      firstInputRef.current.focus();
-    }
-  }, [dialogType]);
+  }, [columns, filteredRows, onRequestEdit, onRequestDelete]);
 
   useEffect(() => {
     const updateHeight = () => {
@@ -157,14 +92,35 @@ const DataTable = ({
   return (
     <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column' }}>
       {searchableField && (
-        <TextField
-          label={searchLabel}
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <TextField
+            label={searchLabel}
+            variant="outlined"
+            size="small"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            sx={{ flex: 1, mr: 2 }}
+          />
+          {onRequestAdd && (
+            <Button
+              variant="outlined"
+              onClick={onRequestAdd}
+              sx={{
+                minWidth: 40,
+                px: 2,
+                py: 0.8,
+                color: '#9e9e9e',
+                borderColor: '#bdbdbd',
+                '&:hover': {
+                  backgroundColor: '#f0f0f0',
+                  borderColor: '#000000',
+                }
+              }}
+            >
+              +
+            </Button>
+          )}
+        </Box>
       )}
       <Box sx={{ height: tableHeight }}>
         <DataGrid
@@ -176,43 +132,6 @@ const DataTable = ({
           sx={{ width: "calc(100vw - 200px - 32px)" }}
         />
       </Box>
-
-      <Dialog open={!!dialogType} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {dialogType === "delete"
-            ? "Confirmer la suppression"
-            : "Modifier l'élément"}
-        </DialogTitle>
-        <DialogContent>
-          {dialogType === "delete" ? (
-            <Typography>Êtes-vous sûr de vouloir supprimer cet élément ?</Typography>
-          ) : (
-            <>
-              {Object.entries(editData).map(([key, value], index) => (
-                <TextField
-                  key={key}
-                  margin="dense"
-                  label={key}
-                  fullWidth
-                  value={value}
-                  inputRef={index === 0 ? firstInputRef : undefined}
-                  onChange={(e) => handleEditFieldChange(key, e.target.value)}
-                />
-              ))}
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Annuler</Button>
-          <Button
-            onClick={handleConfirm}
-            color={dialogType === "delete" ? "error" : "primary"}
-            variant="contained"
-          >
-            Confirmer
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

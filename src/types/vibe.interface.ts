@@ -1,4 +1,4 @@
 export interface IVibe {
-  id: number;
+  id: string;
   vibe: string;
 }
