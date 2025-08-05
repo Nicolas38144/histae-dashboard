@@ -11,6 +11,7 @@ interface MessageState {
   messages: IMessage[];
   loading: boolean;
   error: string | null;
+  lastFetched: number | null;
   fetchMessages: () => Promise<void>;
   addMessage: (message: string) => Promise<void>;
   editMessage: (id: string, message: string) => Promise<void>;
@@ -21,16 +22,15 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
   loading: false,
   error: null,
+  lastFetched: null,
 
   fetchMessages: async () => {
     set({ loading: true, error: null });
     try {
       const data = await getMessages();
-      set({ messages: data });
-    } catch (e) {
-      set({ error: 'Erreur lors du chargement des messages' });
-    } finally {
-      set({ loading: false });
+      set({ messages: data, loading: false, lastFetched: Date.now() });
+    } catch (err) {
+      set({ error: 'Erreur lors du chargement des publications: '+err, loading: false });
     }
   },
 
@@ -40,7 +40,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       if (created) {
         set({ messages: [...get().messages, created] });
       }
-    } catch (e) {
+    } catch (err) {
       set({ error: 'Erreur lors de la création de la message' });
     }
   },
@@ -53,7 +53,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
           messages: get().messages.map((v) => (v.id === id ? updated : v)),
         });
       }
-    } catch (e) {
+    } catch (err) {
       set({ error: 'Erreur lors de la modification de la message' });
     }
   },
@@ -62,7 +62,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     try {
       await deleteMessage(id);
       set({ messages: get().messages.filter((v) => v.id !== id) });
-    } catch (e) {
+    } catch (err) {
       set({ error: 'Erreur lors de la suppression de la message' });
     }
   },

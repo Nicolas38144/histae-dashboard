@@ -18,7 +18,6 @@ const DataTable = ({
   columns,
   rows,
   searchLabel = 'Recherche',
-  searchableField,
   onRequestAdd,
   onRequestEdit,
   onRequestDelete,
@@ -28,14 +27,17 @@ const DataTable = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const filteredRows = useMemo(() => {
-    if (!searchableField || !searchText.trim()) return rows;
+    if (!searchText.trim()) return rows;
+
     return rows.filter((row) =>
-      row[searchableField]
-        ?.toString()
-        .toLowerCase()
-        .includes(searchText.toLowerCase())
+      columns.some((col) => {
+        if (col.field === 'actions') return false;
+        const value = row[col.field];
+        return value?.toString().toLowerCase().includes(searchText.toLowerCase());
+      })
     );
-  }, [rows, searchText, searchableField]);
+  }, [rows, searchText, columns]);
+
 
   const autoSizedColumns = useMemo(() => {
     const padding = 40;
@@ -96,7 +98,7 @@ const DataTable = ({
 
   return (
     <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column' }}>
-      {searchableField && (
+      {filteredRows  && (
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <TextField
             label={searchLabel}

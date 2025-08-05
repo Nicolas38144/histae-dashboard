@@ -79,7 +79,6 @@ const Vibe = () => {
       <DataTable
         columns={columns}
         rows={vibes}
-        searchableField="vibe"
         searchLabel="Recherche de vibes"
         onRequestAdd={() => handleOpenDialog('add')}
         onRequestEdit={(id) => { handleOpenDialog('edit', id) }}
