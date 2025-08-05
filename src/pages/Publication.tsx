@@ -8,6 +8,9 @@ import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useDialog } from '../hooks/useDialog';
 import { useMemo } from 'react';
+import Loader from '../components/Loader';
+import Error from '../components/Error';
+import Title from '../components/Title';
 
 const Publication = () => {
   const { publications, loading, error, lastFetched, fetchPublications, addPublication, editPublication, removePublication } = usePublicationStore();
@@ -53,30 +56,16 @@ const Publication = () => {
     { field: 'nb_report', headerName: 'Nb de signalement' },
   ];
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (loading) { return <Loader /> }
 
-  if (error) {
-    return (
-      <Typography color="error" align="center" mt={4}>
-        {error}
-      </Typography>
-    );
-  }
+  if (error) { return <Error error={error} /> }
 
   return (
     <Box
       className="page-publication"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Typography variant="h4" align="left" gutterBottom>
-        Publications
-      </Typography>
+      <Title title='Publications' />
 
       <DataTable
         columns={columns}

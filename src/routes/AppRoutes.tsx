@@ -7,6 +7,7 @@ import User from '../pages/User';
 import ProtectedLayout from '../layouts/ProtectedLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Message from '../pages/Message';
+import Match from '../pages/Match';
 
 const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => (
   <BrowserRouter>
@@ -16,9 +17,10 @@ const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'ligh
         <Route element={<DashboardLayout toggleTheme={toggleTheme} mode={mode} />}>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/publication" element={<Publication />} />
           <Route path="/user" element={<User />} />
+          <Route path="/publication" element={<Publication />} />
           <Route path="/vibe" element={<Vibe />} />
+          <Route path="/match" element={<Match />} />
           <Route path="/message" element={<Message />} />
           <Route path="*" element={<div>404 - Page non trouvée</div>} />
         </Route>

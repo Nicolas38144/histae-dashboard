@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
 import { useMessageStore } from '../stores/message.store';
-import { CircularProgress, Typography, Box } from '@mui/material';
+import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import { formatDateFromDate } from '../utils/formatDate';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
+import Loader from '../components/Loader';
+import Error from '../components/Error';
+import Title from '../components/Title';
 
 const Message = () => {
   const { messages, loading, error, lastFetched, fetchMessages } = useMessageStore();
@@ -30,30 +33,16 @@ const Message = () => {
     { field: 'content', headerName: 'Message' },
   ];
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (loading) { return <Loader /> }
 
-  if (error) {
-    return (
-      <Typography color="error" align="center" mt={4}>
-        {error}
-      </Typography>
-    );
-  }
+  if (error) { return <Error error={error} /> }
 
   return (
     <Box
       className="page-message"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Typography variant="h4" align="left" gutterBottom>
-        Messages
-      </Typography>
+      <Title title='Messages' />
 
       <DataTable
         columns={columns}

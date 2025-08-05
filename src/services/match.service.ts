@@ -1,0 +1,55 @@
+import api from './http.service';
+import type { IMatch } from '../types/match.interface';
+
+export const getMatches = async (): Promise<IMatch[]> => {
+  try {
+    const res = await api.get('/matches');
+    const matches: IMatch[] = res.data;
+    return matches;
+  } catch (err) {
+    console.error('Erreur getMatches API:', err);
+    return [];
+  }
+};
+
+export const getMatch = async (id: string): Promise<IMatch | null> => {
+  try {
+    const res = await api.get('/matches/'+id);
+    const match: IMatch = res.data;
+    return match;
+  } catch (err) {
+    console.error('Erreur getMatch API:', err);
+    return null;
+  }
+};
+
+export const createMatch = async (idUser1: string, idUser2: string): Promise<IMatch | null> => {
+  try {
+    const res = await api.post('/matches', { idUser1, idUser2 });
+    const createdMatch: IMatch = res.data;
+    return createdMatch;
+  } catch (err) {
+    console.error('Erreur createMatch API:', err);
+    return null;
+  }
+};
+
+export const updateMatch = async (id: string, user1HasConsented: boolean, user2HasConsented: boolean, user2Wishes: boolean, user1Wishes: boolean): Promise<IMatch | null> => {
+  try {
+    const res = await api.patch('/matches/'+id, { user1HasConsented, user2HasConsented, user2Wishes, user1Wishes });
+    const updatedMatch: IMatch = res.data;
+    return updatedMatch;
+  } catch (err) {
+    console.error('Erreur updateMatch API:', err);
+    return null;
+  }
+};
+
+export const deleteMatch = async (id: string): Promise<void> => {
+  try {
+    await api.delete('/matches/'+id);
+  } catch (err) {
+    console.error('Erreur deleteMatch API:', err);
+  }
+};
+

@@ -1,80 +1,58 @@
-import { useEffect, useState } from 'react';
 import { useVibeStore } from '../stores/vibe.store';
 import { CircularProgress, Typography, Box } from '@mui/material';
 import DataTable from '../components/DataTable';
-import type { GridRowId } from '@mui/x-data-grid';
 import RowDialog from '../components/RowDialog';
+import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
+import { MAX_CACHE_DURATION } from '../utils/constants';
+import { useDialog } from '../hooks/useDialog';
+import Loader from '../components/Loader';
+import Error from '../components/Error';
+import Title from '../components/Title';
 
 const Vibe = () => {
-  const { vibes, loading, error, fetchVibes, addVibe, editVibe, removeVibe } = useVibeStore();
-  const [dialogType, setDialogType] = useState<'add' | 'edit' | 'delete' | null>(null);
-  const [editData, setEditData] = useState<any>({});
-  const [selectedId, setSelectedId] = useState<GridRowId | null>(null);
+  const { vibes, loading, error, lastFetched, fetchVibes, addVibe, editVibe, removeVibe } = useVibeStore();
 
-  useEffect(() => {
-    fetchVibes();
-  }, [fetchVibes]);
+  useAutoFetchStore({
+      lastFetched,
+      fetchFn: fetchVibes,
+      maxAge: MAX_CACHE_DURATION,
+    });
 
-  const handleOpenDialog = (type: 'add' | 'edit' | 'delete', id?: GridRowId) => {
-    setDialogType(type);
-    setSelectedId(id ?? null);
-
-    if (type === 'edit' && id) {
-      const row = vibes.find((v) => v.id === id);
-      if (row) {
-        const { id, ...rest } = row;
-        setEditData(rest);
-      }
-    } else if (type === 'add') {
-      setEditData({ vibe: '' });
-    }
-  };
-
-  const handleCloseDialog = () => {
-    setDialogType(null);
-    setSelectedId(null);
-    setEditData({});
-  };
-
-  const handleConfirm = async (id: GridRowId | null, updatedData?: any) => {
-    if (dialogType === 'add' && updatedData) {
-      await addVibe(updatedData.vibe);
-    } else if (dialogType === 'edit' && id && updatedData) {
-      await editVibe(id.toString(), updatedData.vibe);
-    } else if (dialogType === 'delete' && id) {
-      await removeVibe(id.toString());
-    }
-  };
+  const {
+      dialogType,
+      editData,
+      selectedId,
+      setEditData,
+      handleOpenDialog,
+      handleCloseDialog,
+      handleConfirm,
+    } = useDialog({
+      addFn: (data) => addVibe(data.vibe),
+      editFn: (id, data) => editVibe(id, data.vibe),
+      deleteFn: (id) => removeVibe(id),
+      getItemFn: (id) => {
+        const row = vibes.find((v) => v.id === id);
+        if (!row) return undefined;
+        return { vibe: row.vibe };
+      },
+      emptyData: { vibe: '' },
+    });
 
   const columns = [
     { field: 'id', headerName: 'ID' },
     { field: 'vibe', headerName: 'Vibe' },
   ];
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (loading) { return <Loader /> }
 
-  if (error) {
-    return (
-      <Typography color="error" align="center" mt={4}>
-        {error}
-      </Typography>
-    );
-  }
+  if (error) { return <Error error={error} /> }
 
   return (
     <Box
       className="page-vibe"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Typography variant="h4" align="left" gutterBottom>
-        Vibes
-      </Typography>
+      <Title title='Vibes' />
 
       <DataTable
         columns={columns}

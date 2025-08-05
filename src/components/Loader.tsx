@@ -1,5 +1,11 @@
+import { Box, CircularProgress } from "@mui/material";
+
 const Loader = () => {
-  return <div>Chargement...</div>;
+  return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
 };
 
 export default Loader;
