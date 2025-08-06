@@ -34,9 +34,9 @@ export const createMatch = async (idUser1: string, idUser2: string): Promise<IMa
   }
 };
 
-export const updateMatch = async (id: string, user1HasConsented: boolean, user2HasConsented: boolean, user2Wishes: boolean, user1Wishes: boolean): Promise<IMatch | null> => {
+export const updateMatch = async (id: string, user1_has_consented_to_reveal_photo: boolean, user2_has_consented_to_reveal_photo: boolean, user1_wishes_to_continue: boolean, user2_wishes_to_continue: boolean): Promise<IMatch | null> => {
   try {
-    const res = await api.patch('/matches/'+id, { user1HasConsented, user2HasConsented, user2Wishes, user1Wishes });
+    const res = await api.patch('/matches/'+id, { user1_has_consented_to_reveal_photo, user2_has_consented_to_reveal_photo, user1_wishes_to_continue, user2_wishes_to_continue });
     const updatedMatch: IMatch = res.data;
     return updatedMatch;
   } catch (err) {

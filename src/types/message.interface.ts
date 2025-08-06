@@ -3,8 +3,8 @@ export interface IMessage {
   created_at: Date;
   match_id: string;
   sender_id: string;
-  sender_firstname: string;
+  sender_info: string;
   receiver_id: string;
-  receiver_firstname: string;
+  receiver_info: string;
   content: string;
 }

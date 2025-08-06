@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useRef } from 'react';
-import type { RowDialogProps } from '../types/RowDialogProps.type';
+import type { RowDialogProps } from '../types/rowDialogProps.type';
 
 
 const RowDialog = ({

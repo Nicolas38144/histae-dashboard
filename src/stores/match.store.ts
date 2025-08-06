@@ -13,8 +13,8 @@ interface MatchState {
   error: string | null;
   lastFetched: number | null;
   fetchMatches: () => Promise<void>;
-  addMatch: (data: IMatch) => Promise<void>;
-  editMatch: (id: string, data: IMatch) => Promise<void>;
+  addMatch: (data: { user1_id: string, user2_id: string }) => Promise<void>;
+  editMatch: (updatedMatch: IMatch) => Promise<void>;
   removeMatch: (id: string) => Promise<void>;
 }
 
@@ -31,10 +31,11 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       set({ matches: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Erreur lors du chargement des matches: '+err, loading: false });
+      throw err;
     }
   },
 
-  addMatch: async (data: IMatch) => {
+  addMatch: async (data: { user1_id: string, user2_id: string }) => {
     try {
       const created = await createMatch(data.user1_id, data.user2_id);
       if (created) {
@@ -42,25 +43,27 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       }
     } catch (err) {
       set({ error: 'Erreur lors de la création du match' });
+      throw err;
     }
   },
 
-  editMatch: async (id: string, data: IMatch) => {
+  editMatch: async (updatedMatch: IMatch) => {
     try {
       const updated = await updateMatch(
-        id,
-        data.user1_has_consented_to_reveal_photo,
-        data.user2_has_consented_to_reveal_photo,
-        data.user1_wishes_to_continue,
-        data.user2_wishes_to_continue,
+        updatedMatch.id,
+        updatedMatch.user1_has_consented_to_reveal_photo,
+        updatedMatch.user2_has_consented_to_reveal_photo,
+        updatedMatch.user1_wishes_to_continue,
+        updatedMatch.user2_wishes_to_continue
       );
       if (updated) {
         set({
-          matches: get().matches.map((v) => (v.id === id ? updated : v)),
+          matches: get().matches.map((m) => (m.id === updatedMatch.id ? updated : m)),
         });
       }
     } catch (err) {
       set({ error: 'Erreur lors de la modification du match' });
+      throw err;
     }
   },
 
@@ -70,6 +73,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       set({ matches: get().matches.filter((v) => v.id !== id) });
     } catch (err) {
       set({ error: 'Erreur lors de la suppression du match' });
+      throw err;
     }
   },
 }));

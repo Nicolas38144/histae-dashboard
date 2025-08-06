@@ -1,10 +1,9 @@
-import type { GridColDef, GridRowsProp, GridRowId } from "@mui/x-data-grid";
-
-export type DataTableProps = {
-  columns: GridColDef[];
-  rows: GridRowsProp;
+export interface DataTableProps {
+  columns: { field: string; headerName: string }[];
+  rows: any[];
   searchLabel?: string;
-  onRequestAdd?: () => void;
-  onRequestEdit?: (id: GridRowId) => void;
-  onRequestDelete?: (id: GridRowId) => void;
-};
+  onRequestAdd?: (data: any) => Promise<void>;
+  onRequestEdit?: (data: any) => Promise<void>;
+  onRequestDelete?: (id: string) => Promise<void>;
+  editableFields?: string[];
+}

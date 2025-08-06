@@ -12,7 +12,7 @@ export interface IDecryptedUser {
   firstname: string;
   birthdate: Date;
   sex: string;
-  bio: string | null;
+  bio: string;
   photo: string | null;
 }
 
@@ -31,6 +31,6 @@ export interface IEncryptedUser {
   firstname: string;
   birthdate: string;
   sex: string;
-  bio: string | null;
+  bio: string;
   photo: string | null;
 }

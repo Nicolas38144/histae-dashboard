@@ -31,6 +31,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       set({ messages: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Erreur lors du chargement des messages: '+err, loading: false });
+      throw err;
     }
   },
 
@@ -42,6 +43,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       }
     } catch (err) {
       set({ error: 'Erreur lors de la création du message' });
+      throw err;
     }
   },
 
@@ -55,6 +57,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       }
     } catch (err) {
       set({ error: 'Erreur lors de la modification du message' });
+      throw err;
     }
   },
 
@@ -64,6 +67,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       set({ messages: get().messages.filter((v) => v.id !== id) });
     } catch (err) {
       set({ error: 'Erreur lors de la suppression du message' });
+      throw err;
     }
   },
 }));

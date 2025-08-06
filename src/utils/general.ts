@@ -21,3 +21,13 @@ export const formatDateFromDate = (date: Date) => {
     second: '2-digit',
   });
 };
+
+export const toBoolean = (value: any): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const lower = value.trim().toLowerCase();
+    if (lower === 'true') return true;
+    if (lower === 'false') return false;
+  }
+  return false;
+};

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useMessageStore } from '../stores/message.store';
 import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
-import { formatDateFromDate } from '../utils/formatDate';
+import { formatDateFromDate } from '../utils/general';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
@@ -28,8 +28,8 @@ const Message = () => {
   const columns = [
     { field: 'match_id', headerName: 'Match' },
     { field: 'created_at', headerName: 'Date' },
-    { field: 'sender_firstname', headerName: 'Expéditeur' },
-    { field: 'receiver_firstname', headerName: 'Destinataire' },
+    { field: 'sender_info', headerName: 'Expéditeur' },
+    { field: 'receiver_info', headerName: 'Destinataire' },
     { field: 'content', headerName: 'Message' },
   ];
 
@@ -47,7 +47,6 @@ const Message = () => {
       <DataTable
         columns={columns}
         rows={formattedMessages}
-        searchLabel="Recherche de messages"
       />
     </Box>
   );

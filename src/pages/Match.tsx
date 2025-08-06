@@ -2,18 +2,39 @@ import { useMemo } from 'react';
 import { useMatchStore } from '../stores/match.store';
 import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
-import { formatDateFromDate } from '../utils/formatDate';
+import { formatDateFromDate } from '../utils/general';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
-import RowDialog from '../components/RowDialog';
-import { useDialog } from '../hooks/useDialog';
-import type { IMatch } from '../types/match.interface';
+import { useNotification } from '../components/Notifier';
 
 const Match = () => {
-  const { matches, loading, error, lastFetched, fetchMatches, addMatch, editMatch, removeMatch } = useMatchStore();
+  const { matches, loading, error, lastFetched, fetchMatches, addMatch, removeMatch } = useMatchStore();
+  const { showNotification } = useNotification();
+
+  const handleAdd = async (data: any) => {
+    if (!data.user1_id?.trim() && !data.user2_id?.trim()) {
+      showNotification('Le champ Match est requis', 'error');
+      return;
+    }
+    try {
+      await addMatch(data);
+      showNotification('Match ajoutée avec succès', 'success');
+    } catch (err) {
+      showNotification("Erreur lors de l'ajout", 'error');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await removeMatch(id);
+      showNotification('Match supprimée', 'success');
+    } catch (err) {
+      showNotification("Erreur lors de la suppression", 'error');
+    }
+  };
 
   useAutoFetchStore({
       lastFetched,
@@ -28,38 +49,6 @@ const Match = () => {
     }));
   }, [matches]);
 
-  const {
-    dialogType,
-    editData,
-    selectedId,
-    setEditData,
-    handleOpenDialog,
-    handleCloseDialog,
-    handleConfirm,
-  } = useDialog<IMatch>({
-    addFn: (data) => addMatch(data),
-    editFn: (id, data) => editMatch(id, data),
-    deleteFn: (id) => removeMatch(id),
-    getItemFn: (id) => {
-      const match = matches.find((m) => m.id === id);
-      if (!match) return undefined;
-      return match
-    },
-    emptyData: {
-      id: '',
-      user1_id: '',
-      user2_id: '',
-      user1_info: '',
-      user2_info: '',
-      user1_has_consented_to_reveal_photo: false,
-      user2_has_consented_to_reveal_photo: false,
-      user1_wishes_to_continue: false,
-      user2_wishes_to_continue: false,
-      created_at: new Date(0),
-    },
-  });
-
-
   const columns = [
     { field: 'created_at', headerName: 'Date' },
     { field: 'user1_info', headerName: 'Utilisateur 1' },
@@ -70,6 +59,11 @@ const Match = () => {
     { field: 'user2_wishes_to_continue', headerName: 'Utilisateur 2 continue' },
   ];
 
+  const addFields = [
+    { field: 'user1_id', headerName: 'ID Utilisateur 1' },
+    { field: 'user2_id', headerName: 'ID Utilisateur 2' },
+  ]
+  
   if (loading) { return <Loader /> }
 
   if (error) { return <Error error={error} /> }
@@ -84,18 +78,10 @@ const Match = () => {
       <DataTable
         columns={columns}
         rows={formattedMatches}
-        searchLabel="Recherche de matches"
-        onRequestDelete={(id) => { handleOpenDialog('delete', id) }}
-      />
-
-      <RowDialog
-        open={!!dialogType}
-        type={dialogType!}
-        data={editData}
-        rowId={selectedId}
-        setEditData={setEditData}
-        onClose={handleCloseDialog}
-        onConfirm={handleConfirm}
+        addFields={addFields}
+        onRequestAdd={handleAdd}
+        onRequestDelete={handleDelete}
+        showAddButton={true}
       />
     </Box>
   );

@@ -13,8 +13,8 @@ interface PublicationState {
   error: string | null;
   lastFetched: number | null;
   fetchPublications: () => Promise<void>;
-  addPublication: (user_id: string, content: string) => Promise<void>;
-  editPublication: (id: string, content: string) => Promise<void>;
+  addPublication: (data: { user_id: string, content: string }) => Promise<void>;
+  editPublication: (updatedPublication: IPublication) => Promise<void>;
   removePublication: (id: string) => Promise<void>;
 }
 
@@ -31,30 +31,33 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
       set({ publications: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Erreur lors du chargement des publications: '+err, loading: false });
+      throw err;
     }
   },
 
-  addPublication: async (user_id: string, content: string) => {
+  addPublication: async (data: { user_id: string, content: string }) => {
     try {
-      const created = await createPublication(user_id, content);
+      const created = await createPublication(data.user_id, data.content);
       if (created) {
         set({ publications: [...get().publications, created] });
       }
     } catch (err) {
       set({ error: 'Erreur lors de la création de la publication' });
+      throw err;
     }
   },
 
-  editPublication: async (id: string, content: string) => {
+  editPublication: async (updatedPublication: IPublication) => {
     try {
-      const updated = await updatePublication(id, content);
+      const updated = await updatePublication(updatedPublication.id, updatedPublication.content);
       if (updated) {
         set({
-          publications: get().publications.map((v) => (v.id === id ? updated : v)),
+          publications: get().publications.map((p) => (p.id === updatedPublication.id ? updated : p)),
         });
       }
     } catch (err) {
       set({ error: 'Erreur lors de la modification de la publication' });
+      throw err;
     }
   },
 
@@ -64,6 +67,7 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
       set({ publications: get().publications.filter((v) => v.id !== id) });
     } catch (err) {
       set({ error: 'Erreur lors de la suppression de la publication' });
+      throw err;
     }
   },
 }));
