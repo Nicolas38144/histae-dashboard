@@ -67,7 +67,7 @@ const User = () => {
   const columns = [
     { field: 'role', headerName: 'Rôle' },
     { field: 'phone_number', headerName: 'Tél.' },
-    { field: 'email_backup', headerName: 'email' },
+    { field: 'email', headerName: 'email' },
     { field: 'created_at', headerName: 'Date création' },
     { field: 'is_banned', headerName: 'Banni ?' },
     { field: 'nb_reports', headerName: 'Nb de signalement' },

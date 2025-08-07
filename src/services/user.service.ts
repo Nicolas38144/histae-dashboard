@@ -23,9 +23,9 @@ export const getUser = async (id: string): Promise<IUser | null> => {
   }
 };
 
-export const createUser = async (phone_number: string, email_backup: string, firstname: string, birthdate: Date, sex: string, bio: string): Promise<IUser | null> => {
+export const createUser = async (phone_number: string, email: string, firstname: string, birthdate: Date, sex: string, bio: string): Promise<IUser | null> => {
   try {
-    const res = await api.post('/auth/register', { phone_number, email_backup, firstname, birthdate, sex, bio });
+    const res = await api.post('/auth/register', { phone_number, email, firstname, birthdate, sex, bio });
     const createdUser: IUser = res.data;
     return createdUser;
   } catch (err) {

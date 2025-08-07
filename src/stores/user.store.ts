@@ -39,7 +39,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const created = await createUser(
         user.phone_number,
-				user.email_backup,
+				user.email,
 				user.firstname,
 				user.birthdate,
 				user.sex,

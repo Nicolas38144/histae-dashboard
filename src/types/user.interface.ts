@@ -2,7 +2,8 @@ export interface IDecryptedUser {
   id: string;
   role: string;
   phone_number: string;
-  email_backup: string;
+  email: string;
+  password: string;
   created_at: Date;
   is_banned: boolean;
   nb_reports: number;
@@ -21,7 +22,8 @@ export interface IEncryptedUser {
   role: string;
   phone_number: string;
   phone_number_hash: string;
-  email_backup: string;
+  email: string;
+  password: string;
   created_at: Date;
   is_banned: boolean;
   nb_reports: number;

@@ -1,9 +1,9 @@
 import api from './http.service';
 import { AUTH_KEY, USER_KEY } from '../utils/constants';
 
-export const login = async (phone_number: string): Promise<boolean> => {
+export const login = async (phone_number: string, password: string): Promise<boolean> => {
   try {
-    const { data } = await api.post('/auth/login', { phone_number });    
+    const { data } = await api.post('/auth/login', { phone_number, password });    
     localStorage.setItem(AUTH_KEY, data.accessToken);
     localStorage.setItem(USER_KEY, data.user.id);
     return true;
