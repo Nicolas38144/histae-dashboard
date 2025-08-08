@@ -31,3 +31,10 @@ export const toBoolean = (value: any): boolean => {
   }
   return false;
 };
+
+export const getDaysSinceStartOfYear = (): number => {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const diffInMs = now.getTime() - startOfYear.getTime();
+  return Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+}

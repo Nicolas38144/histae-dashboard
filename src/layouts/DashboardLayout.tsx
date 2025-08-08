@@ -39,7 +39,7 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box  sx={{ display: 'flex', justifyContent: 'center' }}>
       <CssBaseline />
 
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>

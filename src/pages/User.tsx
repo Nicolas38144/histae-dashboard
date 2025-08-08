@@ -14,9 +14,7 @@ const User = () => {
   const { users, loading, error, lastFetched, fetchUsers, editUser, removeUser } = useUserStore();
   const { showNotification } = useNotification();
 
-  const handleEdit = async (data: any) => {
-    console.log(data);
-    
+  const handleEdit = async (data: any) => {    
     if (
       !data.role?.trim() && 
       !data.is_banned?.trim() && 
