@@ -3,16 +3,17 @@ import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import { MAX_CACHE_DURATION } from '../utils/constants';
+import PeriodToggle, { periods } from '../components/PeriodToggle';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { formatDateFromDate } from '../utils/general';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
 
 const User = () => {
-  const { users, loading, error, lastFetched, fetchUsers, editUser, removeUser } = useUserStore();
+  const { users, loading, error, lastFetched, fetchUsers, editUser, removeUser, periodTitle, setPeriodTitle, } = useUserStore();
   const { showNotification } = useNotification();
 
   const handleEdit = async (data: any) => {    
@@ -46,10 +47,16 @@ const User = () => {
     }
   };
 
+   const fetchFn = useCallback(async () => {
+      await fetchUsers(periods[periodTitle].days);
+    }, [users, periodTitle]);
+
   useAutoFetchStore({
     lastFetched,
-    fetchFn: fetchUsers,
+    fetchFn,
     maxAge: MAX_CACHE_DURATION,
+    deps: [periodTitle],
+    persistKey: 'user:metrics:period',
   });
 
   const formattedUsers = useMemo(() => {
@@ -92,6 +99,8 @@ const User = () => {
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
       <Title title={t("userPage.title")} />
+
+      <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
       <DataTable
         columns={columns}

@@ -6,16 +6,20 @@ import {
   deleteUser,
 } from '../services/user.service';
 import type { IDecryptedUser as IUser } from '../types/user.interface';
+import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface UserState {
   users: IUser[];
   loading: boolean;
   error: string | null;
   lastFetched: number | null;
-  fetchUsers: () => Promise<void>;
+  fetchUsers: (period: number) => Promise<void>;
   addUser: (user: IUser) => Promise<void>;
   editUser: (user: IUser) => Promise<void>;
   removeUser: (id: string) => Promise<void>;
+	
+  periodTitle: PeriodTitle;
+  setPeriodTitle: (period: PeriodTitle) => void;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -24,10 +28,13 @@ export const useUserStore = create<UserState>((set, get) => ({
   error: null,
   lastFetched: null,
 
-  fetchUsers: async () => {
+  periodTitle: 'last7days',
+  setPeriodTitle: (period) => set({ periodTitle: period }),
+
+  fetchUsers: async (period: number) => {
     set({ loading: true, error: null });
     try {
-      const data = await getUsers();
+      const data = await getUsers(period);
       set({ users: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Error loading users: '+err, loading: false });

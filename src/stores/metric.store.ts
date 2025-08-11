@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { getChartData, getSizeDatabase } from '../services/metric.service';
 import type { IChartData, ISizeDatabase } from '../types/metric.interface';
+import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface MetricState {
   sizeDB: ISizeDatabase | null;
@@ -10,6 +11,10 @@ interface MetricState {
   error: string | null;
   lastFetchedSizeDB: number | null;
   lastFetchedChartData: number | null;
+
+  periodTitle: PeriodTitle;
+  setPeriodTitle: (period: PeriodTitle) => void;
+  
   fetchSizeDatabase: (period: number) => Promise<void>;
   fetchChartData: (period: number) => Promise<void>;
 }
@@ -23,6 +28,9 @@ export const useMetricStore = create<MetricState>((set) => ({
   lastFetchedSizeDB: null,
   lastFetchedChartData: null,
 
+  periodTitle: 'last7days',
+  setPeriodTitle: (period) => set({ periodTitle: period }),
+  
   fetchSizeDatabase: async (period: number) => {
     set({ loadingSizeDB: true, error: null });
     try {

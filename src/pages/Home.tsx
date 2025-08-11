@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useMetricStore } from '../stores/metric.store';
 import { MAX_CACHE_DURATION, TITLE } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
@@ -8,11 +8,9 @@ import Title from '../components/Title';
 import { Box, Paper, Typography } from '@mui/material';
 import PeriodToggle, { periods } from '../components/PeriodToggle';
 import ChartWithToggle from '../components/ChartWithToggle';
-import type { PeriodTitle } from '../types/dataTableProps.type';
 import { t } from 'i18next';
 
 const Home = () => {
-  const [periodTitle, setPeriodTitle] = useState<PeriodTitle>('last7days');
   const {
     sizeDB,
     chartData,
@@ -23,24 +21,21 @@ const Home = () => {
     lastFetchedChartData,
     fetchSizeDatabase,
     fetchChartData,
+    periodTitle,
+    setPeriodTitle,
   } = useMetricStore();
 
-  const fetchFn = useCallback(() => {
-    return fetchSizeDatabase(periods[periodTitle].days);
-  }, [fetchSizeDatabase, periodTitle]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchFn();
-      await fetchChartData(periods[periodTitle].days);
-    };
-    fetchData();
-  }, [fetchFn, fetchChartData, periodTitle]);
+  const fetchFn = useCallback(async () => {
+    await fetchSizeDatabase(periods[periodTitle].days);
+    await fetchChartData(periods[periodTitle].days);
+  }, [fetchSizeDatabase, fetchChartData, periodTitle]);
 
   useAutoFetchStore({
     lastFetched: Math.max(lastFetchedSizeDB || 0, lastFetchedChartData || 0),
     fetchFn,
     maxAge: MAX_CACHE_DURATION,
+    deps: [periodTitle],
+    persistKey: 'home:metrics:period',
   });
 
   const metrics = sizeDB
