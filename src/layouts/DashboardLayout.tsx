@@ -18,16 +18,17 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { logout } from '../services/auth.service';
+import { t } from 'i18next';
 
 const drawerWidth = 200;
 
 const menuItems = [
-  { label: 'Accueil', path: '/' },
-  { label: 'Utilisateurs', path: '/user' },
-  { label: 'Publications', path: '/publication' },
-  { label: 'Vibes', path: '/vibe' },
-  { label: 'Matches', path: '/match' },
-  { label: 'Messages', path: '/message' },
+  { label: "Home", path: '/' },
+  { label:"Users", path: '/user' },
+  { label: "Publications", path: '/publication' },
+  { label: "Vibes", path: '/vibe' },
+  { label: "Matches", path: '/match' },
+  { label: "Messages", path: '/message' },
 ];
 
 const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => {
@@ -45,7 +46,7 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
         <Toolbar>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Dashboard Viboa
+            {t("dashboard.title")}
           </Typography>
           <IconButton color="inherit" onClick={toggleTheme}>
             {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -84,7 +85,7 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
         <Box sx={{ p: 2 }}>
             <ListItemButton onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 1 }} />
-              <ListItemText primary="Déconnexion" />
+              <ListItemText primary={t("dashboard.logout")} />
             </ListItemButton>
         </Box>
       </Drawer>

@@ -8,13 +8,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNotification } from './Notifier';
-
-interface AddDialogFormProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (data: Record<string, any>) => void | Promise<void>;
-  fields: { field: string; headerName: string }[];
-}
+import { t } from 'i18next';
+import type { AddDialogFormProps } from '../types/dataTableProps.type';
 
 const AddDialogForm = ({ open, onClose, onSubmit, fields }: AddDialogFormProps) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -28,23 +23,23 @@ const AddDialogForm = ({ open, onClose, onSubmit, fields }: AddDialogFormProps) 
     const emptyField = fields.find(({ field }) => !formData[field]?.trim());
 
     if (emptyField) {
-      showNotification(`Le champ "${emptyField.headerName}" est requis`, 'error');
+      showNotification(`${t("notifications.field")} ${emptyField.headerName} ${t("notifications.field")}`, 'error');
       return;
     }
 
     try {
       await onSubmit(formData);
-      showNotification('Ajout réussi', 'success');
+      showNotification(t("notifications.successAdding"), 'success');
       setFormData({});
       onClose();
     } catch (err) {
-      showNotification("Erreur lors de l'ajout", 'error');
+      showNotification(t("notifications.errorAdding"), 'error');
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Ajouter une entrée</DialogTitle>
+      <DialogTitle>{t("addDialogForm.title")}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {fields.map(({ field, headerName }) => (
           <TextField
@@ -58,13 +53,13 @@ const AddDialogForm = ({ open, onClose, onSubmit, fields }: AddDialogFormProps) 
         ))}
       </DialogContent>
       <DialogActions sx={{ display: 'flex', justifyContent: 'center', gap: 5}}>
-        <Button onClick={onClose}>Annuler</Button>
+        <Button onClick={onClose}>{t("addDialogForm.cancel")}</Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
           disabled={fields.some(({ field }) => !formData[field]?.trim())}
         >
-          Ajouter
+          {t("addDialogForm.add")}
         </Button>
       </DialogActions>
     </Dialog>

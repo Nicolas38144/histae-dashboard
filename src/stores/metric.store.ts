@@ -29,7 +29,7 @@ export const useMetricStore = create<MetricState>((set) => ({
       const data = await getSizeDatabase(period);
       set({ sizeDB: data, loadingSizeDB: false, lastFetchedSizeDB: Date.now() });
     } catch (err) {
-      set({ error: 'Erreur lors du chargement des métriques: ' + err, loadingSizeDB: false });
+      set({ error: 'Error loading metrics: ' + err, loadingSizeDB: false });
       throw err;
     }
   },
@@ -40,7 +40,7 @@ export const useMetricStore = create<MetricState>((set) => ({
       const data = await getChartData(period);
       set({ chartData: data, loadingChartData: false, lastFetchedChartData: Date.now() });
     } catch (err) {
-      set({ error: 'Erreur lors du chargement des métriques: ' + err, loadingChartData: false });
+      set({ error: 'Error loading metrics: ' + err, loadingChartData: false });
       throw err;
     }
   },

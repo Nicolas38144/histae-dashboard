@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useMetricStore } from '../stores/metric.store';
-import { MAX_CACHE_DURATION } from '../utils/constants';
+import { MAX_CACHE_DURATION, TITLE } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
 import { Box, Paper, Typography } from '@mui/material';
-import PeriodToggle, { type PeriodTitle, periods } from '../components/PeriodToggle';
+import PeriodToggle, { periods } from '../components/PeriodToggle';
 import ChartWithToggle from '../components/ChartWithToggle';
+import type { PeriodTitle } from '../types/dataTableProps.type';
+import { t } from 'i18next';
 
 const Home = () => {
   const [periodTitle, setPeriodTitle] = useState<PeriodTitle>('last7days');
@@ -43,27 +45,21 @@ const Home = () => {
 
   const metrics = sizeDB
     ? [
-        { label: 'Likes', value: sizeDB.nb_like },
-        { label: 'Matches', value: sizeDB.nb_match },
-        { label: 'Match Reports', value: sizeDB.nb_match_report },
-        { label: 'Messages', value: sizeDB.nb_message },
-        { label: 'Publications', value: sizeDB.nb_publication },
-        { label: 'Publication Reports', value: sizeDB.nb_publication_report },
-        { label: 'Users', value: sizeDB.nb_user },
+        { label: t("homePage.likes"), value: sizeDB.nb_like },
+        { label: t("homePage.matchesCreated"), value: sizeDB.nb_match },
+        { label: t("homePage.matchesNotContinued"), value: sizeDB.nb_match_not_continued },
+        { label: t("homePage.matchesContinued"), value: sizeDB.nb_match_continued },
+        { label: t("homePage.matchReports"), value: sizeDB.nb_match_report },
+        { label: t("homePage.messages"), value: sizeDB.nb_message },
+        { label: t("homePage.publications"), value: sizeDB.nb_publication },
+        { label: t("homePage.publicationReports"), value: sizeDB.nb_publication_report },
+        { label: t("homePage.users"), value: sizeDB.nb_user },
       ]
     : [];
 
-	const title = {
-			today: "aujourd'hui",
-			last7days: "les 7 derniers jours",
-			lastmonth: "les 30 derniers jours",
-			thisyear: "cette année",
-			last12months: "les 12 derniers mois"
-	};
-
   return (
     <Box className="page-match" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Title title="Accueil" />
+      <Title title={t("homePage.title")} />
 
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
@@ -86,7 +82,7 @@ const Home = () => {
             </Paper>
           ))}
 	
-          {chartData && chartData.length > 0 && <ChartWithToggle data={chartData} title={title[periodTitle]} />}
+          {chartData && chartData.length > 0 && <ChartWithToggle data={chartData} title={TITLE[periodTitle]} />}
         </Box>
       )}
     </Box>

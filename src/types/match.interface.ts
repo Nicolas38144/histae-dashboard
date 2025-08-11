@@ -10,8 +10,3 @@ export interface IMatch {
   user2_wishes_to_continue: boolean;
   created_at: Date;
 }
-
-
-//todo
-
-// mettre numéro de tél dans écran message

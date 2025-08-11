@@ -7,6 +7,7 @@ import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
 import { useNotification } from '../components/Notifier';
+import { t } from 'i18next';
 
 const Vibe = () => {
   const { vibes, loading, error, lastFetched, fetchVibes, addVibe, editVibe, removeVibe } = useVibeStore();
@@ -14,36 +15,36 @@ const Vibe = () => {
 
   const handleAdd = async (data: any) => {
     if (!data.vibe?.trim()) {
-      showNotification('Le champ Vibe est requis', 'error');
+      showNotification(t("notifications.requiredFields"), 'error');
       return;
     }
     try {
       await addVibe(data);
-      showNotification('Vibe ajoutée avec succès', 'success');
+      showNotification(t("notifications.vibeAdded"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de l'ajout", 'error');
+      showNotification(t("notifications.errorAdding"), 'error');
     }
   };
 
   const handleEdit = async (data: any) => {
     if (!data.vibe?.trim()) {
-      showNotification('Le champ Vibe est requis', 'error');
+      showNotification(t("notifications.requiredFields"), 'error');
       return;
     }
     try {
       await editVibe(data);
-      showNotification('Vibe modifiée', 'success');
+      showNotification(t("notifications.vibeEdited"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de la modification", 'error');
+      showNotification(t("notifications.errorEditing"), 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await removeVibe(id);
-      showNotification('Vibe supprimée', 'success');
+      showNotification(t("notifications.vibeDeleted"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de la suppression", 'error');
+      showNotification(t("notifications.errorDeleting"), 'error');
     }
   };
 
@@ -54,14 +55,14 @@ const Vibe = () => {
   });
 
   const columns = [
-    { field: 'id', headerName: 'ID' },
-    { field: 'vibe', headerName: 'Vibe' },
+    { field: 'id', headerName: t("vibePage.id") },
+    { field: 'vibe', headerName: t("vibePage.vibe") },
   ];
 
   const editableFields = ['vibe'];
 
   const addFields = [
-    { field: 'vibe', headerName: 'Vibe' },
+    { field: 'vibe', headerName: t("vibePage.vibe") },
   ];
 
   if (loading) return <Loader />;
@@ -69,7 +70,7 @@ const Vibe = () => {
 
   return (
     <Box className="page-vibe" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Title title="Vibes" />
+      <Title title={t("vibePage.title")} />
 
       <DataTable
         columns={columns}

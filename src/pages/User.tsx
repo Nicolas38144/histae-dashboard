@@ -9,6 +9,7 @@ import Title from '../components/Title';
 import { useMemo } from 'react';
 import { formatDateFromDate } from '../utils/general';
 import { useNotification } from '../components/Notifier';
+import { t } from 'i18next';
 
 const User = () => {
   const { users, loading, error, lastFetched, fetchUsers, editUser, removeUser } = useUserStore();
@@ -25,23 +26,23 @@ const User = () => {
       !data.bio?.trim() && 
       !data.photo?.trim()
     ) {
-      showNotification('Les champs sont requis', 'error');
+      showNotification(t("notifications.requiredFields"), 'error');
       return;
     }
     try {
       await editUser(data);
-      showNotification('Utilisateur ajoutée avec succès', 'success');
+      showNotification(t("notifications.userAdded"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de l'ajout", 'error');
+      showNotification(t("notifications.errorAdding"), 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await removeUser(id);
-      showNotification('Utilisateur supprimée', 'success');
+      showNotification(t("notifications.userDeleted"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de la suppression", 'error');
+      showNotification(t("notifications.errorDeleting"), 'error');
     }
   };
 
@@ -63,20 +64,20 @@ const User = () => {
     }, [users]);
 
   const columns = [
-    { field: 'role', headerName: 'Rôle' },
-    { field: 'phone_number', headerName: 'Tél.' },
-    { field: 'email', headerName: 'email' },
-    { field: 'created_at', headerName: 'Date création' },
-    { field: 'is_banned', headerName: 'Banni ?' },
-    { field: 'nb_reports', headerName: 'Nb de signalement' },
-    { field: 'last_active_at', headerName: 'Dernière connexion' },
-    { field: 'last_coords_lat', headerName: 'Dernière lat' },
-    { field: 'last_coords_lon', headerName: 'Dernière lon' },
-    { field: 'firstname', headerName: 'Prénom' },
-    { field: 'birthdate', headerName: 'Date naissance' },
-    { field: 'sex', headerName: 'Sexe' },
-    { field: 'bio', headerName: 'Bio' },
-    { field: 'photo', headerName: 'Photo' },
+    { field: 'role', headerName: t("userPage.role") },
+    { field: 'phone_number', headerName: t("userPage.phone") },
+    { field: 'email', headerName: t("userPage.email") },
+    { field: 'created_at', headerName: t("userPage.created") },
+    { field: 'is_banned', headerName: t("userPage.isBanned") },
+    { field: 'nb_reports', headerName: t("userPage.nbReport") },
+    { field: 'last_active_at', headerName: t("userPage.lastActiveAt") },
+    { field: 'last_coords_lat', headerName: t("userPage.lastCoordsLat") },
+    { field: 'last_coords_lon', headerName: t("userPage.lastCoordsLon") },
+    { field: 'firstname', headerName: t("userPage.firstname") },
+    { field: 'birthdate', headerName: t("userPage.birthdate") },
+    { field: 'sex', headerName: t("userPage.sex") },
+    { field: 'bio', headerName: t("userPage.bio") },
+    { field: 'photo', headerName: t("userPage.photo") },
   ];
 
   const editableFields = ['role','is_banned','nb_reports','firstname','birthdate','sex','bio','photo']
@@ -90,7 +91,7 @@ const User = () => {
       className="page-user"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title='Users' />
+      <Title title={t("userPage.title")} />
 
       <DataTable
         columns={columns}

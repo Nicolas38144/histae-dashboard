@@ -6,6 +6,7 @@ import type { DataTableProps } from '../types/dataTableProps.type';
 import ConfirmDialog from './ConfirmDialog';
 import AddDialogForm from './AddDialogForm';
 import { useNotification } from '../components/Notifier';
+import { t } from 'i18next';
 
 const getTextWidth = (text: string, font = '14px Roboto') => {
   const canvas = document.createElement('canvas');
@@ -20,7 +21,7 @@ const getTextWidth = (text: string, font = '14px Roboto') => {
 const DataTable = ({
   columns,
   rows,
-  searchLabel = 'Recherche',
+  searchLabel = t("dataTable.research"),
   onRequestAdd,
   onRequestEdit,
   onRequestDelete,
@@ -73,7 +74,7 @@ const DataTable = ({
       ...(onRequestDelete
         ? [{
             field: 'actions',
-            headerName: 'Actions',
+            headerName: t("dataTable.actions"),
             width: 100,
             sortable: false,
             filterable: false,
@@ -99,8 +100,8 @@ const DataTable = ({
     for (const field of editableFields) {
       const value = newRow[field];
       if (value === undefined || value === null || String(value).trim() === '') {
-        showNotification(`Le champ ne peut pas être vide.`, 'error');
-        throw new Error(`Le champ "${field}" ne peut pas être vide.`);
+        showNotification(t("notifications.requiredField"), 'error');
+        throw new Error(`Field cannot be empty.`);
       }
     }
     if (onRequestEdit && newRow !== oldRow) {
@@ -140,7 +141,7 @@ const DataTable = ({
             startIcon={<Add />}
             onClick={() => setOpenAddDialog(true)}
           >
-            Ajouter
+            {t("dataTable.add")}
           </Button>
         )}
       </Box>
@@ -168,8 +169,8 @@ const DataTable = ({
 
       {onRequestDelete && <ConfirmDialog
         open={deleteConfirmOpen}
-        title="Confirmer la suppression"
-        message="Voulez-vous vraiment supprimer cette entrée ?"
+        title = {t("dataTable.title")}
+        message ={t("dataTable.message")}
         onCancel={() => {
           setDeleteConfirmOpen(false);
           setRowToDelete(null);

@@ -7,7 +7,7 @@ export const getPublications = async (): Promise<IPublication[]> => {
     const publications: IPublication[] = res.data;
     return publications;
   } catch (err) {
-    console.error('Erreur getPublications API:', err);
+    console.error('Error getPublications API:', err);
     return [];
   }
 };
@@ -18,7 +18,7 @@ export const getPublication = async (idPublication: string): Promise<IPublicatio
     const publication: IPublication = res.data;
     return publication;
   } catch (err) {
-    console.error('Erreur getPublication API:', err);
+    console.error('Error getPublication API:', err);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const createPublication = async (user_id: string, content: string): Promi
     const createdPublication: IPublication = res.data;
     return createdPublication;
   } catch (err) {
-    console.error('Erreur createPublication API:', err);
+    console.error('Error createPublication API:', err);
     return null;
   }
 };
@@ -40,7 +40,7 @@ export const updatePublication = async (idPublication: string, publication: stri
     const updatedPublication: IPublication = res.data;
     return updatedPublication;
   } catch (err) {
-    console.error('Erreur updatePublication API:', err);
+    console.error('Error updatePublication API:', err);
     return null;
   }
 };
@@ -49,6 +49,6 @@ export const deletePublication = async (idPublication: string): Promise<void> =>
   try {
     await api.delete('/publications/'+idPublication);
   } catch (err) {
-    console.error('Erreur deletePublication API:', err);
+    console.error('Error deletePublication API:', err);
   }
 };

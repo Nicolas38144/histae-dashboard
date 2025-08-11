@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { login } from '../services/auth.service';
 import { useNotification } from '../components/Notifier';
+import { t } from 'i18next';
 
 const Login = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -21,7 +22,7 @@ const Login = () => {
     e.preventDefault();
 
     if (!phoneNumber || !password) {
-      showNotification('Champs requis', 'error');
+      showNotification(t("notifications.requiredFields"), 'error');
       return;
     }
 
@@ -30,7 +31,7 @@ const Login = () => {
     if (success) {
       navigate('/home');
     } else {
-      showNotification('Échec de la connexion: Email et/ou mot de passe incorrect', 'error');
+      showNotification(t("notifications.loginFailed"), 'error');
     }
   };
 
@@ -38,13 +39,13 @@ const Login = () => {
     <Container maxWidth="sm">
       <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Connexion
+          {t("loginPage.title")}
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             fullWidth
-            label="Téléphone"
-            type="Tél."
+            label={t("loginPage.phoneLabel")}
+            type="tel"
             variant="outlined"
             margin="normal"
             value={phoneNumber}
@@ -53,7 +54,7 @@ const Login = () => {
           />
           <TextField
             fullWidth
-            label="Password"
+            label={t("loginPage.passwordLabel")}
             type="password"
             variant="outlined"
             margin="normal"
@@ -68,7 +69,7 @@ const Login = () => {
             color="primary"
             sx={{ mt: 2 }}
           >
-            Se connecter
+            {t("loginPage.button")}
           </Button>
         </Box>
       </Paper>

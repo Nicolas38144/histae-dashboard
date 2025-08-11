@@ -7,7 +7,7 @@ export const getMessages = async (): Promise<IMessage[]> => {
     const messages: IMessage[] = res.data;
     return messages;
   } catch (err) {
-    console.error('Erreur getMessages API:', err);
+    console.error('Error getMessages API:', err);
     return [];
   }
 };
@@ -18,7 +18,7 @@ export const getMessage = async (idMessage: string): Promise<IMessage | null> =>
     const message: IMessage = res.data;
     return message;
   } catch (err) {
-    console.error('Erreur getMessage API:', err);
+    console.error('Error getMessage API:', err);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const createMessage = async (message: string): Promise<IMessage | null> =
     const createdMessage: IMessage = res.data;
     return createdMessage;
   } catch (err) {
-    console.error('Erreur createMessage API:', err);
+    console.error('Error createMessage API:', err);
     return null;
   }
 };
@@ -40,7 +40,7 @@ export const updateMessage = async (idMessage: string, message: string): Promise
     const updatedMessage: IMessage = res.data;
     return updatedMessage;
   } catch (err) {
-    console.error('Erreur updateMessage API:', err);
+    console.error('Error updateMessage API:', err);
     return null;
   }
 };
@@ -49,6 +49,6 @@ export const deleteMessage = async (idMessage: string): Promise<void> => {
   try {
     await api.delete('/messages/'+idMessage);
   } catch (err) {
-    console.error('Erreur deleteMessage API:', err);
+    console.error('Error deleteMessage API:', err);
   }
 };

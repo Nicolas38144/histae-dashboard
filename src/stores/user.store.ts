@@ -30,7 +30,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       const data = await getUsers();
       set({ users: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
-      set({ error: 'Erreur lors du chargement des users: '+err, loading: false });
+      set({ error: 'Error loading users: '+err, loading: false });
       throw err;
     }
   },
@@ -49,7 +49,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ users: [...get().users, created] });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la création du user' });
+      set({ error: 'Error creating user' });
       throw err;
     }
   },
@@ -63,7 +63,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la modification du user' });
+      set({ error: 'Error while editing user' });
       throw err;
     }
   },
@@ -73,7 +73,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await deleteUser(id);
       set({ users: get().users.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Erreur lors de la suppression du user' });
+      set({ error: 'Error deleting user' });
       throw err;
     }
   },

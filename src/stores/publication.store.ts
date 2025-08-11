@@ -30,7 +30,7 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
       const data = await getPublications();
       set({ publications: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
-      set({ error: 'Erreur lors du chargement des publications: '+err, loading: false });
+      set({ error: 'Error loading publications: '+err, loading: false });
       throw err;
     }
   },
@@ -42,7 +42,7 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
         set({ publications: [...get().publications, created] });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la création de la publication' });
+      set({ error: 'Error creating publication' });
       throw err;
     }
   },
@@ -56,7 +56,7 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la modification de la publication' });
+      set({ error: 'Error while editing publication' });
       throw err;
     }
   },
@@ -66,7 +66,7 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
       await deletePublication(id);
       set({ publications: get().publications.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Erreur lors de la suppression de la publication' });
+      set({ error: 'Error deleting publication' });
       throw err;
     }
   },

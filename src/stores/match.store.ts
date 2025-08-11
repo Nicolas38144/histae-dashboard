@@ -30,7 +30,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       const data = await getMatches();
       set({ matches: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
-      set({ error: 'Erreur lors du chargement des matches: '+err, loading: false });
+      set({ error: 'Error loading matches: '+err, loading: false });
       throw err;
     }
   },
@@ -42,7 +42,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         set({ matches: [...get().matches, created] });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la création du match' });
+      set({ error: 'Error creating match' });
       throw err;
     }
   },
@@ -62,7 +62,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la modification du match' });
+      set({ error: 'Error while editing match' });
       throw err;
     }
   },
@@ -72,7 +72,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       await deleteMatch(id);
       set({ matches: get().matches.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Erreur lors de la suppression du match' });
+      set({ error: 'Error deleting match' });
       throw err;
     }
   },

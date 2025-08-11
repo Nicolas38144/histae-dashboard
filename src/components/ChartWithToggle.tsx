@@ -4,10 +4,13 @@ import {
 } from 'recharts';
 import { Box, FormControlLabel, Checkbox, FormGroup, Typography } from '@mui/material';
 import type { IChartData } from '../types/metric.interface';
+import { t } from 'i18next';
 
 type MetricKey =
   | 'nb_like'
   | 'nb_match'
+  | 'nb_match_not_continued'
+  | 'nb_match_continued'
   | 'nb_match_report'
   | 'nb_message'
   | 'nb_publication'
@@ -22,6 +25,8 @@ type Props = {
 const COLORS: Record<MetricKey, string> = {
   nb_like: '#8884d8',
   nb_match: '#82ca9d',
+  nb_match_not_continued: '#82ca9d',
+  nb_match_continued: '#82ca9d',
   nb_match_report: '#ffc658',
   nb_message: '#ff7300',
   nb_publication: '#0088fe',
@@ -31,7 +36,9 @@ const COLORS: Record<MetricKey, string> = {
 
 const LABELS: Record<MetricKey, string> = {
   nb_like: 'Likes',
-  nb_match: 'Matches',
+  nb_match: 'Matchs créés',
+  nb_match_not_continued: 'Matchs non continués',
+  nb_match_continued: 'Matchs continués',
   nb_match_report: 'Match Reports',
   nb_message: 'Messages',
   nb_publication: 'Publications',
@@ -42,7 +49,7 @@ const LABELS: Record<MetricKey, string> = {
 const ChartWithToggle = ({ data, title }: Props) => {
   if (!data || data.length === 0) {
     return <Typography variant="body1" sx={{ textAlign: 'center', mt: 40 }}>
-      Pas de données disponibles pour le graphique.
+      {t("chartWithToggle.noData")}
     </Typography>;
   }  const allKeys = Object.keys(data[0]).filter(k => k !== 'day') as MetricKey[];
 
@@ -57,7 +64,7 @@ const ChartWithToggle = ({ data, title }: Props) => {
   return (
     <Box sx={{ width: '100%', height: 400, mt: 6 }}>
       <Typography variant="h6" textAlign='center'>
-        Statistiques pour {title}
+        {t("chartWithToggle.statistics")} {title}
       </Typography>
 
       <ResponsiveContainer width="100%" height="100%">

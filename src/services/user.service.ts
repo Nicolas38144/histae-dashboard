@@ -7,7 +7,7 @@ export const getUsers = async (): Promise<IUser[]> => {
     const users: IUser[] = res.data;
     return users;
   } catch (err) {
-    console.error('Erreur logout API:', err);
+    console.error('Error logout API:', err);
     return [];
   }
 };
@@ -18,7 +18,7 @@ export const getUser = async (id: string): Promise<IUser | null> => {
     const user: IUser = res.data;
     return user;
   } catch (err) {
-    console.error('Erreur getUser API:', err);
+    console.error('Error getUser API:', err);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const createUser = async (phone_number: string, email: string, firstname:
     const createdUser: IUser = res.data;
     return createdUser;
   } catch (err) {
-    console.error('Erreur createUser API:', err);
+    console.error('Error createUser API:', err);
     return null;
   }
 };
@@ -40,7 +40,7 @@ export const updateUser = async (id: string, user: IUser): Promise<IUser | null>
     const updatedUser: IUser = res.data;
     return updatedUser;
   } catch (err) {
-    console.error('Erreur updateUser API:', err);
+    console.error('Error updateUser API:', err);
     return null;
   }
 };
@@ -49,6 +49,6 @@ export const deleteUser = async (id: string): Promise<void> => {
   try {
     await api.delete('/users/'+id);
   } catch (err) {
-    console.error('Erreur deleteUser API:', err);
+    console.error('Error deleteUser API:', err);
   }
 };

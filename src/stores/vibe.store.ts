@@ -30,7 +30,7 @@ export const useVibeStore = create<VibeState>((set, get) => ({
       const data = await getVibes();
       set({ vibes: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
-      set({ error: 'Erreur lors du chargement des publications: '+err, loading: false });
+      set({ error: 'Error loading publications: '+err, loading: false });
       throw err;
     }
   },
@@ -42,7 +42,7 @@ export const useVibeStore = create<VibeState>((set, get) => ({
         set({ vibes: [...get().vibes, created] });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la création de la vibe' });
+      set({ error: 'Error creating vibe' });
       throw err;
     }
   },
@@ -56,7 +56,7 @@ export const useVibeStore = create<VibeState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Erreur lors de la modification de la vibe' });
+      set({ error: 'Error while editing vibe' });
       throw err;
     }
   },
@@ -66,7 +66,7 @@ export const useVibeStore = create<VibeState>((set, get) => ({
       await deleteVibe(id);
       set({ vibes: get().vibes.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Erreur lors de la suppression de la vibe' });
+      set({ error: 'Error deleting vibe' });
       throw err;  
     }
   },

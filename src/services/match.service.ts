@@ -7,7 +7,7 @@ export const getMatches = async (): Promise<IMatch[]> => {
     const matches: IMatch[] = res.data;
     return matches;
   } catch (err) {
-    console.error('Erreur getMatches API:', err);
+    console.error('Error getMatches API:', err);
     return [];
   }
 };
@@ -18,7 +18,7 @@ export const getMatch = async (id: string): Promise<IMatch | null> => {
     const match: IMatch = res.data;
     return match;
   } catch (err) {
-    console.error('Erreur getMatch API:', err);
+    console.error('Error getMatch API:', err);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const createMatch = async (idUser1: string, idUser2: string): Promise<IMa
     const createdMatch: IMatch = res.data;
     return createdMatch;
   } catch (err) {
-    console.error('Erreur createMatch API:', err);
+    console.error('Error createMatch API:', err);
     return null;
   }
 };
@@ -40,7 +40,7 @@ export const updateMatch = async (id: string, user1_has_consented_to_reveal_phot
     const updatedMatch: IMatch = res.data;
     return updatedMatch;
   } catch (err) {
-    console.error('Erreur updateMatch API:', err);
+    console.error('Error updateMatch API:', err);
     return null;
   }
 };
@@ -49,7 +49,7 @@ export const deleteMatch = async (id: string): Promise<void> => {
   try {
     await api.delete('/matches/'+id);
   } catch (err) {
-    console.error('Erreur deleteMatch API:', err);
+    console.error('Error deleteMatch API:', err);
   }
 };
 

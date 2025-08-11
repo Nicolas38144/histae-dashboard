@@ -6,19 +6,13 @@ import {
   Button,
   Typography,
 } from '@mui/material';
-
-interface ConfirmDialogProps {
-  open: boolean;
-  title?: string;
-  message?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
+import { t } from 'i18next';
+import type { ConfirmDialogProps } from '../types/dataTableProps.type';
 
 const ConfirmDialog = ({
   open,
-  title = 'Confirmation',
-  message = 'Êtes-vous sûr de vouloir continuer ?',
+  title = t("confirmDialog.confirmation"),
+  message = t("confirmDialog.message"),
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) => {
@@ -29,9 +23,11 @@ const ConfirmDialog = ({
         <Typography>{message}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Annuler</Button>
+        <Button onClick={onCancel}>
+          {t("confirmDialog.cancel")}
+        </Button>
         <Button onClick={onConfirm} color="error" variant="contained">
-          Supprimer
+           {t("confirmDialog.delete")}
         </Button>
       </DialogActions>
     </Dialog>

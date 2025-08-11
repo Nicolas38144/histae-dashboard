@@ -7,7 +7,7 @@ export const getVibes = async (): Promise<IVibe[]> => {
     const vibes: IVibe[] = res.data;
     return vibes;
   } catch (err) {
-    console.error('Erreur getVibes API:', err);
+    console.error('Error getVibes API:', err);
     return [];
   }
 };
@@ -18,7 +18,7 @@ export const getVibe = async (idVibe: string): Promise<IVibe | null> => {
     const vibe: IVibe = res.data;
     return vibe;
   } catch (err) {
-    console.error('Erreur getVibe API:', err);
+    console.error('Error getVibe API:', err);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const createVibe = async (vibe: string): Promise<IVibe | null> => {
     const createdVibe: IVibe = res.data;
     return createdVibe;
   } catch (err) {
-    console.error('Erreur createVibe API:', err);
+    console.error('Error createVibe API:', err);
     return null;
   }
 };
@@ -40,7 +40,7 @@ export const updateVibe = async (idVibe: string, vibe: string): Promise<IVibe | 
     const updatedVibe: IVibe = res.data;
     return updatedVibe;
   } catch (err) {
-    console.error('Erreur updateVibe API:', err);
+    console.error('Error updateVibe API:', err);
     return null;
   }
 };
@@ -49,6 +49,6 @@ export const deleteVibe = async (idVibe: string): Promise<void> => {
   try {
     await api.delete('/vibes/'+idVibe);
   } catch (err) {
-    console.error('Erreur deleteVibe API:', err);
+    console.error('Error deleteVibe API:', err);
   }
 };

@@ -8,9 +8,10 @@ import { useMemo } from 'react';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
+import { t } from 'i18next';
 
 const Publication = () => {
-  const { publications, loading, error, lastFetched, fetchPublications, addPublication, editPublication, removePublication } = usePublicationStore();
+  const { publications, loading, error, lastFetched, fetchPublications, addPublication, removePublication } = usePublicationStore();
 
   useAutoFetchStore({
     lastFetched,
@@ -26,16 +27,16 @@ const Publication = () => {
   }, [publications]);
   
   const columns = [
-    { field: 'created_at', headerName: 'Date' },
-    { field: 'author', headerName: 'Auteur' },
-    { field: 'content', headerName: 'Publication' },
-    { field: 'nb_like', headerName: 'Nb de like' },
-    { field: 'nb_report', headerName: 'Nb de signalement' },
+    { field: 'created_at', headerName: t("publicationPage.date") },
+    { field: 'author', headerName: t("publicationPage.author") },
+    { field: 'content', headerName: t("publicationPage.publication") },
+    { field: 'nb_like', headerName: t("publicationPage.nbLike") },
+    { field: 'nb_report', headerName: t("publicationPage.nbReport") },
   ];
 
   const addFields = [
-    { field: 'user_id', headerName: 'ID Utilisateur' },
-    { field: 'content', headerName: 'Publication' },
+    { field: 'user_id', headerName: t("publicationPage.userID") },
+    { field: 'content', headerName: t("publicationPage.publication") },
   ]
 
   if (loading) { return <Loader /> }
@@ -47,7 +48,7 @@ const Publication = () => {
       className="page-publication"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title='Publications' />
+      <Title title={t("publicationPage.title")} />
 
       <DataTable
         columns={columns}

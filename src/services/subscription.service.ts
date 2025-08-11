@@ -7,7 +7,7 @@ export const getPlans = async (): Promise<ISubscriptionPlan[]> => {
     const plans: ISubscriptionPlan[] = res.data;
     return plans;
   } catch (err) {
-    console.error('Erreur getPlans API:', err);
+    console.error('Error getPlans API:', err);
     return [];
   }
 };
@@ -18,7 +18,7 @@ export const getPlan = async (idPlan: string): Promise<ISubscriptionPlan | null>
     const plan: ISubscriptionPlan = res.data;
     return plan;
   } catch (err) {
-    console.error('Erreur getPlan API:', err);
+    console.error('Error getPlan API:', err);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const createPlan = async (plan: string): Promise<ISubscriptionPlan | null
     const createdPlan: ISubscriptionPlan = res.data;
     return createdPlan;
   } catch (err) {
-    console.error('Erreur createPlan API:', err);
+    console.error('Error createPlan API:', err);
     return null;
   }
 };
@@ -38,6 +38,6 @@ export const deletePlan = async (idPlan: string): Promise<void> => {
   try {
     await api.delete('/subscription/plans/'+idPlan);
   } catch (err) {
-    console.error('Erreur deletePlan API:', err);
+    console.error('Error deletePlan API:', err);
   }
 };

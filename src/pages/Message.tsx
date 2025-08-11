@@ -8,6 +8,7 @@ import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
+import { t } from 'i18next';
 
 const Message = () => {
   const { messages, loading, error, lastFetched, fetchMessages } = useMessageStore();
@@ -26,11 +27,11 @@ const Message = () => {
   }, [messages]);
 
   const columns = [
-    { field: 'match_id', headerName: 'Match' },
-    { field: 'created_at', headerName: 'Date' },
-    { field: 'sender_info', headerName: 'Expéditeur' },
-    { field: 'receiver_info', headerName: 'Destinataire' },
-    { field: 'content', headerName: 'Message' },
+    { field: 'match_id', headerName: t("messagePage.match") },
+    { field: 'created_at', headerName: t("messagePage.date") },
+    { field: 'sender_info', headerName: t("messagePage.sender") },
+    { field: 'receiver_info', headerName: t("messagePage.receiver") },
+    { field: 'content', headerName: t("messagePage.message") },
   ];
 
   if (loading) { return <Loader /> }
@@ -42,7 +43,7 @@ const Message = () => {
       className="page-message"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title='Messages' />
+      <Title title={t("messagePage.title")} />
 
       <DataTable
         columns={columns}

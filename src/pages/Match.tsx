@@ -9,6 +9,7 @@ import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
 import { useNotification } from '../components/Notifier';
+import { t } from 'i18next';
 
 const Match = () => {
   const { matches, loading, error, lastFetched, fetchMatches, addMatch, removeMatch } = useMatchStore();
@@ -16,23 +17,23 @@ const Match = () => {
 
   const handleAdd = async (data: any) => {
     if (!data.user1_id?.trim() && !data.user2_id?.trim()) {
-      showNotification('Le champ Match est requis', 'error');
+      showNotification(t("notifications.requiredFields"), 'error');
       return;
     }
     try {
       await addMatch(data);
-      showNotification('Match ajoutée avec succès', 'success');
+      showNotification(t("notifications.matchAdded"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de l'ajout", 'error');
+      showNotification(t("notifications.errorAdding"), 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await removeMatch(id);
-      showNotification('Match supprimée', 'success');
+      showNotification(t("notifications.matchDeleted"), 'success');
     } catch (err) {
-      showNotification("Erreur lors de la suppression", 'error');
+      showNotification(t("notifications.errorDeleting"), 'error');
     }
   };
 
@@ -50,18 +51,18 @@ const Match = () => {
   }, [matches]);
 
   const columns = [
-    { field: 'created_at', headerName: 'Date' },
-    { field: 'user1_info', headerName: 'Utilisateur 1' },
-    { field: 'user2_info', headerName: 'Utilisateur 2' },
-    { field: 'user1_has_consented_to_reveal_photo', headerName: 'Utilisateur 1 consent' },
-    { field: 'user2_has_consented_to_reveal_photo', headerName: 'Utilisateur 2 consent' },
-    { field: 'user1_wishes_to_continue', headerName: 'Utilisateur 1 continue' },
-    { field: 'user2_wishes_to_continue', headerName: 'Utilisateur 2 continue' },
+    { field: 'created_at', headerName: t("matchPage.date") },
+    { field: 'user1_info', headerName: t("matchPage.user1") },
+    { field: 'user2_info', headerName: t("matchPage.user2") },
+    { field: 'user1_has_consented_to_reveal_photo', headerName: t("matchPage.user1Consents") },
+    { field: 'user2_has_consented_to_reveal_photo', headerName: t("matchPage.user2Consents") },
+    { field: 'user1_wishes_to_continue', headerName: t("matchPage.user1Continues") },
+    { field: 'user2_wishes_to_continue', headerName: t("matchPage.user2Continues") },
   ];
 
   const addFields = [
-    { field: 'user1_id', headerName: 'ID Utilisateur 1' },
-    { field: 'user2_id', headerName: 'ID Utilisateur 2' },
+    { field: 'user1_id', headerName: t("matchPage.user1ID") },
+    { field: 'user2_id', headerName: t("matchPage.user2ID") },
   ]
   
   if (loading) { return <Loader /> }
@@ -73,7 +74,7 @@ const Match = () => {
       className="page-match"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title='Matches' />
+      <Title title={t("matchPage.title")} />
 
       <DataTable
         columns={columns}

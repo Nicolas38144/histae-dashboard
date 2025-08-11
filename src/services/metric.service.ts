@@ -7,7 +7,7 @@ export const getSizeDatabase = async (period: number): Promise<ISizeDatabase | n
     const sizeDB: ISizeDatabase = res.data;
     return sizeDB;
   } catch (err) {
-    console.error('Erreur getSizeDB API:', err);
+    console.error('Error getSizeDB API:', err);
     return null;
   }
 };
@@ -18,7 +18,7 @@ export const getChartData = async (period: number): Promise<IChartData[]> => {
     const sizeDB: IChartData[] = res.data;
     return sizeDB;
   } catch (err) {
-    console.error('Erreur getSizeDB API:', err);
+    console.error('Error getSizeDB API:', err);
     return [];
   }
 };

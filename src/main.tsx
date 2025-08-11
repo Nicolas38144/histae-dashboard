@@ -4,6 +4,7 @@ import App from './App';
 import './main.css'
 import Box from '@mui/material/Box';
 import { NotifierProvider } from './components/Notifier';
+import './translations/i18n';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

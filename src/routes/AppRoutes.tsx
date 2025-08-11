@@ -8,6 +8,7 @@ import ProtectedLayout from '../layouts/ProtectedLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Message from '../pages/Message';
 import Match from '../pages/Match';
+import { t } from 'i18next';
 
 const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => (
   <BrowserRouter>
@@ -22,7 +23,7 @@ const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'ligh
           <Route path="/vibe" element={<Vibe />} />
           <Route path="/match" element={<Match />} />
           <Route path="/message" element={<Message />} />
-          <Route path="*" element={<div>404 - Page non trouvée</div>} />
+          <Route path="*" element={<div>{t("pageNotFound")}</div>} />
         </Route>
       </Route>
     </Routes>

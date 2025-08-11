@@ -8,7 +8,7 @@ export const login = async (phone_number: string, password: string): Promise<boo
     localStorage.setItem(USER_KEY, data.user.id);
     return true;
   } catch (err) {
-    console.error('Erreur login API:', err);
+    console.error('Error login API:', err);
     return false;
   }
 };
@@ -19,6 +19,6 @@ export const logout = async (): Promise<void> => {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(USER_KEY);
   } catch (err) {
-    console.error('Erreur logout API:', err);
+    console.error('Error logout API:', err);
   }
 };
