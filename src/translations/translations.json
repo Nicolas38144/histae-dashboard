@@ -1,7 +1,7 @@
 {
   "homePage": {
     "title": "Home",
-    "likes": "Likes",
+    "publicationsLiked": "Publications liked",
     "matchesCreated": "Matches created",
     "matchesNotContinued": "Matches not continued",
     "matchesContinued": "Matches continued",
@@ -53,8 +53,8 @@
 
 	"userPage": {
     "title": "Users",
-		"role": "Date",
-		"phone": "Phone",
+		"role": "Role",
+		"phone_number": "Phone",
     "email": "Email",
     "created": "Creation date",
 		"isBanned": "Banned ?",
@@ -66,6 +66,14 @@
 		"birthdate": "Date of birth",
 		"sex": "Sex",
 		"bio": "Bio",
+		"photo": "Photo"
+  },
+
+	"detailsUserPage": {
+    "back": "back",
+		"noPhoto": "No photo",
+		"delete": "Delete",
+    "noData": "No data",
 		"photo": "Photo"
   },
 

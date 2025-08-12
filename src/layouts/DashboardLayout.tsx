@@ -24,11 +24,11 @@ const drawerWidth = 200;
 
 const menuItems = [
   { label: "Home", path: '/' },
-  { label:"Users", path: '/user' },
-  { label: "Publications", path: '/publication' },
-  { label: "Vibes", path: '/vibe' },
-  { label: "Matches", path: '/match' },
-  { label: "Messages", path: '/message' },
+  { label:"Users", path: '/users' },
+  { label: "Publications", path: '/publications' },
+  { label: "Vibes", path: '/vibes' },
+  { label: "Matches", path: '/matches' },
+  { label: "Messages", path: '/messages' },
 ];
 
 const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => {

@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import Publication from '../pages/Publication';
 import Vibe from '../pages/Vibe';
 import User from '../pages/User';
+import DetailsUser from '../pages/DetailsUser';
 import ProtectedLayout from '../layouts/ProtectedLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Message from '../pages/Message';
@@ -18,11 +19,12 @@ const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'ligh
         <Route element={<DashboardLayout toggleTheme={toggleTheme} mode={mode} />}>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/user" element={<User />} />
-          <Route path="/publication" element={<Publication />} />
-          <Route path="/vibe" element={<Vibe />} />
-          <Route path="/match" element={<Match />} />
-          <Route path="/message" element={<Message />} />
+          <Route path="/users" element={<User />} />
+          <Route path="/users/:id" element={<DetailsUser />} />
+          <Route path="/publications" element={<Publication />} />
+          <Route path="/vibes" element={<Vibe />} />
+          <Route path="/matches" element={<Match />} />
+          <Route path="/messages" element={<Message />} />
           <Route path="*" element={<div>{t("pageNotFound")}</div>} />
         </Route>
       </Route>

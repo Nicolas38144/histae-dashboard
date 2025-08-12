@@ -1,9 +1,9 @@
 import api from './http.service';
 import type { IPublication } from '../types/publication.interface';
 
-export const getPublications = async (): Promise<IPublication[]> => {
+export const getPublications = async (period: number): Promise<IPublication[]> => {
   try {
-    const res = await api.get('/publications');
+    const res = await api.get(`/publications/all/${period}`);
     const publications: IPublication[] = res.data;
     return publications;
   } catch (err) {

@@ -11,7 +11,7 @@ import type { ConfirmDialogProps } from '../types/dataTableProps.type';
 
 const ConfirmDialog = ({
   open,
-  title = t("confirmDialog.confirmation"),
+  title = t("confirmDialog.title"),
   message = t("confirmDialog.message"),
   onConfirm,
   onCancel,

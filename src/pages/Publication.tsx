@@ -3,20 +3,27 @@ import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import { formatDateFromDate } from '../utils/general';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
+import PeriodToggle, { periods } from '../components/PeriodToggle';
 import { MAX_CACHE_DURATION } from '../utils/constants';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
 import { t } from 'i18next';
 
 const Publication = () => {
-  const { publications, loading, error, lastFetched, fetchPublications, addPublication, removePublication } = usePublicationStore();
+  const { publications, loading, error, lastFetched, fetchPublications, addPublication, removePublication, periodTitle, setPeriodTitle, } = usePublicationStore();
+
+  const fetchFn = useCallback(async () => {
+    await fetchPublications(periods[periodTitle].days);
+  }, [fetchPublications, periodTitle]);
 
   useAutoFetchStore({
     lastFetched,
-    fetchFn: fetchPublications,
+    fetchFn,
     maxAge: MAX_CACHE_DURATION,
+    deps: [periodTitle],
+    persistKey: 'publications:metrics:period',
   });
 
   const formattedPublications = useMemo(() => {
@@ -39,16 +46,17 @@ const Publication = () => {
     { field: 'content', headerName: t("publicationPage.publication") },
   ]
 
-  if (loading) { return <Loader /> }
-
-  if (error) { return <Error error={error} /> }
-
   return (
     <Box
       className="page-publication"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
       <Title title={t("publicationPage.title")} />
+
+      <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
+
+      {loading && <Loader />}
+      {error && <Error error={error} />}
 
       <DataTable
         columns={columns}

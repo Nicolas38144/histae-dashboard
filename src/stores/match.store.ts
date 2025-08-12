@@ -6,13 +6,18 @@ import {
   deleteMatch,
 } from '../services/match.service';
 import type { IMatch } from '../types/match.interface';
+import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface MatchState {
   matches: IMatch[];
   loading: boolean;
   error: string | null;
   lastFetched: number | null;
-  fetchMatches: () => Promise<void>;
+
+  periodTitle: PeriodTitle;
+  setPeriodTitle: (period: PeriodTitle) => void;
+
+  fetchMatches: (period: number) => Promise<void>;
   addMatch: (data: { user1_id: string, user2_id: string }) => Promise<void>;
   editMatch: (updatedMatch: IMatch) => Promise<void>;
   removeMatch: (id: string) => Promise<void>;
@@ -24,10 +29,13 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   error: null,
   lastFetched: null,
 
-  fetchMatches: async () => {
+  periodTitle: 'last7days',
+  setPeriodTitle: (period) => set({ periodTitle: period }),
+
+  fetchMatches: async (period: number) => {
     set({ loading: true, error: null });
     try {
-      const data = await getMatches();
+      const data = await getMatches(period);
       set({ matches: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Error loading matches: '+err, loading: false });

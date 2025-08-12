@@ -1,5 +1,5 @@
 export interface ISizeDatabase {
-  nb_like: number;
+  nb_publication_liked: number;
   nb_match: number;
   nb_match_not_continued: number;
   nb_match_continued: number;
@@ -12,7 +12,7 @@ export interface ISizeDatabase {
 
 export interface IChartData {
 	day: Date;
-  nb_like: number;
+  nb_publication_liked: number;
   nb_match: number;
   nb_match_not_continued: number;
   nb_match_continued: number;

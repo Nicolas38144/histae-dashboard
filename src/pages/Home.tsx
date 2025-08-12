@@ -40,15 +40,15 @@ const Home = () => {
 
   const metrics = sizeDB
     ? [
-        { label: t("homePage.likes"), value: sizeDB.nb_like },
+        { label: t("homePage.users"), value: sizeDB.nb_user },
         { label: t("homePage.matchesCreated"), value: sizeDB.nb_match },
         { label: t("homePage.matchesNotContinued"), value: sizeDB.nb_match_not_continued },
         { label: t("homePage.matchesContinued"), value: sizeDB.nb_match_continued },
         { label: t("homePage.matchReports"), value: sizeDB.nb_match_report },
-        { label: t("homePage.messages"), value: sizeDB.nb_message },
         { label: t("homePage.publications"), value: sizeDB.nb_publication },
+        { label: t("homePage.publicationsLiked"), value: sizeDB.nb_publication_liked },
         { label: t("homePage.publicationReports"), value: sizeDB.nb_publication_report },
-        { label: t("homePage.users"), value: sizeDB.nb_user },
+        { label: t("homePage.messages"), value: sizeDB.nb_message },
       ]
     : [];
 
@@ -60,15 +60,15 @@ const Home = () => {
 
       {loadingSizeDB && <Loader />}
       {loadingChartData && <Loader />}
-
       {error && <Error error={error} />}
 
       {!loadingSizeDB && !loadingChartData && !error && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
           {metrics.map((metric) => (
             <Paper
+              elevation={3}
               key={metric.label}
-              sx={{ flex: '1 1 200px', p: 2, textAlign: 'center', boxShadow: 3 }}
+              sx={{ flex: '1 1 200px', p: 2, textAlign: 'center' }}
             >
               <Typography variant="h6">{metric.label}</Typography>
               <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 1 }}>

@@ -1,0 +1,183 @@
+import { useDetailsUserStore } from '../stores/detailsUser.store';
+import { Box, Button, Paper, Typography, Switch, FormControlLabel, } from '@mui/material';
+import ConfirmDialog from '../components/ConfirmDialog';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
+import { MAX_CACHE_DURATION } from '../utils/constants';
+import Loader from '../components/Loader';
+import Error from '../components/Error';
+import Title from '../components/Title';
+import { useCallback, useMemo, useState } from 'react';
+import { formatDateFromDate, getAge } from '../utils/general';
+import { useNotification } from '../components/Notifier';
+import { t } from 'i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+import RenderField from '../components/RenderField';
+import type { IFormattedUser } from '../types/user.interface';
+
+const DetailsUser = () => {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { user, loading, error, lastFetched, fetchUser, removeUser, editUser } = useDetailsUserStore();
+  const { showNotification } = useNotification();
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const formattedUser = useMemo(() => {
+    if (!user) return null;
+    const formatted: IFormattedUser = {
+      ...user,
+      created_at: formatDateFromDate(user.created_at),
+      last_active_at: user.last_active_at
+        ? formatDateFromDate(user.last_active_at)
+        : '-',
+      last_coords_lat: user.last_coords_lat || '-',
+      last_coords_lon: user.last_coords_lon || '-',
+      age: getAge(user.birthdate),
+      is_banned: user.is_banned ? 'Yes' : 'No',
+    };
+    return formatted;
+  }, [user]);
+
+  const fetchFn = useCallback(async () => {
+    if (id) {
+      await fetchUser(id);
+    }
+  }, [id, fetchUser]);
+
+  useAutoFetchStore({
+    lastFetched,
+    fetchFn,
+    maxAge: MAX_CACHE_DURATION,
+    deps: [id],
+    persistKey: 'detailsuser:metrics:period',
+  });
+
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await removeUser(id);
+      showNotification(t('notifications.userDeleted'), 'success');
+      navigate(-1);
+    } catch {
+      showNotification(t('notifications.errorDeleting'), 'error');
+    }
+    setConfirmDeleteOpen(false);
+  };
+
+  const handleToggleBanned = async (checked: boolean) => {
+    if (!user || !id) return;
+    setSaving(true);
+    try {
+      const updatedUser = { ...user, is_banned: checked };
+      await editUser(updatedUser);
+      showNotification(t('notifications.userUpdated'), 'success');
+      fetchUser(id);
+    } catch {
+      showNotification(t('notifications.errorUpdating'), 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Box
+      className="page-user"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        maxWidth: 600,
+        margin: '0 auto',
+      }}
+    >
+      <Button
+        variant="outlined"
+        onClick={() => navigate(-1)}
+        startIcon={<ArrowBackIcon />}
+        sx={{ width: 'fit-content', color: 'black' }}
+      >
+        {t("detailsUserPage.back")}
+      </Button>
+
+      {loading && <Loader />}
+      {error && <Error error={error} />}
+
+      {formattedUser ? (
+        <>
+          <Title title={`${formattedUser.firstname}, ${formattedUser.age}`} />
+
+          <Paper elevation={3} sx={{ padding: 3 }}>
+            <RenderField label={t('userPage.role')} value={formattedUser.role} />
+            <RenderField label={t('userPage.phone_number')} value={formattedUser.phone_number}/>
+            <RenderField label={t('userPage.email')} value={formattedUser.email} />
+            <RenderField label={t('userPage.created')} value={formattedUser.created_at} />
+            <RenderField label={t('userPage.nbReport')} value={formattedUser.nb_reports} />
+            <RenderField label={t('userPage.isBanned')} value={formattedUser.is_banned} />
+            <RenderField label={t('userPage.lastActiveAt')} value={formattedUser.last_active_at} />
+            <RenderField label={t('userPage.lastCoordsLat')} value={formattedUser.last_coords_lat} />
+            <RenderField label={t('userPage.lastCoordsLon')} value={formattedUser.last_coords_lon} />
+            <RenderField label={t('userPage.firstname')} value={formattedUser.firstname} />
+            <RenderField label={t('userPage.birthdate')} value={formatDateFromDate(formattedUser.birthdate)} />
+            <RenderField label={t('userPage.sex')} value={formattedUser.sex} />
+            <RenderField label={t('userPage.bio')} value={formattedUser.bio} />
+
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                variant="subtitle2"
+                color="textSecondary"
+                gutterBottom
+              >
+                {t('userPage.photo')}
+              </Typography>
+              {formattedUser.photo ? (
+                <Box
+                  component="img"
+                  src={formattedUser.photo}
+                  alt={`${formattedUser.firstname} photo`}
+                  sx={{ maxWidth: '100%', maxHeight: 300, borderRadius: 1 }}
+                />
+              ) : (
+                <Typography variant="body2">{t("detailsUserPage.noPhoto")}</Typography>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-around' }}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setConfirmDeleteOpen(true)}
+              >
+                {t("detailsUserPage.delete")}
+              </Button>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={user?.is_banned}
+                    onChange={(e) => handleToggleBanned(e.target.checked)}
+                    color="primary"
+                    disabled={saving}
+                  />
+                }
+                label={t('userPage.isBanned')}
+              />
+            </Box>
+          </Paper>
+
+          <ConfirmDialog
+            open={confirmDeleteOpen}
+            title={undefined}
+            message={undefined}
+            onConfirm={handleDelete}
+            onCancel={() => setConfirmDeleteOpen(false)}
+          />
+        </>
+      ) : (
+        <Error error={t("detailsUserPage.noData")} />
+      )}
+    </Box>
+  );
+};
+
+export default DetailsUser;

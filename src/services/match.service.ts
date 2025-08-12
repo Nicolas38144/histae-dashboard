@@ -1,9 +1,9 @@
 import api from './http.service';
 import type { IMatch } from '../types/match.interface';
 
-export const getMatches = async (): Promise<IMatch[]> => {
+export const getMatches = async (period: number): Promise<IMatch[]> => {
   try {
-    const res = await api.get('/matches');
+    const res = await api.get(`/matches/all/${period}`);
     const matches: IMatch[] = res.data;
     return matches;
   } catch (err) {

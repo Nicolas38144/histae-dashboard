@@ -11,32 +11,33 @@ import { useCallback, useMemo } from 'react';
 import { formatDateFromDate } from '../utils/general';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
+import { Link } from 'react-router-dom';
 
 const User = () => {
   const { users, loading, error, lastFetched, fetchUsers, editUser, removeUser, periodTitle, setPeriodTitle, } = useUserStore();
   const { showNotification } = useNotification();
 
-  const handleEdit = async (data: any) => {    
-    if (
-      !data.role?.trim() && 
-      !data.is_banned?.trim() && 
-      !data.nb_reports?.trim() && 
-      !data.firstname?.trim() && 
-      !data.birthdate?.trim() && 
-      !data.sex?.trim() && 
-      !data.bio?.trim() && 
-      !data.photo?.trim()
-    ) {
-      showNotification(t("notifications.requiredFields"), 'error');
-      return;
-    }
-    try {
-      await editUser(data);
-      showNotification(t("notifications.userAdded"), 'success');
-    } catch (err) {
-      showNotification(t("notifications.errorAdding"), 'error');
-    }
-  };
+  // const handleEdit = async (data: any) => {    
+  //   if (
+  //     !data.role?.trim() && 
+  //     !data.is_banned?.trim() && 
+  //     !data.nb_reports?.trim() && 
+  //     !data.firstname?.trim() && 
+  //     !data.birthdate?.trim() && 
+  //     !data.sex?.trim() && 
+  //     !data.bio?.trim() && 
+  //     !data.photo?.trim()
+  //   ) {
+  //     showNotification(t("notifications.requiredFields"), 'error');
+  //     return;
+  //   }
+  //   try {
+  //     await editUser(data);
+  //     showNotification(t("notifications.userAdded"), 'success');
+  //   } catch (err) {
+  //     showNotification(t("notifications.errorAdding"), 'error');
+  //   }
+  // };
 
   const handleDelete = async (id: string) => {
     try {
@@ -56,7 +57,7 @@ const User = () => {
     fetchFn,
     maxAge: MAX_CACHE_DURATION,
     deps: [periodTitle],
-    persistKey: 'user:metrics:period',
+    persistKey: 'users:metrics:period',
   });
 
   const formattedUsers = useMemo(() => {
@@ -72,7 +73,14 @@ const User = () => {
 
   const columns = [
     { field: 'role', headerName: t("userPage.role") },
-    { field: 'phone_number', headerName: t("userPage.phone") },
+    { field: 'phone_number', headerName: t("userPage.phone"), renderCell: (params: any) => (
+      <Link
+        to={`/users/${params.row.id}`}
+        style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+      >
+        {params.value}
+      </Link>
+    ), },
     { field: 'email', headerName: t("userPage.email") },
     { field: 'created_at', headerName: t("userPage.created") },
     { field: 'is_banned', headerName: t("userPage.isBanned") },
@@ -87,11 +95,7 @@ const User = () => {
     { field: 'photo', headerName: t("userPage.photo") },
   ];
 
-  const editableFields = ['role','is_banned','nb_reports','firstname','birthdate','sex','bio','photo']
-
-  if (loading) { return <Loader /> }
-
-  if (error) { return <Error error={error} /> }
+  // const editableFields = ['role','is_banned','nb_reports','firstname','birthdate','sex','bio','photo']
 
   return (
     <Box
@@ -102,11 +106,14 @@ const User = () => {
 
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
+      {loading && <Loader />}
+      {error && <Error error={error} />}
+
       <DataTable
         columns={columns}
         rows={formattedUsers}
-        editableFields={editableFields}
-        onRequestEdit={handleEdit}
+        // editableFields={editableFields}
+        // onRequestEdit={handleEdit}
         onRequestDelete={handleDelete}
       />
     </Box>

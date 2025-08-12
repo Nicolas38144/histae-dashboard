@@ -6,13 +6,18 @@ import {
   deletePublication,
 } from '../services/publication.service';
 import type { IPublication } from '../types/publication.interface';
+import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface PublicationState {
   publications: IPublication[];
   loading: boolean;
   error: string | null;
   lastFetched: number | null;
-  fetchPublications: () => Promise<void>;
+
+  periodTitle: PeriodTitle;
+  setPeriodTitle: (period: PeriodTitle) => void;
+
+  fetchPublications: (period: number) => Promise<void>;
   addPublication: (data: { user_id: string, content: string }) => Promise<void>;
   editPublication: (updatedPublication: IPublication) => Promise<void>;
   removePublication: (id: string) => Promise<void>;
@@ -24,10 +29,13 @@ export const usePublicationStore = create<PublicationState>((set, get) => ({
   error: null,
   lastFetched: null,
 
-  fetchPublications: async () => {
+  periodTitle: 'last7days',
+  setPeriodTitle: (period) => set({ periodTitle: period }),
+
+  fetchPublications: async (period: number) => {
     set({ loading: true, error: null });
     try {
-      const data = await getPublications();
+      const data = await getPublications(period);
       set({ publications: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Error loading publications: '+err, loading: false });

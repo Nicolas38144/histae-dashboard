@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useMatchStore } from '../stores/match.store';
 import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import { formatDateFromDate } from '../utils/general';
+import PeriodToggle, { periods } from '../components/PeriodToggle';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
@@ -12,7 +13,7 @@ import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
 
 const Match = () => {
-  const { matches, loading, error, lastFetched, fetchMatches, addMatch, removeMatch } = useMatchStore();
+  const { matches, loading, error, lastFetched, fetchMatches, addMatch, removeMatch, periodTitle, setPeriodTitle, } = useMatchStore();
   const { showNotification } = useNotification();
 
   const handleAdd = async (data: any) => {
@@ -37,11 +38,17 @@ const Match = () => {
     }
   };
 
+  const fetchFn = useCallback(async () => {
+    await fetchMatches(periods[periodTitle].days);
+  }, [fetchMatches, periodTitle]);
+
   useAutoFetchStore({
-      lastFetched,
-      fetchFn: fetchMatches,
-      maxAge: MAX_CACHE_DURATION,
-    });
+    lastFetched,
+    fetchFn,
+    maxAge: MAX_CACHE_DURATION,
+    deps: [periodTitle],
+    persistKey: 'matches:metrics:period',
+  });
 
   const formattedMatches = useMemo(() => {
     return matches.map((match) => ({
@@ -64,10 +71,6 @@ const Match = () => {
     { field: 'user1_id', headerName: t("matchPage.user1ID") },
     { field: 'user2_id', headerName: t("matchPage.user2ID") },
   ]
-  
-  if (loading) { return <Loader /> }
-
-  if (error) { return <Error error={error} /> }
 
   return (
     <Box
@@ -75,6 +78,11 @@ const Match = () => {
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
       <Title title={t("matchPage.title")} />
+      
+      <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
+
+      {loading && <Loader />}
+      {error && <Error error={error} />}
 
       <DataTable
         columns={columns}

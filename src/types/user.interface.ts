@@ -36,3 +36,23 @@ export interface IEncryptedUser {
   bio: string;
   photo: string | null;
 }
+
+export interface IFormattedUser {
+  id: string;
+  role: string;
+  phone_number: string;
+  email: string;
+  password: string;
+  created_at: string;
+  is_banned: string;
+  nb_reports: number;
+  last_active_at: string;
+  last_coords_lat: number | string;
+  last_coords_lon: number | string;
+  firstname: string;
+  birthdate: Date;
+  age: number,
+  sex: string;
+  bio: string;
+  photo: string | null;
+}
