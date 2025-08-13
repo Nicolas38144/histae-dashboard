@@ -6,7 +6,6 @@ export interface IDecryptedUser {
   password: string;
   created_at: Date;
   is_banned: boolean;
-  nb_reports: number;
   last_active_at: Date | null;
   last_coords_lat: number | null;
   last_coords_lon: number | null;
@@ -26,7 +25,6 @@ export interface IEncryptedUser {
   password: string;
   created_at: Date;
   is_banned: boolean;
-  nb_reports: number;
   last_active_at: Date | null;
   last_coords_lat: string | null;
   last_coords_lon: string | null;
@@ -45,7 +43,6 @@ export interface IFormattedUser {
   password: string;
   created_at: string;
   is_banned: string;
-  nb_reports: number;
   last_active_at: string;
   last_coords_lat: number | string;
   last_coords_lon: number | string;

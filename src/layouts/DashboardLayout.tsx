@@ -27,7 +27,7 @@ const menuItems = [
   { label:"Users", path: '/users' },
   { label: "Publications", path: '/publications' },
   { label: "Vibes", path: '/vibes' },
-  { label: "Matches", path: '/matches' },
+  { label: "Match reports", path: '/matches' },
   { label: "Messages", path: '/messages' },
 ];
 

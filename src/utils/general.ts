@@ -22,6 +22,15 @@ export const formatDateFromDate = (date: Date) => {
   });
 };
 
+export const formatShortDateFromDate = (date: Date) => {
+  const newDate = new Date(date);
+  return newDate.toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
 export const toBoolean = (value: any): boolean => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') {

@@ -11,6 +11,7 @@ import Error from '../components/Error';
 import Title from '../components/Title';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
+import { Link } from 'react-router-dom';
 
 const Match = () => {
   const { matches, loading, error, lastFetched, fetchMatches, addMatch, removeMatch, periodTitle, setPeriodTitle, } = useMatchStore();
@@ -59,8 +60,22 @@ const Match = () => {
 
   const columns = [
     { field: 'created_at', headerName: t("matchPage.date") },
-    { field: 'user1_info', headerName: t("matchPage.user1") },
-    { field: 'user2_info', headerName: t("matchPage.user2") },
+    { field: 'user1_info', headerName: t("matchPage.user1"), renderCell: (params: any) => (
+      <Link
+        to={`/users/${params.row.user1_id}`}
+        style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+      >
+        {params.value}
+      </Link>
+    ), },
+    { field: 'user2_info', headerName: t("matchPage.user2"), renderCell: (params: any) => (
+      <Link
+        to={`/users/${params.row.user2_id}`}
+        style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+      >
+        {params.value}
+      </Link>
+    ), },
     { field: 'user1_has_consented_to_reveal_photo', headerName: t("matchPage.user1Consents") },
     { field: 'user2_has_consented_to_reveal_photo', headerName: t("matchPage.user2Consents") },
     { field: 'user1_wishes_to_continue', headerName: t("matchPage.user1Continues") },

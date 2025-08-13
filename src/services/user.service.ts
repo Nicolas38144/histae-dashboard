@@ -1,5 +1,6 @@
 import api from './http.service';
 import type { IDecryptedUser as IUser } from '../types/user.interface';
+import type { IUserReport } from '../types/userReport.interface';
 
 export const getUsers = async (period: number): Promise<IUser[]> => {
   try {
@@ -14,9 +15,20 @@ export const getUsers = async (period: number): Promise<IUser[]> => {
 
 export const getUser = async (id: string): Promise<IUser | null> => {
   try {
-    const res = await api.get('/users/'+id);
+    const res = await api.get(`/users/${id}`);
     const user: IUser = res.data;
     return user;
+  } catch (err) {
+    console.error('Error getUser API:', err);
+    return null;
+  }
+};
+
+export const getuserReport = async (id: string): Promise<IUserReport | null> => {
+  try {
+    const res = await api.get(`/users/${id}/reports`);
+    const userReport: IUserReport = res.data;
+    return userReport;
   } catch (err) {
     console.error('Error getUser API:', err);
     return null;

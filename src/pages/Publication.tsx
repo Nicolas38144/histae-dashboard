@@ -10,6 +10,7 @@ import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
 import { t } from 'i18next';
+import { Link } from 'react-router-dom';
 
 const Publication = () => {
   const { publications, loading, error, lastFetched, fetchPublications, addPublication, removePublication, periodTitle, setPeriodTitle, } = usePublicationStore();
@@ -35,7 +36,14 @@ const Publication = () => {
   
   const columns = [
     { field: 'created_at', headerName: t("publicationPage.date") },
-    { field: 'author', headerName: t("publicationPage.author") },
+    { field: 'author', headerName: t("publicationPage.author"), renderCell: (params: any) => (
+      <Link
+        to={`/users/${params.row.user_id}`}
+        style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+      >
+        {params.value}
+      </Link>
+    ), },
     { field: 'content', headerName: t("publicationPage.publication") },
     { field: 'nb_like', headerName: t("publicationPage.nbLike") },
     { field: 'nb_report', headerName: t("publicationPage.nbReport") },

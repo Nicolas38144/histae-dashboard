@@ -8,7 +8,7 @@ import Loader from '../components/Loader';
 import Error from '../components/Error';
 import Title from '../components/Title';
 import { useCallback, useMemo, useState } from 'react';
-import { formatDateFromDate, getAge } from '../utils/general';
+import { formatDateFromDate, formatShortDateFromDate, getAge } from '../utils/general';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -18,7 +18,7 @@ import type { IFormattedUser } from '../types/user.interface';
 const DetailsUser = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user, loading, error, lastFetched, fetchUser, removeUser, editUser } = useDetailsUserStore();
+  const { user, userReport, loading, error, lastFetched, fetchUser, fetchuserReport, removeUser, editUser } = useDetailsUserStore();
   const { showNotification } = useNotification();
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -43,6 +43,7 @@ const DetailsUser = () => {
   const fetchFn = useCallback(async () => {
     if (id) {
       await fetchUser(id);
+      await fetchuserReport(id);
     }
   }, [id, fetchUser]);
 
@@ -113,13 +114,15 @@ const DetailsUser = () => {
             <RenderField label={t('userPage.phone_number')} value={formattedUser.phone_number}/>
             <RenderField label={t('userPage.email')} value={formattedUser.email} />
             <RenderField label={t('userPage.created')} value={formattedUser.created_at} />
-            <RenderField label={t('userPage.nbReport')} value={formattedUser.nb_reports} />
+            <RenderField 
+              label={t('userPage.nbReport')}
+              value={`publication: ${userReport?.nb_publication_report} - match: ${userReport?.nb_match_report}`} /> 
             <RenderField label={t('userPage.isBanned')} value={formattedUser.is_banned} />
             <RenderField label={t('userPage.lastActiveAt')} value={formattedUser.last_active_at} />
             <RenderField label={t('userPage.lastCoordsLat')} value={formattedUser.last_coords_lat} />
             <RenderField label={t('userPage.lastCoordsLon')} value={formattedUser.last_coords_lon} />
             <RenderField label={t('userPage.firstname')} value={formattedUser.firstname} />
-            <RenderField label={t('userPage.birthdate')} value={formatDateFromDate(formattedUser.birthdate)} />
+            <RenderField label={t('userPage.birthdate')} value={formatShortDateFromDate(formattedUser.birthdate)} />
             <RenderField label={t('userPage.sex')} value={formattedUser.sex} />
             <RenderField label={t('userPage.bio')} value={formattedUser.bio} />
 

@@ -20,7 +20,7 @@
   },
 
 	"matchPage": {
-    "title": "Matches",
+    "title": "Match reports",
 		"date": "Date",
     "user1": "User 1",
     "user2": "User 2",
@@ -57,13 +57,14 @@
 		"phone_number": "Phone",
     "email": "Email",
     "created": "Creation date",
+		"nbReport": "Reports",
 		"isBanned": "Banned ?",
-		"nbReport": "Nb report",
 		"lastActiveAt": "Last connexion",
 		"lastCoordsLat": "Last lat",
 		"lastCoordsLon": "Last lon",
 		"firstname": "Firstname",
 		"birthdate": "Date of birth",
+		"age": "Age",
 		"sex": "Sex",
 		"bio": "Bio",
 		"photo": "Photo"
