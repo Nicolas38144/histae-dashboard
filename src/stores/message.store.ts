@@ -12,7 +12,7 @@ interface MessageState {
   loading: boolean;
   error: string | null;
   lastFetched: number | null;
-  fetchMessages: () => Promise<void>;
+  fetchMessages: (match_id: string) => Promise<void>;
   addMessage: (message: string) => Promise<void>;
   editMessage: (id: string, message: string) => Promise<void>;
   removeMessage: (id: string) => Promise<void>;
@@ -24,10 +24,10 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   error: null,
   lastFetched: null,
 
-  fetchMessages: async () => {
+  fetchMessages: async (match_id: string) => {
     set({ loading: true, error: null });
     try {
-      const data = await getMessages();
+      const data = await getMessages(match_id);
       set({ messages: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Error loading messages: '+err, loading: false });

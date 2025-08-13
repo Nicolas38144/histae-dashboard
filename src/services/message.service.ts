@@ -1,25 +1,14 @@
 import api from './http.service';
 import type { IMessage } from '../types/message.interface';
 
-export const getMessages = async (): Promise<IMessage[]> => {
+export const getMessages = async (match_id: string): Promise<IMessage[]> => {
   try {
-    const res = await api.get('/messages');
+    const res = await api.get(`/messages/${match_id}`);
     const messages: IMessage[] = res.data;
     return messages;
   } catch (err) {
     console.error('Error getMessages API:', err);
     return [];
-  }
-};
-
-export const getMessage = async (idMessage: string): Promise<IMessage | null> => {
-  try {
-    const res = await api.get('/messages/'+idMessage);
-    const message: IMessage = res.data;
-    return message;
-  } catch (err) {
-    console.error('Error getMessage API:', err);
-    return null;
   }
 };
 
