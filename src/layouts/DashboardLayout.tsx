@@ -28,7 +28,6 @@ const menuItems = [
   { label: "Publications", path: '/publications' },
   { label: "Vibes", path: '/vibes' },
   { label: "Match reports", path: '/matches' },
-  { label: "Messages", path: '/messages' },
 ];
 
 const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => {

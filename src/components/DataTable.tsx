@@ -1,5 +1,5 @@
 import { Box, TextField, Button, IconButton } from '@mui/material';
-import { Add, Delete } from '@mui/icons-material';
+import { Add, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import type { DataTableProps } from '../types/dataTableProps.type';
@@ -25,13 +25,19 @@ const DataTable = ({
   onRequestAdd,
   onRequestEdit,
   onRequestDelete,
+  onRequestView,
   editableFields = [],
   addFields = [],
   showAddButton = false,
+  currentViewedId,
+  isViewing
 }: DataTableProps & {
   editableFields?: string[];
   addFields?: { field: string; headerName: string }[];
   showAddButton?: boolean;
+  onRequestView?: (id: string) => void;
+  currentViewedId?: string | null;
+  isViewing?: boolean;
 }) => {
   const [searchText, setSearchText] = useState('');
   const [tableHeight, setTableHeight] = useState(400);
@@ -71,14 +77,26 @@ const DataTable = ({
 
     return [
       ...dynamicCols,
-      ...(onRequestDelete
-        ? [{
-            field: 'actions',
-            headerName: t("dataTable.actions"),
-            width: 100,
-            sortable: false,
-            filterable: false,
-            renderCell: ({ row }: any) => (
+      {
+        field: 'actions',
+        headerName: t("dataTable.actions"),
+        width: 120,
+        sortable: false,
+        filterable: false,
+        renderCell: ({ row }: any) => (
+          <>
+            {onRequestView && (
+              <IconButton
+                onClick={() => onRequestView(row.id)}
+                size="small"
+              >
+                {currentViewedId === row.id && isViewing
+                  ? <VisibilityOff fontSize="small" color="primary" />
+                  : <Visibility fontSize="small" color="primary" />
+                }
+              </IconButton>
+            )}
+            {onRequestDelete && (
               <IconButton
                 onClick={() => {
                   setRowToDelete(row.id);
@@ -88,12 +106,12 @@ const DataTable = ({
               >
                 <Delete fontSize="small" color="error" />
               </IconButton>
-            ),
-          }]
-        : []
-      ),
+            )}
+          </>
+        ),
+      },
     ];
-  }, [columns, filteredRows, onRequestDelete, editableFields]);
+  }, [columns, filteredRows, onRequestDelete, onRequestView, editableFields, currentViewedId, isViewing]);
 
   const { showNotification } = useNotification();
   const handleRowUpdate = async (newRow: any, oldRow: any) => {
@@ -114,7 +132,7 @@ const DataTable = ({
     const updateHeight = () => {
       if (containerRef.current) {
         const topOffset = containerRef.current.getBoundingClientRect().top;
-        const availableHeight = window.innerHeight - topOffset - 128;
+        const availableHeight = window.innerHeight - topOffset - 96;
         setTableHeight(availableHeight > 200 ? availableHeight : 200);
       }
     };
@@ -150,7 +168,9 @@ const DataTable = ({
         <DataGrid
           rows={filteredRows}
           columns={autoSizedColumns}
-          pagination
+          initialState={{
+            pagination: { paginationModel: { pageSize: 25, page: 0 } }
+          }}
           processRowUpdate={handleRowUpdate}
           isCellEditable={(params) => editableFields.includes(params.field)}
           disableRowSelectionOnClick

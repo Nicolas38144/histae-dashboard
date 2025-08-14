@@ -48,7 +48,6 @@ const Home = () => {
         { label: t("homePage.publications"), value: sizeDB.nb_publication },
         { label: t("homePage.publicationsLiked"), value: sizeDB.nb_publication_liked },
         { label: t("homePage.publicationReports"), value: sizeDB.nb_publication_report },
-        { label: t("homePage.messages"), value: sizeDB.nb_message },
       ]
     : [];
 

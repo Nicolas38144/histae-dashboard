@@ -6,7 +6,6 @@
     "matchesNotContinued": "Matches not continued",
     "matchesContinued": "Matches continued",
     "matchReports": "Match reports",
-    "messages": "Messages",
     "publications": "Publications",
     "publicationReports": "Publication reports",
     "users": "Users"
@@ -30,15 +29,6 @@
 		"user2Continues": "User 2 continues",
 		"user1ID": "ID User 1",
 		"user2ID": "ID User 2"
-  },
-
-	"messagePage": {
-    "title": "Messages",
-		"match": "Match",
-    "date": "Date",
-    "sender": "Sencer",
-		"receiver": "Receiver",
-		"message": "Message"
   },
 
 	"publicationPage": {

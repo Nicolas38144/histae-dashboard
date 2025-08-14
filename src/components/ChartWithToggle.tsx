@@ -12,7 +12,6 @@ type MetricKey =
   | 'nb_match_not_continued'
   | 'nb_match_continued'
   | 'nb_match_report'
-  | 'nb_message'
   | 'nb_publication'
   | 'nb_publication_report'
   | 'nb_user';
@@ -28,7 +27,6 @@ const COLORS: Record<MetricKey, string> = {
   nb_match_not_continued: '#2ca02c',
   nb_match_continued: '#17becf',
   nb_match_report: '#d62728',
-  nb_message: '#9467bd',
   nb_publication: '#8c564b',
   nb_publication_report: '#e377c2',
   nb_user: '#7f7f7f',
@@ -41,7 +39,6 @@ const LABELS: Record<MetricKey, string> = {
   nb_match_not_continued: 'Matches not continued',
   nb_match_continued: 'Matches continued',
   nb_match_report: 'Match reports',
-  nb_message: 'Messages',
   nb_publication: 'Publications',
   nb_publication_report: 'Publication reports',
   nb_user: 'Users',

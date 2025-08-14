@@ -7,7 +7,6 @@ import User from '../pages/User';
 import DetailsUser from '../pages/DetailsUser';
 import ProtectedLayout from '../layouts/ProtectedLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
-import Message from '../pages/Message';
 import Match from '../pages/Match';
 import { t } from 'i18next';
 
@@ -24,7 +23,6 @@ const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'ligh
           <Route path="/publications" element={<Publication />} />
           <Route path="/vibes" element={<Vibe />} />
           <Route path="/matches" element={<Match />} />
-          <Route path="/messages" element={<Message />} />
           <Route path="*" element={<div>{t("pageNotFound")}</div>} />
         </Route>
       </Route>
