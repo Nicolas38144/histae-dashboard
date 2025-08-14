@@ -1,4 +1,4 @@
-export interface IPublication {
+export interface IPost {
   id: string;
   user_id: string;
   author: string;

@@ -1,7 +1,7 @@
-export interface IPublicationReport {
+export interface IPostReport {
   id: string;
   created_at: Date;
-  publication_id: string;
+  post_id: string;
   origin_user_id: string;
   reason: string;
 }

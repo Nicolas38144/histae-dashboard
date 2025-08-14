@@ -116,7 +116,7 @@ const DetailsUser = () => {
             <RenderField label={t('userPage.created')} value={formattedUser.created_at} />
             <RenderField 
               label={t('userPage.nbReport')}
-              value={`publication: ${userReport?.nb_publication_report} - match: ${userReport?.nb_match_report}`} /> 
+              value={`post: ${userReport?.nb_post_report} - match: ${userReport?.nb_match_report}`} /> 
             <RenderField label={t('userPage.isBanned')} value={formattedUser.is_banned} />
             <RenderField label={t('userPage.lastActiveAt')} value={formattedUser.last_active_at} />
             <RenderField label={t('userPage.lastCoordsLat')} value={formattedUser.last_coords_lat} />

@@ -1,4 +1,4 @@
-import { usePublicationStore } from '../stores/publication.store';
+import { usePostStore } from '../stores/post.store';
 import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import { formatDateFromDate } from '../utils/general';
@@ -12,31 +12,31 @@ import Title from '../components/Title';
 import { t } from 'i18next';
 import { Link } from 'react-router-dom';
 
-const Publication = () => {
-  const { publications, loading, error, lastFetched, fetchPublications, addPublication, removePublication, periodTitle, setPeriodTitle, } = usePublicationStore();
+const Post = () => {
+  const { posts, loading, error, lastFetched, fetchPosts, addPost, removePost, periodTitle, setPeriodTitle, } = usePostStore();
 
   const fetchFn = useCallback(async () => {
-    await fetchPublications(periods[periodTitle].days);
-  }, [fetchPublications, periodTitle]);
+    await fetchPosts(periods[periodTitle].days);
+  }, [fetchPosts, periodTitle]);
 
   useAutoFetchStore({
     lastFetched,
     fetchFn,
     maxAge: MAX_CACHE_DURATION,
     deps: [periodTitle],
-    persistKey: 'publications:metrics:period',
+    persistKey: 'posts:metrics:period',
   });
 
-  const formattedPublications = useMemo(() => {
-    return publications.map((pub) => ({
-      ...pub,
-      created_at: formatDateFromDate(pub.created_at),
+  const formattedPosts = useMemo(() => {
+    return posts.map((post) => ({
+      ...post,
+      created_at: formatDateFromDate(post.created_at),
     }));
-  }, [publications]);
+  }, [posts]);
   
   const columns = [
-    { field: 'created_at', headerName: t("publicationPage.date") },
-    { field: 'author', headerName: t("publicationPage.author"), renderCell: (params: any) => (
+    { field: 'created_at', headerName: t("postPage.date") },
+    { field: 'author', headerName: t("postPage.author"), renderCell: (params: any) => (
       <Link
         to={`/users/${params.row.user_id}`}
         style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
@@ -44,22 +44,22 @@ const Publication = () => {
         {params.value}
       </Link>
     ), },
-    { field: 'content', headerName: t("publicationPage.publication") },
-    { field: 'nb_like', headerName: t("publicationPage.nbLike") },
-    { field: 'nb_report', headerName: t("publicationPage.nbReport") },
+    { field: 'content', headerName: t("postPage.post") },
+    { field: 'nb_like', headerName: t("postPage.nbLike") },
+    { field: 'nb_report', headerName: t("postPage.nbReport") },
   ];
 
   const addFields = [
-    { field: 'user_id', headerName: t("publicationPage.userID") },
-    { field: 'content', headerName: t("publicationPage.publication") },
+    { field: 'user_id', headerName: t("postPage.userID") },
+    { field: 'content', headerName: t("postPage.post") },
   ]
 
   return (
     <Box
-      className="page-publication"
+      className="page-post"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title={t("publicationPage.title")} />
+      <Title title={t("postPage.title")} />
 
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
@@ -68,14 +68,14 @@ const Publication = () => {
 
       <DataTable
         columns={columns}
-        rows={formattedPublications}
+        rows={formattedPosts}
         addFields={addFields}
-        onRequestAdd={addPublication}
-        onRequestDelete={removePublication}
+        onRequestAdd={addPost}
+        onRequestDelete={removePost}
         showAddButton={true}
       />
     </Box>
   );
 };
 
-export default Publication;
+export default Post;

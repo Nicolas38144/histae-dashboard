@@ -30,7 +30,7 @@ export const useVibeStore = create<VibeState>((set, get) => ({
       const data = await getVibes();
       set({ vibes: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
-      set({ error: 'Error loading publications: '+err, loading: false });
+      set({ error: 'Error loading posts: '+err, loading: false });
       throw err;
     }
   },

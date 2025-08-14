@@ -1,13 +1,13 @@
 {
   "homePage": {
     "title": "Home",
-    "publicationsLiked": "Publications liked",
+    "postsLiked": "Posts liked",
     "matchesCreated": "Matches created",
     "matchesNotContinued": "Matches not continued",
     "matchesContinued": "Matches continued",
     "matchReports": "Match reports",
-    "publications": "Publications",
-    "publicationReports": "Publication reports",
+    "posts": "Posts",
+    "postReports": "Post reports",
     "users": "Users"
   },
 
@@ -31,11 +31,11 @@
 		"user2ID": "ID User 2"
   },
 
-	"publicationPage": {
-    "title": "Publications",
+	"postPage": {
+    "title": "Posts",
 		"date": "Date",
     "author": "Author",
-    "publication": "Publication",
+    "post": "Post",
 		"nbLike": "Nb like",
 		"nbReport": "Nb report",
 		"userID": "ID User"

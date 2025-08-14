@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Home from '../pages/Home';
-import Publication from '../pages/Publication';
+import Post from '../pages/Post';
 import Vibe from '../pages/Vibe';
 import User from '../pages/User';
 import DetailsUser from '../pages/DetailsUser';
@@ -20,7 +20,7 @@ const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'ligh
           <Route path="/home" element={<Home />} />
           <Route path="/users" element={<User />} />
           <Route path="/users/:id" element={<DetailsUser />} />
-          <Route path="/publications" element={<Publication />} />
+          <Route path="/posts" element={<Post />} />
           <Route path="/vibes" element={<Vibe />} />
           <Route path="/matches" element={<Match />} />
           <Route path="*" element={<div>{t("pageNotFound")}</div>} />

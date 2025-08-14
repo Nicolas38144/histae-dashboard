@@ -7,13 +7,13 @@ import type { IChartData } from '../types/metric.interface';
 import { t } from 'i18next';
 
 type MetricKey =
-  | 'nb_publication_liked'
+  | 'nb_post_liked'
   | 'nb_match'
   | 'nb_match_not_continued'
   | 'nb_match_continued'
   | 'nb_match_report'
-  | 'nb_publication'
-  | 'nb_publication_report'
+  | 'nb_post'
+  | 'nb_post_report'
   | 'nb_user';
 
 type Props = {
@@ -22,25 +22,25 @@ type Props = {
 };
 
 const COLORS: Record<MetricKey, string> = {
-  nb_publication_liked: '#1f77b4',
+  nb_post_liked: '#1f77b4',
   nb_match: '#ff7f0e',
   nb_match_not_continued: '#2ca02c',
   nb_match_continued: '#17becf',
   nb_match_report: '#d62728',
-  nb_publication: '#8c564b',
-  nb_publication_report: '#e377c2',
+  nb_post: '#8c564b',
+  nb_post_report: '#e377c2',
   nb_user: '#7f7f7f',
 };
 
 
 const LABELS: Record<MetricKey, string> = {
-  nb_publication_liked: 'Publications liked',
+  nb_post_liked: 'Posts liked',
   nb_match: 'Matches created',
   nb_match_not_continued: 'Matches not continued',
   nb_match_continued: 'Matches continued',
   nb_match_report: 'Match reports',
-  nb_publication: 'Publications',
-  nb_publication_report: 'Publication reports',
+  nb_post: 'Posts',
+  nb_post_report: 'Post reports',
   nb_user: 'Users',
 };
 

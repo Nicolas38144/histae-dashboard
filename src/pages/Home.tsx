@@ -45,9 +45,9 @@ const Home = () => {
         { label: t("homePage.matchesNotContinued"), value: sizeDB.nb_match_not_continued },
         { label: t("homePage.matchesContinued"), value: sizeDB.nb_match_continued },
         { label: t("homePage.matchReports"), value: sizeDB.nb_match_report },
-        { label: t("homePage.publications"), value: sizeDB.nb_publication },
-        { label: t("homePage.publicationsLiked"), value: sizeDB.nb_publication_liked },
-        { label: t("homePage.publicationReports"), value: sizeDB.nb_publication_report },
+        { label: t("homePage.posts"), value: sizeDB.nb_post },
+        { label: t("homePage.postsLiked"), value: sizeDB.nb_post_liked },
+        { label: t("homePage.postReports"), value: sizeDB.nb_post_report },
       ]
     : [];
 
