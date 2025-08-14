@@ -6,7 +6,7 @@ import { MAX_CACHE_DURATION } from '../utils/constants';
 import PeriodToggle, { periods } from '../components/PeriodToggle';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import Title from '../components/Title';
+import { MainTitle } from '../components/Title';
 import { useCallback, useMemo } from 'react';
 import { formatDateFromDate, getAge } from '../utils/general';
 import { useNotification } from '../components/Notifier';
@@ -74,7 +74,7 @@ const User = () => {
       className="page-user"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title={t("userPage.title")} />
+      <MainTitle title={t("userPage.title")} />
 
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 

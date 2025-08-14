@@ -8,19 +8,19 @@ import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useCallback, useMemo } from 'react';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import Title from '../components/Title';
+import { MainTitle } from '../components/Title';
 import { t } from 'i18next';
 import { Link } from 'react-router-dom';
 
 const Post = () => {
-  const { posts, loading, error, lastFetched, fetchPosts, addPost, removePost, periodTitle, setPeriodTitle, } = usePostStore();
+  const { posts, loadingPost, errorPost, lastFetchedPost, fetchPosts, addPost, removePost, periodTitle, setPeriodTitle, } = usePostStore();
 
   const fetchFn = useCallback(async () => {
     await fetchPosts(periods[periodTitle].days);
   }, [fetchPosts, periodTitle]);
 
   useAutoFetchStore({
-    lastFetched,
+    lastFetched: lastFetchedPost,
     fetchFn,
     maxAge: MAX_CACHE_DURATION,
     deps: [periodTitle],
@@ -59,12 +59,12 @@ const Post = () => {
       className="page-post"
       sx={{ display: 'flex', flexDirection: 'column'}}
     >
-      <Title title={t("postPage.title")} />
+      <MainTitle title={t("postPage.title")} />
 
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
-      {loading && <Loader />}
-      {error && <Error error={error} />}
+      {loadingPost && <Loader />}
+      {errorPost && <Error error={errorPost} />}
 
       <DataTable
         columns={columns}

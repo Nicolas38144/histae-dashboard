@@ -9,7 +9,7 @@ import { MAX_CACHE_DURATION } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import Title from '../components/Title';
+import { MainTitle } from '../components/Title';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
 import { Link } from 'react-router-dom';
@@ -116,14 +116,13 @@ const Match = () => {
     const firstSenderId = messages[0].sender_id;
     return messages.map((m) => ({
       ...m,
-      //created_at: formatDateFromDate(m.created_at),
       isRight: m.sender_id === firstSenderId,
     }));
   }, [messages]);
 
   return (
     <Box className="page-match" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Title title={t("matchPage.title")} />
+      <MainTitle title={t("matchPage.title")} />
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
       {loading && <Loader />}

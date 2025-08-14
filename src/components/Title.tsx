@@ -4,12 +4,18 @@ interface TitleProps {
   title: string;
 }
 
-const Title = ({ title }: TitleProps) => {
+export const MainTitle = ({ title }: TitleProps) => {
   return (
-    <Typography variant="h3" align="center" mt={1} mb={2}>
+    <Typography variant="h3" align="center" mb={4}>
       {title}
     </Typography>
   );
 };
 
-export default Title;
+export const SubTitle = ({ title }: TitleProps) => {
+  return (
+    <Typography variant="h5" align="center" mb={2}>
+      {title}
+    </Typography>
+  );
+};

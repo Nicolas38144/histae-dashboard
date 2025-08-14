@@ -7,3 +7,11 @@ export interface IPost {
   nb_like: number;
   nb_report: number;
 }
+
+export interface IUserPost {
+  id: string;
+  created_at: Date;
+  content: string;
+  nb_like: number;
+  nb_report: number;
+}

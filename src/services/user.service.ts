@@ -24,7 +24,7 @@ export const getUser = async (id: string): Promise<IUser | null> => {
   }
 };
 
-export const getuserReport = async (id: string): Promise<IUserReport | null> => {
+export const getUserReport = async (id: string): Promise<IUserReport | null> => {
   try {
     const res = await api.get(`/users/${id}/reports`);
     const userReport: IUserReport = res.data;

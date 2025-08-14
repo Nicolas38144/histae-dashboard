@@ -5,7 +5,7 @@ import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import Title from '../components/Title';
+import { MainTitle } from '../components/Title';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
 
@@ -70,7 +70,7 @@ const Vibe = () => {
 
   return (
     <Box className="page-vibe" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Title title={t("vibePage.title")} />
+      <MainTitle title={t("vibePage.title")} />
 
       <DataTable
         columns={columns}

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import {
   getUser,
-  getuserReport,
+  getUserReport,
   updateUser,
   deleteUser,
 } from '../services/user.service';
@@ -15,7 +15,7 @@ interface DetailsUserState {
   error: string | null;
   lastFetched: number | null;
   fetchUser: (id: string) => Promise<void>;
-  fetchuserReport: (id: string) => Promise<void>;
+  fetchUserReport: (id: string) => Promise<void>;
   editUser: (user: IUser) => Promise<void>;
   removeUser: (id: string) => Promise<void>;
 }
@@ -38,10 +38,10 @@ export const useDetailsUserStore = create<DetailsUserState>((set, get) => ({
     }
   },
 
-  fetchuserReport: async (id: string) => {
+  fetchUserReport: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      const data = await getuserReport(id);
+      const data = await getUserReport(id);
       set({ userReport: data, loading: false, lastFetched: Date.now() });
     } catch (err) {
       set({ error: 'Error loading reports: '+err, loading: false });

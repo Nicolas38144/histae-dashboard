@@ -1,4 +1,5 @@
 import { useDetailsUserStore } from '../stores/detailsUser.store';
+import { usePostStore } from '../stores/post.store';
 import { Box, Button, Paper, Typography, Switch, FormControlLabel, } from '@mui/material';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -6,7 +7,7 @@ import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import Title from '../components/Title';
+import { MainTitle, SubTitle } from '../components/Title';
 import { useCallback, useMemo, useState } from 'react';
 import { formatDateFromDate, formatShortDateFromDate, getAge } from '../utils/general';
 import { useNotification } from '../components/Notifier';
@@ -14,11 +15,13 @@ import { t } from 'i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import RenderField from '../components/RenderField';
 import type { IFormattedUser } from '../types/user.interface';
+import DataTable from '../components/DataTable';
 
 const DetailsUser = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user, userReport, loading, error, lastFetched, fetchUser, fetchuserReport, removeUser, editUser } = useDetailsUserStore();
+  const { user, userReport, loading, error, lastFetched, fetchUser, fetchUserReport, removeUser, editUser } = useDetailsUserStore();
+  const { userPosts, loadingPost, errorPost, fetchUserPosts, removePost } = usePostStore();
   const { showNotification } = useNotification();
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -40,12 +43,27 @@ const DetailsUser = () => {
     return formatted;
   }, [user]);
 
+  const formattedPosts = useMemo(() => {
+    return userPosts.map((post) => ({
+      ...post,
+      created_at: formatDateFromDate(post.created_at),
+    }));
+  }, [userPosts]);
+
+  const columns = [
+    { field: 'created_at', headerName: t("postPage.date") },
+    { field: 'content', headerName: t("postPage.post") },
+    { field: 'nb_like', headerName: t("postPage.nbLike") },
+    { field: 'nb_report', headerName: t("postPage.nbReport") },
+  ];
+
   const fetchFn = useCallback(async () => {
     if (id) {
       await fetchUser(id);
-      await fetchuserReport(id);
+      await fetchUserReport(id);
+      await fetchUserPosts(id);
     }
-  }, [id, fetchUser]);
+  }, [id, fetchUser, fetchUserReport, fetchUserPosts]);
 
   useAutoFetchStore({
     lastFetched,
@@ -85,13 +103,7 @@ const DetailsUser = () => {
   return (
     <Box
       className="page-user"
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        maxWidth: 600,
-        margin: '0 auto',
-      }}
+      sx={{ display: 'flex', flexDirection: 'column' }}
     >
       <Button
         variant="outlined"
@@ -107,9 +119,9 @@ const DetailsUser = () => {
 
       {formattedUser ? (
         <>
-          <Title title={`${formattedUser.firstname}, ${formattedUser.age}`} />
+          <MainTitle title={`${formattedUser.firstname}, ${formattedUser.age}`} />
 
-          <Paper elevation={3} sx={{ padding: 3 }}>
+          <Paper elevation={3} sx={{ padding: 3, maxWidth: 600 }}>
             <RenderField label={t('userPage.role')} value={formattedUser.role} />
             <RenderField label={t('userPage.phone_number')} value={formattedUser.phone_number}/>
             <RenderField label={t('userPage.email')} value={formattedUser.email} />
@@ -176,6 +188,21 @@ const DetailsUser = () => {
             onCancel={() => setConfirmDeleteOpen(false)}
           />
         </>
+      ) : (
+        <Error error={t("detailsUserPage.noData")} />
+      )}
+
+      {formattedUser ? (
+        <Box className="subpage-userposts" sx={{ mt: 6, mb:2 }}>
+          <SubTitle title="Posts" />
+          {loadingPost && <Loader />}
+          {errorPost && <Error error={errorPost} />}
+          <DataTable
+            columns={columns}
+            rows={formattedPosts}
+            onRequestDelete={removePost}
+          />
+        </Box>
       ) : (
         <Error error={t("detailsUserPage.noData")} />
       )}

@@ -4,20 +4,23 @@ import {
   createPost,
   updatePost,
   deletePost,
+  getUserPosts,
 } from '../services/post.service';
 import type { IPost } from '../types/post.interface';
 import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface PostState {
   posts: IPost[];
-  loading: boolean;
-  error: string | null;
-  lastFetched: number | null;
+  userPosts: IPost[];
+  loadingPost: boolean;
+  errorPost: string | null;
+  lastFetchedPost: number | null;
 
   periodTitle: PeriodTitle;
   setPeriodTitle: (period: PeriodTitle) => void;
 
   fetchPosts: (period: number) => Promise<void>;
+  fetchUserPosts: (user_id: string) => Promise<void>;
   addPost: (data: { user_id: string, content: string }) => Promise<void>;
   editPost: (updatedPost: IPost) => Promise<void>;
   removePost: (id: string) => Promise<void>;
@@ -25,20 +28,32 @@ interface PostState {
 
 export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
-  loading: false,
-  error: null,
-  lastFetched: null,
+  userPosts: [],
+  loadingPost: false,
+  errorPost: null,
+  lastFetchedPost: null,
 
   periodTitle: 'last7days',
   setPeriodTitle: (period) => set({ periodTitle: period }),
 
   fetchPosts: async (period: number) => {
-    set({ loading: true, error: null });
+    set({ loadingPost: true, errorPost: null });
     try {
       const data = await getPosts(period);
-      set({ posts: data, loading: false, lastFetched: Date.now() });
+      set({ posts: data, loadingPost: false, lastFetchedPost: Date.now() });
     } catch (err) {
-      set({ error: 'Error loading posts: '+err, loading: false });
+      set({ errorPost: 'Error loading posts: '+err, loadingPost: false });
+      throw err;
+    }
+  },
+
+  fetchUserPosts: async (user_id: string) => {
+    set({ loadingPost: true, errorPost: null });
+    try {
+      const data = await getUserPosts(user_id);
+      set({ userPosts: data, loadingPost: false, lastFetchedPost: Date.now() });
+    } catch (err) {
+      set({ errorPost: 'Error loading posts: '+err, loadingPost: false });
       throw err;
     }
   },
@@ -50,7 +65,7 @@ export const usePostStore = create<PostState>((set, get) => ({
         set({ posts: [...get().posts, created] });
       }
     } catch (err) {
-      set({ error: 'Error creating post' });
+      set({ errorPost: 'Error creating post' });
       throw err;
     }
   },
@@ -64,7 +79,7 @@ export const usePostStore = create<PostState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Error while editing post' });
+      set({ errorPost: 'Error while editing post' });
       throw err;
     }
   },
@@ -74,7 +89,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       await deletePost(id);
       set({ posts: get().posts.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Error deleting post' });
+      set({ errorPost: 'Error deleting post' });
       throw err;
     }
   },

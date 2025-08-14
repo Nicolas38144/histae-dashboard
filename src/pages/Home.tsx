@@ -4,7 +4,7 @@ import { MAX_CACHE_DURATION, TITLE } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import Title from '../components/Title';
+import { MainTitle } from '../components/Title';
 import { Box, Paper, Typography } from '@mui/material';
 import PeriodToggle, { periods } from '../components/PeriodToggle';
 import ChartWithToggle from '../components/ChartWithToggle';
@@ -53,7 +53,7 @@ const Home = () => {
 
   return (
     <Box className="page-match" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Title title={t("homePage.title")} />
+      <MainTitle title={t("homePage.title")} />
 
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 

@@ -12,14 +12,25 @@ export const getPosts = async (period: number): Promise<IPost[]> => {
   }
 };
 
-export const getPost = async (idPost: string): Promise<IPost | null> => {
+export const getPost = async (post_id: string): Promise<IPost | null> => {
   try {
-    const res = await api.get('/posts/'+idPost);
+    const res = await api.get(`/posts/${post_id}`);
     const post: IPost = res.data;
     return post;
   } catch (err) {
     console.error('Error getPost API:', err);
     return null;
+  }
+};
+
+export const getUserPosts = async (user_id: string): Promise<IPost[]> => {
+  try {
+    const res = await api.get(`/posts/${user_id}`);
+    const post: IPost[] = res.data;
+    return post;
+  } catch (err) {
+    console.error('Error getPost API:', err);
+    return [];
   }
 };
 
