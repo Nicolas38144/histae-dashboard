@@ -20,7 +20,7 @@ interface DetailsUserState {
   removeUser: (id: string) => Promise<void>;
 }
 
-export const useDetailsUserStore = create<DetailsUserState>((set, get) => ({
+export const userDetailsUserStore = create<DetailsUserState>((set, get) => ({
   user: null,
   userReport: null,
   loading: false,

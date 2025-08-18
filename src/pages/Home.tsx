@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useMetricStore } from '../stores/metric.store';
+import { userMetricStore } from '../stores/metric.store';
 import { MAX_CACHE_DURATION, TITLE } from '../utils/constants';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import Loader from '../components/Loader';
@@ -16,14 +16,14 @@ const Home = () => {
     chartData,
     loadingSizeDB,
     loadingChartData,
-    error,
+    errorMetric,
     lastFetchedSizeDB,
     lastFetchedChartData,
     fetchSizeDatabase,
     fetchChartData,
     periodTitle,
     setPeriodTitle,
-  } = useMetricStore();
+  } = userMetricStore();
 
   const fetchFn = useCallback(async () => {
     await fetchSizeDatabase(periods[periodTitle].days);
@@ -59,9 +59,9 @@ const Home = () => {
 
       {loadingSizeDB && <Loader />}
       {loadingChartData && <Loader />}
-      {error && <Error error={error} />}
+      {errorMetric && <Error error={errorMetric} />}
 
-      {!loadingSizeDB && !loadingChartData && !error && (
+      {!loadingSizeDB && !loadingChartData && !errorMetric && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
           {metrics.map((metric) => (
             <Paper

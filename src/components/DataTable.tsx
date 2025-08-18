@@ -151,13 +151,14 @@ const DataTable = ({
           size="small"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          sx={{ flex: 1, mr: 2 }}
+          sx={{ flex: 1 }}
         />
         {showAddButton && onRequestAdd && (
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={() => setOpenAddDialog(true)}
+            sx={{ ml: 2 }}
           >
             {t("dataTable.add")}
           </Button>

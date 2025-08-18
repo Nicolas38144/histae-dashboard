@@ -1,5 +1,5 @@
 import api from './http.service';
-import type { IChartData, ISizeDatabase } from '../types/metric.interface';
+import type { IChartData, ISizeDatabase, IUserMetric } from '../types/metric.interface';
 
 export const getSizeDatabase = async (period: number): Promise<ISizeDatabase | null> => {
   try {
@@ -7,7 +7,7 @@ export const getSizeDatabase = async (period: number): Promise<ISizeDatabase | n
     const sizeDB: ISizeDatabase = res.data;
     return sizeDB;
   } catch (err) {
-    console.error('Error getSizeDB API:', err);
+    console.error('Error getSizeDatabase API:', err);
     return null;
   }
 };
@@ -18,7 +18,18 @@ export const getChartData = async (period: number): Promise<IChartData[]> => {
     const sizeDB: IChartData[] = res.data;
     return sizeDB;
   } catch (err) {
-    console.error('Error getSizeDB API:', err);
+    console.error('Error getChartData API:', err);
     return [];
+  }
+};
+
+export const getUserMetric = async (user_id: string): Promise<IUserMetric | null> => {
+  try {
+    const res = await api.get(`/metrics/user/${user_id}`);
+    const userMetric: IUserMetric = res.data;
+    return userMetric;
+  } catch (err) {
+    console.error('Error getUserMetric API:', err);
+    return null;
   }
 };
