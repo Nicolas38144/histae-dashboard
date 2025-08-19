@@ -45,17 +45,6 @@ export const getUserLikedPosts = async (user_id: string): Promise<IDecryptedPost
   }
 };
 
-export const getPostReportOrigin = async (user_id: string): Promise<IDecryptedPost[]> => {
-  try {
-    const res = await api.get(`/postreports/${user_id}`);
-    const posts: IDecryptedPost[] = res.data;    
-    return posts;
-  } catch (err) {
-    console.error('Error getPostReportOrigin API:', err);
-    return [];
-  }
-};
-
 export const createPost = async (user_id: string, content: string): Promise<IDecryptedPost | null> => {
   try {
     const res = await api.post('/posts', { user_id, content });

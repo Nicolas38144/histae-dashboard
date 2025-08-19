@@ -2,6 +2,7 @@ import { userDetailsUserStore } from '../stores/detailsUser.store';
 import { userMetricStore } from '../stores/metric.store';
 import { useMatchReportStore } from '../stores/matchReport.store';
 import { usePostStore } from '../stores/post.store';
+import { usePostReportStore } from '../stores/postReport.store';
 import { Box, Button, Paper, Typography, Switch, FormControlLabel, } from '@mui/material';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ChatMessages from '../components/ChatMessage';
@@ -25,7 +26,8 @@ const DetailsUser = () => {
   const { id } = useParams<{ id: string }>();
   const { user, loading, error, lastFetched, fetchUser, removeUser, editUser } = userDetailsUserStore();
   const { userMetric, loadingUserMetric, errorMetric, fetchUserMetric } = userMetricStore();
-  const { userCreatedPosts, userLikedPosts, postReportOrigin, loadingCreatedPost, loadingLikedPost, loadingPostReportOrigin, errorPost, fetchUserCreatedPosts, fetchUserLikedPosts, fetchPostReportOrigin, removePost } = usePostStore();
+  const { userCreatedPosts, userLikedPosts, loadingCreatedPost, loadingLikedPost, errorPost, fetchUserCreatedPosts, fetchUserLikedPosts, removePost } = usePostStore();
+  const { postReportOrigin, loadingPostReportOrigin, fetchPostReportOrigin } = usePostReportStore();
   const { userMatchReports, loadingUserMatchReports, errorUserMatchReports, fetchUserMatchReports, removeUserMatchReport } = useMatchReportStore();
   const { messages, loadingMessage, errorMessage, lastFetchedMessage, fetchMessages } = useMessageStore();
   const { showNotification } = useNotification();

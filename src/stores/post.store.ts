@@ -3,7 +3,6 @@ import {
   getPosts,
   getUserCreatedPosts,
   getUserLikedPosts,
-  getPostReportOrigin,
   createPost,
   updatePost,
   deletePost,
@@ -15,11 +14,9 @@ interface PostState {
   posts: IDecryptedPost[];
   userCreatedPosts: IDecryptedPost[];
   userLikedPosts: IDecryptedPost[];
-  postReportOrigin: IDecryptedPost[];
   loadingPost: boolean;
   loadingCreatedPost: boolean;
   loadingLikedPost: boolean;
-  loadingPostReportOrigin: boolean;
   errorPost: string | null;
   lastFetchedPost: number | null;
 
@@ -29,7 +26,6 @@ interface PostState {
   fetchPosts: (period: number) => Promise<void>;
   fetchUserCreatedPosts: (user_id: string) => Promise<void>;
   fetchUserLikedPosts: (user_id: string) => Promise<void>;
-  fetchPostReportOrigin: (user_id: string) => Promise<void>;
   addPost: (data: { user_id: string, content: string }) => Promise<void>;
   editPost: (updatedPost: IDecryptedPost) => Promise<void>;
   removePost: (id: string) => Promise<void>;
@@ -39,11 +35,9 @@ export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
   userCreatedPosts: [],
   userLikedPosts: [],
-  postReportOrigin: [],
   loadingPost: false,
   loadingCreatedPost: false,
   loadingLikedPost: false,
-  loadingPostReportOrigin: false,
   errorPost: null,
   lastFetchedPost: null,
 
@@ -79,17 +73,6 @@ export const usePostStore = create<PostState>((set, get) => ({
       set({ userLikedPosts: data, loadingLikedPost: false, lastFetchedPost: Date.now() });
     } catch (err) {
       set({ errorPost: 'Error loading posts: '+err, loadingLikedPost: false });
-      throw err;
-    }
-  },
-
-  fetchPostReportOrigin: async (user_id: string) => {
-    set({ loadingPostReportOrigin: true, errorPost: null });
-    try {
-      const data = await getPostReportOrigin(user_id);
-      set({ postReportOrigin: data, loadingPostReportOrigin: false, lastFetchedPost: Date.now() });
-    } catch (err) {
-      set({ errorPost: 'Error loading posts: '+err, loadingPostReportOrigin: false });
       throw err;
     }
   },
