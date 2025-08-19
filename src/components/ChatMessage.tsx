@@ -9,9 +9,11 @@ interface IChatMessage extends IMessage {
 
 interface ChatMessageProps {
   messages: IChatMessage[];
+  currentUserId?: string;
+  onUserLinkClick?: () => void;
 }
 
-const ChatMessage = ({ messages }: ChatMessageProps) => {
+const ChatMessage = ({ messages, currentUserId, onUserLinkClick }: ChatMessageProps) => {
   if (messages.length === 0) return null;
 
   const firstMsg = messages[0];
@@ -20,15 +22,19 @@ const ChatMessage = ({ messages }: ChatMessageProps) => {
   const rightUserName = firstMsg.sender_info;
   const leftUserName = firstMsg.receiver_info;
 
+  const isLeftSelf = currentUserId && leftUserId === currentUserId;
+  const isRightSelf = currentUserId && rightUserId === currentUserId;
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 2,
-        backgroundColor: '#fff', 
+        backgroundColor: '#fff',
       }}
     >
+      {/* Header avec les 2 utilisateurs */}
       <Box
         sx={{
           display: 'flex',
@@ -41,24 +47,46 @@ const ChatMessage = ({ messages }: ChatMessageProps) => {
           zIndex: 10,
         }}
       >
-        <Link
-          component={RouterLink}
-          to={`/users/${leftUserId}`}
-          underline="hover"
-          sx={{ fontWeight: 'bold', color: 'black' }}
-        >
-          {leftUserName}
-        </Link>
-        <Link
-          component={RouterLink}
-          to={`/users/${rightUserId}`}
-          underline="hover"
-          sx={{ fontWeight: 'bold', color: 'black' }}
-        >
-          {rightUserName}
-        </Link>
+        {/* LEFT */}
+        {isLeftSelf ? (
+          <Typography sx={{ fontWeight: 'bold', color: 'black' }}>
+            {leftUserName}
+          </Typography>
+        ) : (
+          <Link
+            component={RouterLink}
+            to={`/users/${leftUserId}`}
+            underline="hover"
+            sx={{ fontWeight: 'bold', color: 'black' }}
+            onClick={() => {
+              onUserLinkClick?.();
+            }}
+          >
+            {leftUserName}
+          </Link>
+        )}
+
+        {/* RIGHT */}
+        {isRightSelf ? (
+          <Typography sx={{ fontWeight: 'bold', color: 'black' }}>
+            {rightUserName}
+          </Typography>
+        ) : (
+          <Link
+            component={RouterLink}
+            to={`/users/${rightUserId}`}
+            underline="hover"
+            sx={{ fontWeight: 'bold', color: 'black' }}
+            onClick={() => {
+              onUserLinkClick?.();
+            }}
+          >
+            {rightUserName}
+          </Link>
+        )}
       </Box>
 
+      {/* Messages */}
       <Box
         sx={{
           display: 'flex',

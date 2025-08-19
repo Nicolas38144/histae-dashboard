@@ -17,7 +17,7 @@ import ChatMessages from '../components/ChatMessage';
 
 const Match = () => {
   const { matches, loading, error, lastFetched, fetchMatches, addMatch, removeMatch, periodTitle, setPeriodTitle } = useMatchStore();
-  const { messages, loading: loadingMessages, error: errorMessages, lastFetched: lastFetchedMessages, fetchMessages } = useMessageStore();
+  const { messages, loadingMessage, errorMessage, lastFetchedMessage, fetchMessages } = useMessageStore();
 
   const { showNotification } = useNotification();
   const [showConversation, setShowConversation] = useState(false);
@@ -105,7 +105,7 @@ const Match = () => {
   }, [fetchMessages, selectedMatchId]);
 
   useAutoFetchStore({
-    lastFetched: lastFetchedMessages,
+    lastFetched: lastFetchedMessage,
     fetchFn: fetchFnMessages,
     maxAge: MAX_CACHE_DURATION,
     deps: [selectedMatchId],
@@ -142,9 +142,9 @@ const Match = () => {
 
       {showConversation && selectedMatchId && (
         <>
-          {loadingMessages && <Loader />}
-          {errorMessages && <Error error={errorMessages} />}
-          {!loadingMessages && !errorMessages && (
+          {loadingMessage && <Loader />}
+          {errorMessage && <Error error={errorMessage} />}
+          {!loadingMessage && !errorMessage && (
             <Paper elevation={3} sx={{ my: 3, mx: 'auto', height: 550, overflowY: 'auto' }}>
               <ChatMessages messages={formattedMessages} />
             </Paper>

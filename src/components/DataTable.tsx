@@ -132,7 +132,7 @@ const DataTable = ({
     const updateHeight = () => {
       if (containerRef.current) {
         const topOffset = containerRef.current.getBoundingClientRect().top;
-        const availableHeight = window.innerHeight - topOffset - 96;
+        const availableHeight = window.innerHeight - topOffset - 64;
         setTableHeight(availableHeight > 200 ? availableHeight : 200);
       }
     };

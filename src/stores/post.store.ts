@@ -1,18 +1,25 @@
 import { create } from 'zustand';
 import {
   getPosts,
+  getUserCreatedPosts,
+  getUserLikedPosts,
+  getPostReportOrigin,
   createPost,
   updatePost,
   deletePost,
-  getUserPosts,
 } from '../services/post.service';
-import type { IPost } from '../types/post.interface';
+import type { IDecryptedPost } from '../types/post.interface';
 import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface PostState {
-  posts: IPost[];
-  userPosts: IPost[];
+  posts: IDecryptedPost[];
+  userCreatedPosts: IDecryptedPost[];
+  userLikedPosts: IDecryptedPost[];
+  postReportOrigin: IDecryptedPost[];
   loadingPost: boolean;
+  loadingCreatedPost: boolean;
+  loadingLikedPost: boolean;
+  loadingPostReportOrigin: boolean;
   errorPost: string | null;
   lastFetchedPost: number | null;
 
@@ -20,16 +27,23 @@ interface PostState {
   setPeriodTitle: (period: PeriodTitle) => void;
 
   fetchPosts: (period: number) => Promise<void>;
-  fetchUserPosts: (user_id: string) => Promise<void>;
+  fetchUserCreatedPosts: (user_id: string) => Promise<void>;
+  fetchUserLikedPosts: (user_id: string) => Promise<void>;
+  fetchPostReportOrigin: (user_id: string) => Promise<void>;
   addPost: (data: { user_id: string, content: string }) => Promise<void>;
-  editPost: (updatedPost: IPost) => Promise<void>;
+  editPost: (updatedPost: IDecryptedPost) => Promise<void>;
   removePost: (id: string) => Promise<void>;
 }
 
 export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
-  userPosts: [],
+  userCreatedPosts: [],
+  userLikedPosts: [],
+  postReportOrigin: [],
   loadingPost: false,
+  loadingCreatedPost: false,
+  loadingLikedPost: false,
+  loadingPostReportOrigin: false,
   errorPost: null,
   lastFetchedPost: null,
 
@@ -47,13 +61,35 @@ export const usePostStore = create<PostState>((set, get) => ({
     }
   },
 
-  fetchUserPosts: async (user_id: string) => {
-    set({ loadingPost: true, errorPost: null });
+  fetchUserCreatedPosts: async (user_id: string) => {
+    set({ loadingCreatedPost: true, errorPost: null });
     try {
-      const data = await getUserPosts(user_id);
-      set({ userPosts: data, loadingPost: false, lastFetchedPost: Date.now() });
+      const data = await getUserCreatedPosts(user_id);
+      set({ userCreatedPosts: data, loadingCreatedPost: false, lastFetchedPost: Date.now() });
     } catch (err) {
-      set({ errorPost: 'Error loading posts: '+err, loadingPost: false });
+      set({ errorPost: 'Error loading posts: '+err, loadingCreatedPost: false });
+      throw err;
+    }
+  },
+
+  fetchUserLikedPosts: async (user_id: string) => {
+    set({ loadingLikedPost: true, errorPost: null });
+    try {
+      const data = await getUserLikedPosts(user_id);
+      set({ userLikedPosts: data, loadingLikedPost: false, lastFetchedPost: Date.now() });
+    } catch (err) {
+      set({ errorPost: 'Error loading posts: '+err, loadingLikedPost: false });
+      throw err;
+    }
+  },
+
+  fetchPostReportOrigin: async (user_id: string) => {
+    set({ loadingPostReportOrigin: true, errorPost: null });
+    try {
+      const data = await getPostReportOrigin(user_id);
+      set({ postReportOrigin: data, loadingPostReportOrigin: false, lastFetchedPost: Date.now() });
+    } catch (err) {
+      set({ errorPost: 'Error loading posts: '+err, loadingPostReportOrigin: false });
       throw err;
     }
   },
@@ -70,7 +106,7 @@ export const usePostStore = create<PostState>((set, get) => ({
     }
   },
 
-  editPost: async (updatedPost: IPost) => {
+  editPost: async (updatedPost: IDecryptedPost) => {
     try {
       const updated = await updatePost(updatedPost.id, updatedPost.content);
       if (updated) {

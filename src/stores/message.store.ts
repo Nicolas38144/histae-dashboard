@@ -9,9 +9,9 @@ import type { IMessage } from '../types/message.interface';
 
 interface MessageState {
   messages: IMessage[];
-  loading: boolean;
-  error: string | null;
-  lastFetched: number | null;
+  loadingMessage: boolean;
+  errorMessage: string | null;
+  lastFetchedMessage: number | null;
   fetchMessages: (match_id: string) => Promise<void>;
   addMessage: (message: string) => Promise<void>;
   editMessage: (id: string, message: string) => Promise<void>;
@@ -20,17 +20,17 @@ interface MessageState {
 
 export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
-  loading: false,
-  error: null,
-  lastFetched: null,
+  loadingMessage: false,
+  errorMessage: null,
+  lastFetchedMessage: null,
 
   fetchMessages: async (match_id: string) => {
-    set({ loading: true, error: null });
+    set({ loadingMessage: true, errorMessage: null });
     try {
       const data = await getMessages(match_id);
-      set({ messages: data, loading: false, lastFetched: Date.now() });
+      set({ messages: data, loadingMessage: false, lastFetchedMessage: Date.now() });
     } catch (err) {
-      set({ error: 'Error loading messages: '+err, loading: false });
+      set({ errorMessage: 'Error loadingMessage messages: '+err, loadingMessage: false });
       throw err;
     }
   },
@@ -42,7 +42,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         set({ messages: [...get().messages, created] });
       }
     } catch (err) {
-      set({ error: 'Error creating message' });
+      set({ errorMessage: 'Error creating message' });
       throw err;
     }
   },
@@ -56,7 +56,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Error while editing message' });
+      set({ errorMessage: 'Error while editing message' });
       throw err;
     }
   },
@@ -66,7 +66,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       await deleteMessage(id);
       set({ messages: get().messages.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Error deleting message' });
+      set({ errorMessage: 'Error deleting message' });
       throw err;
     }
   },

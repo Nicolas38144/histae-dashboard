@@ -1,9 +1,10 @@
 import { userDetailsUserStore } from '../stores/detailsUser.store';
 import { userMetricStore } from '../stores/metric.store';
+import { useMatchReportStore } from '../stores/matchReport.store';
 import { usePostStore } from '../stores/post.store';
 import { Box, Button, Paper, Typography, Switch, FormControlLabel, } from '@mui/material';
 import ConfirmDialog from '../components/ConfirmDialog';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ChatMessages from '../components/ChatMessage';
 import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
 import { MAX_CACHE_DURATION } from '../utils/constants';
 import Loader from '../components/Loader';
@@ -13,21 +14,26 @@ import { useCallback, useMemo, useState } from 'react';
 import { formatDateFromDate, formatShortDateFromDate, getAge } from '../utils/general';
 import { useNotification } from '../components/Notifier';
 import { t } from 'i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import RenderField from '../components/RenderField';
 import type { IFormattedUser } from '../types/user.interface';
 import DataTable from '../components/DataTable';
+import { useMessageStore } from '../stores/message.store';
 
 const DetailsUser = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user, userReport, loading, error, lastFetched, fetchUser, fetchUserReport, removeUser, editUser } = userDetailsUserStore();
+  const { user, loading, error, lastFetched, fetchUser, removeUser, editUser } = userDetailsUserStore();
   const { userMetric, loadingUserMetric, errorMetric, fetchUserMetric } = userMetricStore();
-  const { userPosts, loadingPost, errorPost, fetchUserPosts, removePost } = usePostStore();
+  const { userCreatedPosts, userLikedPosts, postReportOrigin, loadingCreatedPost, loadingLikedPost, loadingPostReportOrigin, errorPost, fetchUserCreatedPosts, fetchUserLikedPosts, fetchPostReportOrigin, removePost } = usePostStore();
+  const { userMatchReports, loadingUserMatchReports, errorUserMatchReports, fetchUserMatchReports, removeUserMatchReport } = useMatchReportStore();
+  const { messages, loadingMessage, errorMessage, lastFetchedMessage, fetchMessages } = useMessageStore();
   const { showNotification } = useNotification();
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showConversation, setShowConversation] = useState(false);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
   const formattedUser = useMemo(() => {
     if (!user) return null;
@@ -45,28 +51,131 @@ const DetailsUser = () => {
     return formatted;
   }, [user]);
 
-  const formattedPosts = useMemo(() => {
-    return userPosts.map((post) => ({
+  const formattedCreatedPosts = useMemo(() => {
+    return userCreatedPosts.map((post) => ({
       ...post,
       created_at: formatDateFromDate(post.created_at),
     }));
-  }, [userPosts]);
+  }, [userCreatedPosts]);
 
-  const columns = [
+  const formattedLikedPosts = useMemo(() => {
+    return userLikedPosts.map((post) => ({
+      ...post,
+      created_at: formatDateFromDate(post.created_at),
+    }));
+  }, [userLikedPosts]);
+
+  const formattedPostReportOrigin = useMemo(() => {
+    return postReportOrigin.map((post) => ({
+      ...post,
+      created_at: formatDateFromDate(post.created_at),
+    }));
+  }, [postReportOrigin]);
+
+  const formattedMatchReports = useMemo(() => {
+    return userMatchReports.map((matchReport) => ({
+      ...matchReport,
+      report_date: formatDateFromDate(matchReport.report_date),
+      match_date: formatDateFromDate(matchReport.match_date),
+    }));
+  }, [userMatchReports]);
+
+  const formattedMessages = useMemo(() => {
+    if (messages.length === 0) return [];
+    const firstSenderId = messages[0].sender_id;
+    return messages.map((m) => ({
+      ...m,
+      isRight: m.sender_id === firstSenderId,
+    }));
+  }, [messages]);
+
+  const createdPostsColumns  = [
     { field: 'created_at', headerName: t("postPage.date") },
     { field: 'content', headerName: t("postPage.post") },
     { field: 'nb_like', headerName: t("postPage.nbLike") },
     { field: 'nb_report', headerName: t("postPage.nbReport") },
   ];
 
+  const likedPostsColumns  = [
+    { field: 'created_at', headerName: t("postPage.date") },
+    {
+      field: 'author',
+      headerName: t("postPage.author"),
+      renderCell: (params: any) => {
+        return (
+          <Link
+            to={`/users/${params.row.user_id}`}
+            style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={() => handleCloseConversation()}
+          >
+            {params.value}
+          </Link>
+        )
+      }
+    },
+    { field: 'content', headerName: t("postPage.post") },
+    { field: 'nb_like', headerName: t("postPage.nbLike") },
+    { field: 'nb_report', headerName: t("postPage.nbReport") },
+  ];
+
+  const reportedPostsColumns = [
+    ...likedPostsColumns,
+    { field: 'reason', headerName: t("postPage.reason")}
+  ];
+
+  const matchReportsColumns = [
+    { field: 'report_date', headerName: t("detailsUserPage.reportDate") },
+    { field: 'match_date', headerName: t("detailsUserPage.matchDate") },
+    {
+      field: 'origin_user_info',
+      headerName: t("detailsUserPage.origin"),
+      renderCell: (params: any) => {
+        const isSelf = params.row.origin_user_id === id;
+        return isSelf ? (
+          <span>{params.value}</span>
+        ) : (
+          <Link
+            to={`/users/${params.row.origin_user_id}`}
+            style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={() => handleCloseConversation()}
+          >
+            {params.value}
+          </Link>
+        );
+      },
+    },
+    {
+      field: 'target_user_info',
+      headerName: t("detailsUserPage.target"),
+      renderCell: (params: any) => {
+        const isSelf = params.row.target_user_id === id;
+        return isSelf ? (
+          <span>{params.value}</span>
+        ) : (
+          <Link
+            to={`/users/${params.row.target_user_id}`}
+            style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={() => handleCloseConversation()}
+          >
+            {params.value}
+          </Link>
+        );
+      },
+    },
+    { field: 'reason', headerName: t("detailsUserPage.reason") },
+  ];
+
+
   const fetchFn = useCallback(async () => {
     if (id) {
       await fetchUser(id);
-      await fetchUserReport(id);
       await fetchUserMetric(id);
-      await fetchUserPosts(id);
+      await fetchUserCreatedPosts(id);
+      await fetchUserLikedPosts(id);
+      await fetchPostReportOrigin(id);
+      await fetchUserMatchReports(id);
     }
-  }, [id, fetchUser, fetchUserReport, fetchUserMetric, fetchUserPosts]);
+  }, [id, fetchUser, fetchUserMetric, fetchUserCreatedPosts, fetchUserLikedPosts, fetchPostReportOrigin, fetchUserMatchReports]);
 
   useAutoFetchStore({
     lastFetched,
@@ -76,16 +185,43 @@ const DetailsUser = () => {
     persistKey: 'detailsuser:metrics:period',
   });
 
-  const handleDelete = async () => {
+  const fetchFnMessages = useCallback(async () => {
+    if (selectedMatchId) {
+      await fetchMessages(selectedMatchId);
+    }
+  }, [fetchMessages, selectedMatchId]);
+
+  useAutoFetchStore({
+    lastFetched: lastFetchedMessage,
+    fetchFn: fetchFnMessages,
+    maxAge: MAX_CACHE_DURATION,
+    deps: [selectedMatchId],
+  });
+
+  const handleDeleteUser = async () => {
     if (!id) return;
     try {
       await removeUser(id);
       showNotification(t('notifications.userDeleted'), 'success');
+      handleCloseConversation();
       navigate(-1);
     } catch {
       showNotification(t('notifications.errorDeleting'), 'error');
     }
     setConfirmDeleteOpen(false);
+  };
+
+  const handleDeleteMatchReport = async (match_id: string) => {
+    const matchReport = userMatchReports.find(r => r.id === match_id);
+    if (!matchReport) return;
+    try {
+      await removeUserMatchReport(matchReport.report_id);
+      showNotification(t('notifications.userDeleted'), 'success');
+      handleCloseConversation();
+    } catch {
+      showNotification(t('notifications.errorDeleting'), 'error');
+    }
+    setConfirmDeleteOpen(false);   
   };
 
   const handleToggleBanned = async (checked: boolean) => {
@@ -101,6 +237,21 @@ const DetailsUser = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleToggleView = (id: string) => {
+    if (selectedMatchId === id && showConversation) {
+      setShowConversation(false);
+      setSelectedMatchId(null);
+    } else {
+      setSelectedMatchId(id);
+      setShowConversation(true);
+    }
+  };
+
+  const handleCloseConversation = () => {
+    setSelectedMatchId(null);
+    setShowConversation(false);
   };
 
   const userMetrics = userMetric
@@ -122,15 +273,6 @@ const DetailsUser = () => {
       className="page-user"
       sx={{ display: 'flex', flexDirection: 'column' }}
     >
-      <Button
-        variant="outlined"
-        onClick={() => navigate(-1)}
-        startIcon={<ArrowBackIcon />}
-        sx={{ width: 'fit-content', color: 'black' }}
-      >
-        {t("detailsUserPage.back")}
-      </Button>
-
       {loading && <Loader />}
       {error && <Error error={error} />}
 
@@ -154,9 +296,6 @@ const DetailsUser = () => {
                 <RenderField label={t('userPage.phone_number')} value={formattedUser.phone_number}/>
                 <RenderField label={t('userPage.email')} value={formattedUser.email} />
                 <RenderField label={t('userPage.created')} value={formattedUser.created_at} />
-                <RenderField 
-                  label={t('userPage.nbReport')}
-                  value={`post: ${userReport?.nb_post_report} - match: ${userReport?.nb_match_report}`} /> 
                 <RenderField label={t('userPage.isBanned')} value={formattedUser.is_banned} />
                 <RenderField label={t('userPage.lastActiveAt')} value={formattedUser.last_active_at} />
                 <RenderField label={t('userPage.lastCoordsLat')} value={formattedUser.last_coords_lat} />
@@ -211,7 +350,7 @@ const DetailsUser = () => {
               open={confirmDeleteOpen}
               title={undefined}
               message={undefined}
-              onConfirm={handleDelete}
+              onConfirm={handleDeleteUser}
               onCancel={() => setConfirmDeleteOpen(false)}
             />
           </>
@@ -244,23 +383,78 @@ const DetailsUser = () => {
         </Box>
       </Box>
 
-      {formattedUser ? (
-        <Box className="subpage-userposts" sx={{ mt: 6, mb:2 }}>
-          <SubTitle title="Posts" />
-          {loadingPost && <Loader />}
+      {userCreatedPosts.length > 0 && (
+        <Box className="subpage-usercreatedposts" sx={{ mt: 6, mb:2 }}>
+          <SubTitle title="Posts created" />
+          {loadingCreatedPost && <Loader />}
           {errorPost && <Error error={errorPost} />}
           <DataTable
-            columns={columns}
-            rows={formattedPosts}
+            columns={createdPostsColumns}
+            rows={formattedCreatedPosts}
             onRequestDelete={removePost}
           />
         </Box>
-      ) : (
-        <Error error={t("detailsUserPage.noData")} />
+      )}
+
+      {userLikedPosts.length > 0 && (
+        <Box className="subpage-userlikedposts" sx={{ mt: 6, mb:2 }}>
+          <SubTitle title="Posts liked" />
+          {loadingLikedPost && <Loader />}
+          {errorPost && <Error error={errorPost} />}
+          <DataTable
+            columns={likedPostsColumns}
+            rows={formattedLikedPosts}
+            onRequestDelete={removePost}
+          />
+        </Box>
+      )}
+
+      {postReportOrigin.length > 0 && (
+        <Box className="subpage-postReportOrigin" sx={{ mt: 6, mb:2 }}>
+          <SubTitle title="Post reports (origin)" />
+          {loadingPostReportOrigin && <Loader />}
+          {errorPost && <Error error={errorPost} />}
+          <DataTable
+            columns={reportedPostsColumns}
+            rows={formattedPostReportOrigin}
+            onRequestDelete={removePost}
+          />
+        </Box>
+      )}
+
+      {userMatchReports.length > 0 && (
+        <Box className="subpage-userMatchReport" sx={{ display: 'flex', flexDirection: 'column', mt: 6, mb:2 }}>
+          <SubTitle title="Match reports" />
+          {loadingUserMatchReports && <Loader />}
+          {errorUserMatchReports && <Error error={errorUserMatchReports} />}
+          <DataTable
+            columns={matchReportsColumns}
+            rows={formattedMatchReports}
+            onRequestView={handleToggleView}
+            currentViewedId={selectedMatchId}
+            isViewing={showConversation}
+            onRequestDelete={handleDeleteMatchReport}
+          />
+
+          {showConversation && selectedMatchId && (
+            <>
+              {loadingMessage && <Loader />}
+              {errorMessage && <Error error={errorMessage} />}
+              {!loadingMessage && !errorMessage && (
+                <Paper elevation={3} sx={{ my: 3, mx: 'auto', height: 550, overflowY: 'auto' }}>
+                  <ChatMessages
+                    messages={formattedMessages}
+                    currentUserId={id}
+                    onUserLinkClick={handleCloseConversation}
+                  />
+                </Paper>
+              )}
+            </>
+          )}
+        </Box>
       )}
     </Box>
   );
-
 };
 
 export default DetailsUser;

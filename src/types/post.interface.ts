@@ -1,4 +1,4 @@
-export interface IPost {
+export interface IDecryptedPost {
   id: string;
   user_id: string;
   author: string;

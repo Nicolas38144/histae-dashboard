@@ -1,10 +1,10 @@
 import api from './http.service';
-import type { IPost } from '../types/post.interface';
+import type { IDecryptedPost } from '../types/post.interface';
 
-export const getPosts = async (period: number): Promise<IPost[]> => {
+export const getPosts = async (period: number): Promise<IDecryptedPost[]> => {
   try {
     const res = await api.get(`/posts/all/${period}`);
-    const posts: IPost[] = res.data;
+    const posts: IDecryptedPost[] = res.data;
     return posts;
   } catch (err) {
     console.error('Error getPosts API:', err);
@@ -12,10 +12,10 @@ export const getPosts = async (period: number): Promise<IPost[]> => {
   }
 };
 
-export const getPost = async (post_id: string): Promise<IPost | null> => {
+export const getPost = async (post_id: string): Promise<IDecryptedPost | null> => {
   try {
     const res = await api.get(`/posts/${post_id}`);
-    const post: IPost = res.data;
+    const post: IDecryptedPost = res.data;
     return post;
   } catch (err) {
     console.error('Error getPost API:', err);
@@ -23,21 +23,43 @@ export const getPost = async (post_id: string): Promise<IPost | null> => {
   }
 };
 
-export const getUserPosts = async (user_id: string): Promise<IPost[]> => {
+export const getUserCreatedPosts = async (user_id: string): Promise<IDecryptedPost[]> => {
   try {
-    const res = await api.get(`/posts/${user_id}`);
-    const post: IPost[] = res.data;
+    const res = await api.get(`/posts/created/${user_id}`);
+    const post: IDecryptedPost[] = res.data;
     return post;
   } catch (err) {
-    console.error('Error getPost API:', err);
+    console.error('Error getUserCreatedPosts API:', err);
     return [];
   }
 };
 
-export const createPost = async (user_id: string, content: string): Promise<IPost | null> => {
+export const getUserLikedPosts = async (user_id: string): Promise<IDecryptedPost[]> => {
+  try {
+    const res = await api.get(`/posts/liked/${user_id}`);
+    const posts: IDecryptedPost[] = res.data;
+    return posts;
+  } catch (err) {
+    console.error('Error getUserLikedPosts API:', err);
+    return [];
+  }
+};
+
+export const getPostReportOrigin = async (user_id: string): Promise<IDecryptedPost[]> => {
+  try {
+    const res = await api.get(`/postreports/${user_id}`);
+    const posts: IDecryptedPost[] = res.data;    
+    return posts;
+  } catch (err) {
+    console.error('Error getPostReportOrigin API:', err);
+    return [];
+  }
+};
+
+export const createPost = async (user_id: string, content: string): Promise<IDecryptedPost | null> => {
   try {
     const res = await api.post('/posts', { user_id, content });
-    const createdPost: IPost = res.data;
+    const createdPost: IDecryptedPost = res.data;
     return createdPost;
   } catch (err) {
     console.error('Error createPost API:', err);
@@ -45,10 +67,10 @@ export const createPost = async (user_id: string, content: string): Promise<IPos
   }
 };
 
-export const updatePost = async (idPost: string, post: string): Promise<IPost | null> => {
+export const updatePost = async (idPost: string, post: string): Promise<IDecryptedPost | null> => {
   try {
     const res = await api.patch('/posts/'+idPost, { post });
-    const updatedPost: IPost = res.data;
+    const updatedPost: IDecryptedPost = res.data;
     return updatedPost;
   } catch (err) {
     console.error('Error updatePost API:', err);

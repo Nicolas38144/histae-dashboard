@@ -52,4 +52,3 @@ export const deleteMatch = async (id: string): Promise<void> => {
     console.error('Error deleteMatch API:', err);
   }
 };
-

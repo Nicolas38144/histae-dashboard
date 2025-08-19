@@ -6,7 +6,7 @@ interface TitleProps {
 
 export const MainTitle = ({ title }: TitleProps) => {
   return (
-    <Typography variant="h3" align="center" mb={4}>
+    <Typography variant="h3" align="center" mt={1} mb={2}>
       {title}
     </Typography>
   );

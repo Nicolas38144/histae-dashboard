@@ -38,7 +38,8 @@
     "post": "Post",
 		"nbLike": "Nb like",
 		"nbReport": "Nb report",
-		"userID": "ID User"
+		"userID": "ID User",
+		"reason": "Reason"
   },
 
 	"userPage": {
@@ -47,7 +48,6 @@
 		"phone_number": "Phone",
     "email": "Email",
     "created": "Creation date",
-		"nbReport": "Reports",
 		"isBanned": "Banned ?",
 		"lastActiveAt": "Last connexion",
 		"lastCoordsLat": "Last lat",
@@ -61,7 +61,6 @@
   },
 
 	"detailsUserPage": {
-    "back": "back",
 		"noPhoto": "No photo",
 		"delete": "Delete",
     "noData": "No data",
@@ -74,7 +73,12 @@
 		"posts": "Posts",
 		"postsLiked": "Posts liked",
 		"originPostReport": "Post reports (origin)",
-		"targetPostReport": "Post reports (target)"
+		"targetPostReport": "Post reports (target)",
+		"reportDate": "Report date",
+		"matchDate": "Match date",
+		"origin": "Origin",
+		"target": "Target",
+		"reason": "Reason"
   },
 
 	"vibePage": {

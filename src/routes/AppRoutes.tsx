@@ -9,9 +9,11 @@ import ProtectedLayout from '../layouts/ProtectedLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Match from '../pages/Match';
 import { t } from 'i18next';
+import ScrollToTop from '../components/ScrollToTop';
 
 const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => (
   <BrowserRouter>
+    <ScrollToTop />
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedLayout />}>
