@@ -25,8 +25,9 @@ const drawerWidth = 200;
 const menuItems = [
   { label: "Home", path: '/' },
   { label:"Users", path: '/users' },
-  { label: "Posts", path: '/posts' },
   { label: "Vibes", path: '/vibes' },
+  { label: "Posts", path: '/posts' },
+  { label: "Post reports", path: '/post-reports' },
   { label: "Match reports", path: '/matches' },
 ];
 

@@ -42,6 +42,16 @@
 		"reason": "Reason"
   },
 
+	"postReportPage": {
+		"title": "Post reports",
+		"reportDate": "Report date",
+		"creationDate": "Creation date",
+		"origin": "Origin",
+		"target": "Target",
+		"content": "Content",
+		"reason": "Reason"
+	},
+
 	"userPage": {
     "title": "Users",
 		"role": "Role",
@@ -137,6 +147,7 @@
 		"userDeleted": "User deleted",
 		"vibeAdded": "Vibe added successfully",
 		"vibeEdited": "Vibe edited",
-		"vibeDeleted": "Vibe deleted"
+		"vibeDeleted": "Vibe deleted",
+		"postReportDeleted": "Post report deleted"
 	}
 }
