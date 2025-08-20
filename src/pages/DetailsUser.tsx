@@ -1,284 +1,28 @@
-import { userDetailsUserStore } from '../stores/detailsUser.store';
-import { userMetricStore } from '../stores/metric.store';
-import { useMatchReportStore } from '../stores/matchReport.store';
-import { usePostStore } from '../stores/post.store';
-import { usePostReportStore } from '../stores/postReport.store';
 import { Box, Button, Paper, Typography, Switch, FormControlLabel, } from '@mui/material';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ChatMessages from '../components/ChatMessage';
-import { useAutoFetchStore } from '../hooks/useAutoFetchStore';
-import { MAX_CACHE_DURATION } from '../utils/constants';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import { MainTitle, SubTitle } from '../components/Title';
-import { useCallback, useMemo, useState } from 'react';
-import { formatDateFromDate, formatShortDateFromDate, getAge } from '../utils/general';
-import { useNotification } from '../components/Notifier';
+import { formatShortDateFromDate } from '../utils/general';
 import { t } from 'i18next';
-import { Link, useNavigate, useParams } from 'react-router-dom';
 import RenderField from '../components/RenderField';
-import type { IFormattedUser } from '../types/user.interface';
 import DataTable from '../components/DataTable';
-import { useMessageStore } from '../stores/message.store';
+import { useDetailsUserViewModel } from '../hooks/useDetailsUserViewModel';
 
 const DetailsUser = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const { user, loading, error, lastFetched, fetchUser, removeUser, editUser } = userDetailsUserStore();
-  const { userMetric, loadingUserMetric, errorMetric, fetchUserMetric } = userMetricStore();
-  const { userCreatedPosts, userLikedPosts, loadingCreatedPost, loadingLikedPost, errorPost, fetchUserCreatedPosts, fetchUserLikedPosts, removePost } = usePostStore();
-  const { postReportOrigin, loadingPostReportOrigin, fetchPostReportOrigin } = usePostReportStore();
-  const { userMatchReports, loadingUserMatchReports, errorUserMatchReports, fetchUserMatchReports, removeUserMatchReport } = useMatchReportStore();
-  const { messages, loadingMessage, errorMessage, lastFetchedMessage, fetchMessages } = useMessageStore();
-  const { showNotification } = useNotification();
 
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [showConversation, setShowConversation] = useState(false);
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-
-  const formattedUser = useMemo(() => {
-    if (!user) return null;
-    const formatted: IFormattedUser = {
-      ...user,
-      created_at: formatDateFromDate(user.created_at),
-      last_active_at: user.last_active_at
-        ? formatDateFromDate(user.last_active_at)
-        : '-',
-      last_coords_lat: user.last_coords_lat || '-',
-      last_coords_lon: user.last_coords_lon || '-',
-      age: getAge(user.birthdate),
-      is_banned: user.is_banned ? 'Yes' : 'No',
-    };
-    return formatted;
-  }, [user]);
-
-  const formattedCreatedPosts = useMemo(() => {
-    return userCreatedPosts.map((post) => ({
-      ...post,
-      created_at: formatDateFromDate(post.created_at),
-    }));
-  }, [userCreatedPosts]);
-
-  const formattedLikedPosts = useMemo(() => {
-    return userLikedPosts.map((post) => ({
-      ...post,
-      created_at: formatDateFromDate(post.created_at),
-    }));
-  }, [userLikedPosts]);
-
-  const formattedPostReportOrigin = useMemo(() => {
-    return postReportOrigin.map((post) => ({
-      ...post,
-      created_at: formatDateFromDate(post.created_at),
-    }));
-  }, [postReportOrigin]);
-
-  const formattedMatchReports = useMemo(() => {
-    return userMatchReports.map((matchReport) => ({
-      ...matchReport,
-      report_date: formatDateFromDate(matchReport.report_date),
-      match_date: formatDateFromDate(matchReport.match_date),
-    }));
-  }, [userMatchReports]);
-
-  const formattedMessages = useMemo(() => {
-    if (messages.length === 0) return [];
-    const firstSenderId = messages[0].sender_id;
-    return messages.map((m) => ({
-      ...m,
-      isRight: m.sender_id === firstSenderId,
-    }));
-  }, [messages]);
-
-  const createdPostsColumns  = [
-    { field: 'created_at', headerName: t("postPage.date") },
-    { field: 'content', headerName: t("postPage.post") },
-    { field: 'nb_like', headerName: t("postPage.nbLike") },
-    { field: 'nb_report', headerName: t("postPage.nbReport") },
-  ];
-
-  const likedPostsColumns  = [
-    { field: 'created_at', headerName: t("postPage.date") },
-    {
-      field: 'author',
-      headerName: t("postPage.author"),
-      renderCell: (params: any) => {
-        return (
-          <Link
-            to={`/users/${params.row.user_id}`}
-            style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
-            onClick={() => handleCloseConversation()}
-          >
-            {params.value}
-          </Link>
-        )
-      }
-    },
-    { field: 'content', headerName: t("postPage.post") },
-    { field: 'nb_like', headerName: t("postPage.nbLike") },
-    { field: 'nb_report', headerName: t("postPage.nbReport") },
-  ];
-
-  const reportedPostsColumns = [
-    ...likedPostsColumns,
-    { field: 'reason', headerName: t("postPage.reason")}
-  ];
-
-  const matchReportsColumns = [
-    { field: 'report_date', headerName: t("detailsUserPage.reportDate") },
-    { field: 'match_date', headerName: t("detailsUserPage.matchDate") },
-    {
-      field: 'origin_user_info',
-      headerName: t("detailsUserPage.origin"),
-      renderCell: (params: any) => {
-        const isSelf = params.row.origin_user_id === id;
-        return isSelf ? (
-          <span>{params.value}</span>
-        ) : (
-          <Link
-            to={`/users/${params.row.origin_user_id}`}
-            style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
-            onClick={() => handleCloseConversation()}
-          >
-            {params.value}
-          </Link>
-        );
-      },
-    },
-    {
-      field: 'target_user_info',
-      headerName: t("detailsUserPage.target"),
-      renderCell: (params: any) => {
-        const isSelf = params.row.target_user_id === id;
-        return isSelf ? (
-          <span>{params.value}</span>
-        ) : (
-          <Link
-            to={`/users/${params.row.target_user_id}`}
-            style={{ color: '#000000ff', textDecoration: 'underline', cursor: 'pointer' }}
-            onClick={() => handleCloseConversation()}
-          >
-            {params.value}
-          </Link>
-        );
-      },
-    },
-    { field: 'reason', headerName: t("detailsUserPage.reason") },
-  ];
-
-
-  const fetchFn = useCallback(async () => {
-    if (id) {
-      await fetchUser(id);
-      await fetchUserMetric(id);
-      await fetchUserCreatedPosts(id);
-      await fetchUserLikedPosts(id);
-      await fetchPostReportOrigin(id);
-      await fetchUserMatchReports(id);
-    }
-  }, [id, fetchUser, fetchUserMetric, fetchUserCreatedPosts, fetchUserLikedPosts, fetchPostReportOrigin, fetchUserMatchReports]);
-
-  useAutoFetchStore({
-    lastFetched,
-    fetchFn,
-    maxAge: MAX_CACHE_DURATION,
-    deps: [id],
-    persistKey: 'detailsuser:metrics:period',
-  });
-
-  const fetchFnMessages = useCallback(async () => {
-    if (selectedMatchId) {
-      await fetchMessages(selectedMatchId);
-    }
-  }, [fetchMessages, selectedMatchId]);
-
-  useAutoFetchStore({
-    lastFetched: lastFetchedMessage,
-    fetchFn: fetchFnMessages,
-    maxAge: MAX_CACHE_DURATION,
-    deps: [selectedMatchId],
-  });
-
-  const handleDeleteUser = async () => {
-    if (!id) return;
-    try {
-      await removeUser(id);
-      showNotification(t('notifications.userDeleted'), 'success');
-      handleCloseConversation();
-      navigate(-1);
-    } catch {
-      showNotification(t('notifications.errorDeleting'), 'error');
-    }
-    setConfirmDeleteOpen(false);
-  };
-
-  const handleDeleteMatchReport = async (match_id: string) => {
-    const matchReport = userMatchReports.find(r => r.id === match_id);
-    if (!matchReport) return;
-    try {
-      await removeUserMatchReport(matchReport.report_id);
-      showNotification(t('notifications.userDeleted'), 'success');
-      handleCloseConversation();
-    } catch {
-      showNotification(t('notifications.errorDeleting'), 'error');
-    }
-    setConfirmDeleteOpen(false);   
-  };
-
-  const handleToggleBanned = async (checked: boolean) => {
-    if (!user || !id) return;
-    setSaving(true);
-    try {
-      const updatedUser = { ...user, is_banned: checked };
-      await editUser(updatedUser);
-      showNotification(t('notifications.userUpdated'), 'success');
-      fetchUser(id);
-    } catch {
-      showNotification(t('notifications.errorUpdating'), 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleToggleView = (id: string) => {
-    if (selectedMatchId === id && showConversation) {
-      setShowConversation(false);
-      setSelectedMatchId(null);
-    } else {
-      setSelectedMatchId(id);
-      setShowConversation(true);
-    }
-  };
-
-  const handleCloseConversation = () => {
-    setSelectedMatchId(null);
-    setShowConversation(false);
-  };
-
-  const userMetrics = userMetric
-    ? [
-        { label: t("detailsUserPage.matches"), value: userMetric.nb_match },
-        { label: t("detailsUserPage.matchesNotContinued"), value: userMetric.nb_match_not_continued },
-        { label: t("detailsUserPage.matchesContinued"), value: userMetric.nb_match_continued },
-        { label: t("detailsUserPage.originMatchReport"), value: userMetric.nb_origin_match_report },
-        { label: t("detailsUserPage.targetMatchReport"), value: userMetric.nb_target_match_report },
-        { label: t("detailsUserPage.posts"), value: userMetric.nb_post },
-        { label: t("detailsUserPage.postsLiked"), value: userMetric.nb_post_liked },
-        { label: t("detailsUserPage.originPostReport"), value: userMetric.nb_origin_post_report },
-        { label: t("detailsUserPage.targetPostReport"), value: userMetric.nb_target_post_report },
-      ]
-    : [];
+  const du = useDetailsUserViewModel();
 
   return (
     <Box
-      className="page-user"
+      className="page-detailsuser"
       sx={{ display: 'flex', flexDirection: 'column' }}
     >
-      {loading && <Loader />}
-      {error && <Error error={error} />}
+      {du.loading && <Loader />}
+      {du.error && <Error error={du.error} />}
 
-      {formattedUser && <MainTitle title={`${formattedUser.firstname}, ${formattedUser.age}`} /> }
+      {du.formattedUser && <MainTitle title={`${du.formattedUser.firstname}, ${du.formattedUser.age}`} /> }
       
       <Box
         sx={{
@@ -288,24 +32,24 @@ const DetailsUser = () => {
           flexWrap: 'wrap',
         }}
       >
-        {formattedUser ? (
+        {du.formattedUser ? (
           <>
             <Paper
                 elevation={3}
                 sx={{ padding: 3, maxWidth: 600, flex: '1 1 400px' }}
               >
-                <RenderField label={t('userPage.role')} value={formattedUser.role} />
-                <RenderField label={t('userPage.phone_number')} value={formattedUser.phone_number}/>
-                <RenderField label={t('userPage.email')} value={formattedUser.email} />
-                <RenderField label={t('userPage.created')} value={formattedUser.created_at} />
-                <RenderField label={t('userPage.isBanned')} value={formattedUser.is_banned} />
-                <RenderField label={t('userPage.lastActiveAt')} value={formattedUser.last_active_at} />
-                <RenderField label={t('userPage.lastCoordsLat')} value={formattedUser.last_coords_lat} />
-                <RenderField label={t('userPage.lastCoordsLon')} value={formattedUser.last_coords_lon} />
-                <RenderField label={t('userPage.firstname')} value={formattedUser.firstname} />
-                <RenderField label={t('userPage.birthdate')} value={formatShortDateFromDate(formattedUser.birthdate)} />
-                <RenderField label={t('userPage.sex')} value={formattedUser.sex} />
-                <RenderField label={t('userPage.bio')} value={formattedUser.bio} />
+                <RenderField label={t('userPage.role')} value={du.formattedUser.role} />
+                <RenderField label={t('userPage.phone_number')} value={du.formattedUser.phone_number}/>
+                <RenderField label={t('userPage.email')} value={du.formattedUser.email} />
+                <RenderField label={t('userPage.created')} value={du.formattedUser.created_at} />
+                <RenderField label={t('userPage.isBanned')} value={du.formattedUser.is_banned} />
+                <RenderField label={t('userPage.lastActiveAt')} value={du.formattedUser.last_active_at} />
+                <RenderField label={t('userPage.lastCoordsLat')} value={du.formattedUser.last_coords_lat} />
+                <RenderField label={t('userPage.lastCoordsLon')} value={du.formattedUser.last_coords_lon} />
+                <RenderField label={t('userPage.firstname')} value={du.formattedUser.firstname} />
+                <RenderField label={t('userPage.birthdate')} value={formatShortDateFromDate(du.formattedUser.birthdate)} />
+                <RenderField label={t('userPage.sex')} value={du.formattedUser.sex} />
+                <RenderField label={t('userPage.bio')} value={du.formattedUser.bio} />
 
                 <Box sx={{ mt: 2 }}>
                   <Typography
@@ -315,11 +59,11 @@ const DetailsUser = () => {
                   >
                     {t('userPage.photo')}
                   </Typography>
-                  {formattedUser.photo ? (
+                  {du.formattedUser.photo ? (
                     <Box
                       component="img"
-                      src={formattedUser.photo}
-                      alt={`${formattedUser.firstname} photo`}
+                      src={du.formattedUser.photo}
+                      alt={`${du.formattedUser.firstname} photo`}
                       sx={{ maxWidth: '100%', maxHeight: 300, borderRadius: 1 }}
                     />
                   ) : (
@@ -331,17 +75,17 @@ const DetailsUser = () => {
                   <Button
                     variant="outlined"
                     color="error"
-                    onClick={() => setConfirmDeleteOpen(true)}
+                    onClick={() => du.setConfirmDeleteOpen(true)}
                   >
                     {t("detailsUserPage.delete")}
                   </Button>
                   <FormControlLabel
                     control={
                       <Switch
-                        checked={user?.is_banned}
-                        onChange={(e) => handleToggleBanned(e.target.checked)}
+                        checked={du.user?.is_banned}
+                        onChange={(e) => du.handleToggleBanned(e.target.checked)}
                         color="primary"
-                        disabled={saving}
+                        disabled={du.saving}
                       />
                     }
                     label={t('userPage.isBanned')}
@@ -349,11 +93,11 @@ const DetailsUser = () => {
                 </Box>
               </Paper>
             <ConfirmDialog
-              open={confirmDeleteOpen}
+              open={du.confirmDeleteOpen}
               title={undefined}
               message={undefined}
-              onConfirm={handleDeleteUser}
-              onCancel={() => setConfirmDeleteOpen(false)}
+              onConfirm={du.handleDeleteUser}
+              onCancel={() => du.setConfirmDeleteOpen(false)}
             />
           </>
         ) : (
@@ -368,9 +112,9 @@ const DetailsUser = () => {
             flex: '1 1 300px',
           }}
         >
-          {loadingUserMetric && <Loader />}
-          {errorMetric && <Error error={errorMetric} />}
-          {userMetrics.map((metric) => (
+          {du.loadingUserMetric && <Loader />}
+          {du.errorMetric && <Error error={du.errorMetric} />}
+          {du.userMetrics.map((metric) => (
             <Paper
               elevation={3}
               key={metric.label}
@@ -385,69 +129,69 @@ const DetailsUser = () => {
         </Box>
       </Box>
 
-      {userCreatedPosts.length > 0 && (
+      {du.userCreatedPosts.length > 0 && (
         <Box className="subpage-usercreatedposts" sx={{ mt: 6, mb:2 }}>
           <SubTitle title="Posts created" />
-          {loadingCreatedPost && <Loader />}
-          {errorPost && <Error error={errorPost} />}
+          {du.loadingCreatedPost && <Loader />}
+          {du.errorPost && <Error error={du.errorPost} />}
           <DataTable
-            columns={createdPostsColumns}
-            rows={formattedCreatedPosts}
-            onRequestDelete={removePost}
+            columns={du.createdPostsColumns}
+            rows={du.formattedCreatedPosts}
+            onRequestDelete={du.removePost}
           />
         </Box>
       )}
 
-      {userLikedPosts.length > 0 && (
+      {du.userLikedPosts.length > 0 && (
         <Box className="subpage-userlikedposts" sx={{ mt: 6, mb:2 }}>
           <SubTitle title="Posts liked" />
-          {loadingLikedPost && <Loader />}
-          {errorPost && <Error error={errorPost} />}
+          {du.loadingLikedPost && <Loader />}
+          {du.errorPost && <Error error={du.errorPost} />}
           <DataTable
-            columns={likedPostsColumns}
-            rows={formattedLikedPosts}
-            onRequestDelete={removePost}
+            columns={du.likedPostsColumns}
+            rows={du.formattedLikedPosts}
+            onRequestDelete={du.removePost}
           />
         </Box>
       )}
 
-      {postReportOrigin.length > 0 && (
+      {du.postReportOrigin.length > 0 && (
         <Box className="subpage-postReportOrigin" sx={{ mt: 6, mb:2 }}>
           <SubTitle title="Post reports (origin)" />
-          {loadingPostReportOrigin && <Loader />}
-          {errorPost && <Error error={errorPost} />}
+          {du.loadingPostReportOrigin && <Loader />}
+          {du.errorPost && <Error error={du.errorPost} />}
           <DataTable
-            columns={reportedPostsColumns}
-            rows={formattedPostReportOrigin}
-            onRequestDelete={removePost}
+            columns={du.reportedPostsColumns}
+            rows={du.formattedPostReportOrigin}
+            onRequestDelete={du.removePost}
           />
         </Box>
       )}
 
-      {userMatchReports.length > 0 && (
+      {du.userMatchReports.length > 0 && (
         <Box className="subpage-userMatchReport" sx={{ display: 'flex', flexDirection: 'column', mt: 6, mb:2 }}>
           <SubTitle title="Match reports" />
-          {loadingUserMatchReports && <Loader />}
-          {errorUserMatchReports && <Error error={errorUserMatchReports} />}
+          {du.loadingUserMatchReports && <Loader />}
+          {du.errorUserMatchReports && <Error error={du.errorUserMatchReports} />}
           <DataTable
-            columns={matchReportsColumns}
-            rows={formattedMatchReports}
-            onRequestView={handleToggleView}
-            currentViewedId={selectedMatchId}
-            isViewing={showConversation}
-            onRequestDelete={handleDeleteMatchReport}
+            columns={du.matchReportsColumns}
+            rows={du.formattedMatchReports}
+            onRequestView={du.handleToggleView}
+            currentViewedId={du.selectedMatchId}
+            isViewing={du.showConversation}
+            onRequestDelete={du.handleDeleteMatchReport}
           />
 
-          {showConversation && selectedMatchId && (
+          {du.showConversation && du.selectedMatchId && (
             <>
-              {loadingMessage && <Loader />}
-              {errorMessage && <Error error={errorMessage} />}
-              {!loadingMessage && !errorMessage && (
+              {du.loadingMessage && <Loader />}
+              {du.errorMessage && <Error error={du.errorMessage} />}
+              {!du.loadingMessage && !du.errorMessage && (
                 <Paper elevation={3} sx={{ my: 3, mx: 'auto', height: 550, overflowY: 'auto' }}>
                   <ChatMessages
-                    messages={formattedMessages}
-                    currentUserId={id}
-                    onUserLinkClick={handleCloseConversation}
+                    messages={du.formattedMessages}
+                    currentUserId={du.id}
+                    onUserLinkClick={du.handleCloseConversation}
                   />
                 </Paper>
               )}
