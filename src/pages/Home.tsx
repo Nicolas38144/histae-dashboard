@@ -1,5 +1,4 @@
 import { Box, Paper, Typography } from '@mui/material';
-import { MainTitle } from '../components/Title';
 import PeriodToggle from '../components/PeriodToggle';
 import ChartWithToggle from '../components/ChartWithToggle';
 import Loader from '../components/Loader';
@@ -20,7 +19,6 @@ const Home = () => {
 
   return (
     <Box className="page-home" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <MainTitle title="Home" />
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
       {(loadingSizeDB || loadingChartData) && <Loader />}

@@ -1,43 +1,43 @@
 import api from './http.service';
 import type { ISubscriptionPlan } from '../types/subscription.interface';
 
-export const getPlans = async (): Promise<ISubscriptionPlan[]> => {
+export const getSubscriptionPlans = async (): Promise<ISubscriptionPlan[]> => {
   try {
     const res = await api.get('/subscription/plans');
     const plans: ISubscriptionPlan[] = res.data;
     return plans;
   } catch (err) {
-    console.error('Error getPlans API:', err);
+    console.error('Error getSubscriptionPlans API:', err);
     return [];
   }
 };
 
-export const getPlan = async (idPlan: string): Promise<ISubscriptionPlan | null> => {
+export const createSubscriptionPlan = async (name: string, price_cents: number, duration_days: number, features: string[]): Promise<ISubscriptionPlan | null> => {
   try {
-    const res = await api.get('/subscription/plans/'+idPlan);
-    const plan: ISubscriptionPlan = res.data;
-    return plan;
+    const res = await api.post('/subscription/plans', { name, price_cents, duration_days, features });
+    const createdSubscriptionPlan: ISubscriptionPlan = res.data;
+    return createdSubscriptionPlan;
   } catch (err) {
-    console.error('Error getPlan API:', err);
+    console.error('Error createSubscriptionPlan API:', err);
     return null;
   }
 };
 
-export const createPlan = async (plan: string): Promise<ISubscriptionPlan | null> => {
+export const updateSubscriptionPlan = async (plan: ISubscriptionPlan): Promise<ISubscriptionPlan | null> => {
   try {
-    const res = await api.post('/subscription/plans', { plan });
-    const createdPlan: ISubscriptionPlan = res.data;
-    return createdPlan;
+    const res = await api.patch(`/subscription/plans/${plan.id}`, { plan });
+    const updatedSubscriptionPlan: ISubscriptionPlan = res.data;
+    return updatedSubscriptionPlan;
   } catch (err) {
-    console.error('Error createPlan API:', err);
+    console.error('Error updateSubscriptionPlan API:', err);
     return null;
   }
 };
 
-export const deletePlan = async (idPlan: string): Promise<void> => {
+export const deleteSubscriptionPlan = async (id: string): Promise<void> => {
   try {
-    await api.delete('/subscription/plans/'+idPlan);
+    await api.delete(`/subscription/plans/${id}`);
   } catch (err) {
-    console.error('Error deletePlan API:', err);
+    console.error('Error deleteSubscriptionPlan API:', err);
   }
 };

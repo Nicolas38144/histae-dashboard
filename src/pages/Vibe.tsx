@@ -2,8 +2,6 @@ import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import { MainTitle } from '../components/Title';
-import { t } from 'i18next';
 import { useVibeViewModel } from '../hooks/useVibeViewModel';
 
 const Vibe = () => {
@@ -21,12 +19,11 @@ const Vibe = () => {
 
   return (
     <Box className="page-vibe" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <MainTitle title={t("vibePage.title")} />
-
       {loading && <Loader />}
       {error && <Error error={error} />}
 
       <DataTable
+        searchLabel="Research vibes"
         columns={columns}
         rows={vibes}
         editableFields={editableFields}

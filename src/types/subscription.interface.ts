@@ -4,7 +4,7 @@ export interface ISubscriptionPlan {
 	name: string;
   price_cents: number;
   duration_days: number;
-	features: JSON;
+	features: string[];
 }
 
 export interface IUserSubscription {

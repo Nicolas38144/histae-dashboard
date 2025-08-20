@@ -23,7 +23,7 @@ const ConfirmDialog = ({
         <Typography>{message}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>
+        <Button onClick={onCancel} color="inherit">
           {t("confirmDialog.cancel")}
         </Button>
         <Button onClick={onConfirm} color="error" variant="contained">

@@ -1,7 +1,6 @@
 import { Box, Paper } from '@mui/material';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import { MainTitle } from '../components/Title';
 import PeriodToggle from '../components/PeriodToggle';
 import DataTable from '../components/DataTable';
 import ChatMessages from '../components/ChatMessage';
@@ -28,13 +27,13 @@ const Match = () => {
 
   return (
     <Box className="page-match" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <MainTitle title="Matchs" />
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
       {loading && <Loader />}
       {error && <Error error={error} />}
 
       <DataTable
+        searchLabel="Research match reports"
         columns={columns}
         rows={formattedMatches}
         addFields={addFields}

@@ -16,23 +16,25 @@ import {
   Brightness4 as Brightness4Icon,
   Brightness7 as Brightness7Icon,
 } from '@mui/icons-material';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { logout } from '../services/auth.service';
 import { t } from 'i18next';
 
 const drawerWidth = 200;
 
 const menuItems = [
-  { label: "Home", path: '/' },
+  { label: "Home", path: '/home' },
   { label:"Users", path: '/users' },
   { label: "Vibes", path: '/vibes' },
   { label: "Posts", path: '/posts' },
   { label: "Post reports", path: '/post-reports' },
   { label: "Match reports", path: '/matches' },
+  { label: "Subscription plans", path: '/subscription-plans' },
 ];
 
 const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await logout();
@@ -74,11 +76,25 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
           <Toolbar />
           <Divider />
           <List>
-            {menuItems.map((item) => (
-              <ListItemButton key={item.path} onClick={() => navigate(item.path)}>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            ))}
+            {menuItems.map((item) => {
+              console.log(location.pathname);
+              
+              const isActive = location.pathname === item.path;
+              return (
+                <ListItemButton
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    backgroundColor: isActive ? 'rgba(0,0,0,0.1)' : 'inherit',
+                    '&:hover': {
+                      backgroundColor: isActive ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.04)',
+                    },
+                  }}
+                >
+                  <ListItemText primary={item.label} />
+                </ListItemButton>
+              );
+            })}
           </List>
           <Divider />
         </Box> 

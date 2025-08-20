@@ -1,10 +1,8 @@
-// src/pages/Post.tsx
 import { Box } from '@mui/material';
 import DataTable from '../components/DataTable';
 import PeriodToggle from '../components/PeriodToggle';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-import { MainTitle } from '../components/Title';
 import { usePostViewModel } from '../hooks/usePostViewModel';
 
 const Post = () => {
@@ -22,14 +20,13 @@ const Post = () => {
 
   return (
     <Box className="page-post" sx={{ display: 'flex', flexDirection: 'column' }}>
-      <MainTitle title="Posts" />
-
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
       {loading && <Loader />}
       {error && <Error error={error} />}
 
       <DataTable
+        searchLabel="Research posts"
         columns={columns}
         rows={posts}
         addFields={addFields}

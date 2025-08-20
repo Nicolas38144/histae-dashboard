@@ -11,6 +11,7 @@ import Match from '../pages/Match';
 import ProtectedLayout from '../layouts/ProtectedLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { t } from 'i18next';
+import SubscriptionPlan from '../pages/SubscritionPlan';
 
 const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'light' | 'dark' }) => (
   <BrowserRouter>
@@ -27,6 +28,7 @@ const AppRoutes = ({ toggleTheme, mode }: { toggleTheme: () => void; mode: 'ligh
           <Route path="/posts" element={<Post />} />
           <Route path="/post-reports" element={<PostReport />} />
           <Route path="/matches" element={<Match />} />
+          <Route path="/subscription-plans" element={<SubscriptionPlan />} />
           <Route path="*" element={<div>{t("pageNotFound")}</div>} />
         </Route>
       </Route>

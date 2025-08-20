@@ -1,6 +1,5 @@
 {
   "homePage": {
-    "title": "Home",
     "postsLiked": "Posts liked",
     "matchesCreated": "Matches created",
     "matchesNotContinued": "Matches not continued",
@@ -19,7 +18,6 @@
   },
 
 	"matchPage": {
-    "title": "Match reports",
 		"date": "Date",
     "user1": "User 1",
     "user2": "User 2",
@@ -32,7 +30,6 @@
   },
 
 	"postPage": {
-    "title": "Posts",
 		"date": "Date",
     "author": "Author",
     "post": "Post",
@@ -43,7 +40,6 @@
   },
 
 	"postReportPage": {
-		"title": "Post reports",
 		"reportDate": "Report date",
 		"creationDate": "Creation date",
 		"origin": "Origin",
@@ -53,7 +49,6 @@
 	},
 
 	"userPage": {
-    "title": "Users",
 		"role": "Role",
 		"phone_number": "Phone",
     "email": "Email",
@@ -92,10 +87,20 @@
   },
 
 	"vibePage": {
-    "title": "Vibes",
 		"id": "ID",
 		"vibe": "Vibe"
   },
+
+	"subscriptionPlanPage": {
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"modify": "Modify",
+		"addPlan": "Add a plan",
+		"price": "Price",
+		"duration": "Duration",
+		"days": "days",
+		"date": "Created on"
+	},
 
 	"pageNotFound": "404 - Page not found",
 
@@ -145,9 +150,15 @@
 		"matchDeleted": "Match deleted",
 		"userAdded": "User added successfully",
 		"userDeleted": "User deleted",
+
 		"vibeAdded": "Vibe added successfully",
 		"vibeEdited": "Vibe edited",
 		"vibeDeleted": "Vibe deleted",
-		"postReportDeleted": "Post report deleted"
+
+		"postReportDeleted": "Post report deleted",
+
+		"subscriptionPlanAdded": "Subscription plan added added successfully",
+		"subscriptionPlanEdited": "Subscription plan edited",
+		"subscriptionPlanDeleted": "Subscription plan deleted"
 	}
 }
