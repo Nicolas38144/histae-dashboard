@@ -76,9 +76,7 @@ const DashboardLayout = ({ toggleTheme, mode }: { toggleTheme: () => void; mode:
           <Toolbar />
           <Divider />
           <List>
-            {menuItems.map((item) => {
-              console.log(location.pathname);
-              
+            {menuItems.map((item) => {              
               const isActive = location.pathname === item.path;
               return (
                 <ListItemButton
