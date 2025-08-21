@@ -14,7 +14,7 @@ export const getMatches = async (period: number): Promise<IMatch[]> => {
 
 export const getMatch = async (id: string): Promise<IMatch | null> => {
   try {
-    const res = await api.get('/matches/'+id);
+    const res = await api.get(`/matches/${id}`);
     const match: IMatch = res.data;
     return match;
   } catch (err) {
@@ -23,9 +23,9 @@ export const getMatch = async (id: string): Promise<IMatch | null> => {
   }
 };
 
-export const createMatch = async (idUser1: string, idUser2: string): Promise<IMatch | null> => {
+export const createMatch = async (user1_id: string, user2_id: string): Promise<IMatch | null> => {
   try {
-    const res = await api.post('/matches', { idUser1, idUser2 });
+    const res = await api.post('/matches', { user1_id, user2_id });
     const createdMatch: IMatch = res.data;
     return createdMatch;
   } catch (err) {
@@ -36,7 +36,7 @@ export const createMatch = async (idUser1: string, idUser2: string): Promise<IMa
 
 export const updateMatch = async (id: string, user1_has_consented_to_reveal_photo: boolean, user2_has_consented_to_reveal_photo: boolean, user1_wishes_to_continue: boolean, user2_wishes_to_continue: boolean): Promise<IMatch | null> => {
   try {
-    const res = await api.patch('/matches/'+id, { user1_has_consented_to_reveal_photo, user2_has_consented_to_reveal_photo, user1_wishes_to_continue, user2_wishes_to_continue });
+    const res = await api.patch(`/matches/${id}`, { user1_has_consented_to_reveal_photo, user2_has_consented_to_reveal_photo, user1_wishes_to_continue, user2_wishes_to_continue });
     const updatedMatch: IMatch = res.data;
     return updatedMatch;
   } catch (err) {
@@ -47,7 +47,7 @@ export const updateMatch = async (id: string, user1_has_consented_to_reveal_phot
 
 export const deleteMatch = async (id: string): Promise<void> => {
   try {
-    await api.delete('/matches/'+id);
+    await api.delete(`/matches/${id}`);
   } catch (err) {
     console.error('Error deleteMatch API:', err);
   }

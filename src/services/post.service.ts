@@ -56,9 +56,9 @@ export const createPost = async (user_id: string, content: string): Promise<IDec
   }
 };
 
-export const updatePost = async (idPost: string, post: string): Promise<IDecryptedPost | null> => {
+export const updatePost = async (post_id: string, post: string): Promise<IDecryptedPost | null> => {
   try {
-    const res = await api.patch('/posts/'+idPost, { post });
+    const res = await api.patch(`/posts/${post_id}`, { post });
     const updatedPost: IDecryptedPost = res.data;
     return updatedPost;
   } catch (err) {
@@ -67,9 +67,9 @@ export const updatePost = async (idPost: string, post: string): Promise<IDecrypt
   }
 };
 
-export const deletePost = async (idPost: string): Promise<void> => {
+export const deletePost = async (post_id: string): Promise<void> => {
   try {
-    await api.delete('/posts/'+idPost);
+    await api.delete(`/posts/${post_id}`);
   } catch (err) {
     console.error('Error deletePost API:', err);
   }

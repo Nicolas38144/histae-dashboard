@@ -12,9 +12,9 @@ export const getVibes = async (): Promise<IVibe[]> => {
   }
 };
 
-export const getVibe = async (idVibe: string): Promise<IVibe | null> => {
+export const getVibe = async (vibe_id: string): Promise<IVibe | null> => {
   try {
-    const res = await api.get('/vibes/'+idVibe);
+    const res = await api.get(`/vibes/${vibe_id}`);
     const vibe: IVibe = res.data;
     return vibe;
   } catch (err) {
@@ -34,9 +34,9 @@ export const createVibe = async (vibe: string): Promise<IVibe | null> => {
   }
 };
 
-export const updateVibe = async (idVibe: string, vibe: string): Promise<IVibe | null> => {
+export const updateVibe = async (vibe_id: string, vibe: string): Promise<IVibe | null> => {
   try {
-    const res = await api.patch('/vibes/'+idVibe, { vibe });
+    const res = await api.patch(`/vibes/${vibe_id}`, { vibe });
     const updatedVibe: IVibe = res.data;
     return updatedVibe;
   } catch (err) {
@@ -45,9 +45,9 @@ export const updateVibe = async (idVibe: string, vibe: string): Promise<IVibe | 
   }
 };
 
-export const deleteVibe = async (idVibe: string): Promise<void> => {
+export const deleteVibe = async (vibe_id: string): Promise<void> => {
   try {
-    await api.delete('/vibes/'+idVibe);
+    await api.delete(`/vibes/${vibe_id}`);
   } catch (err) {
     console.error('Error deleteVibe API:', err);
   }

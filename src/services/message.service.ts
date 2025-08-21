@@ -23,9 +23,9 @@ export const createMessage = async (message: string): Promise<IMessage | null> =
   }
 };
 
-export const updateMessage = async (idMessage: string, message: string): Promise<IMessage | null> => {
+export const updateMessage = async (message_id: string, message: string): Promise<IMessage | null> => {
   try {
-    const res = await api.patch('/messages/'+idMessage, { message });
+    const res = await api.patch(`/messages/${message_id}`, { message });
     const updatedMessage: IMessage = res.data;
     return updatedMessage;
   } catch (err) {
@@ -34,9 +34,9 @@ export const updateMessage = async (idMessage: string, message: string): Promise
   }
 };
 
-export const deleteMessage = async (idMessage: string): Promise<void> => {
+export const deleteMessage = async (message_id: string): Promise<void> => {
   try {
-    await api.delete('/messages/'+idMessage);
+    await api.delete(`/messages/${message_id}`);
   } catch (err) {
     console.error('Error deleteMessage API:', err);
   }

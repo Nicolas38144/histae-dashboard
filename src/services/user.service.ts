@@ -36,7 +36,7 @@ export const createUser = async (phone_number: string, email: string, firstname:
 
 export const updateUser = async (id: string, user: IUser): Promise<IUser | null> => {
   try {
-    const res = await api.patch('/users/'+id, { user });
+    const res = await api.patch(`/users/${id}`, { user });
     const updatedUser: IUser = res.data;
     return updatedUser;
   } catch (err) {
@@ -47,7 +47,7 @@ export const updateUser = async (id: string, user: IUser): Promise<IUser | null>
 
 export const deleteUser = async (id: string): Promise<void> => {
   try {
-    await api.delete('/users/'+id);
+    await api.delete(`/users/${id}`);
   } catch (err) {
     console.error('Error deleteUser API:', err);
   }
