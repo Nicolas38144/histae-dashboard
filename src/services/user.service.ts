@@ -1,10 +1,10 @@
 import api from './http.service';
-import type { IDecryptedUser as IUser } from '../types/user.interface';
+import type { IDecryptedUserPlan, IDecryptedUser as IUser } from '../types/user.interface';
 
-export const getUsers = async (period: number): Promise<IUser[]> => {
+export const getUsers = async (period: number): Promise<IDecryptedUserPlan[]> => {
   try {
     const res = await api.get(`/users/all/${period}`);
-    const users: IUser[] = res.data;
+    const users: IDecryptedUserPlan[] = res.data;
     return users;
   } catch (err) {
     console.error('Error logout API:', err);

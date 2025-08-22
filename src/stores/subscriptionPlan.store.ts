@@ -4,9 +4,8 @@ import {
   createSubscriptionPlan,
   updateSubscriptionPlan,
   deleteSubscriptionPlan
-} from '../services/subscription.service';
+} from '../services/subscriptionPlan.service';
 import type { ISubscriptionPlan } from '../types/subscription.interface';
-import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface SubscriptionPlanState {
   subscriptionPlans: ISubscriptionPlan[];

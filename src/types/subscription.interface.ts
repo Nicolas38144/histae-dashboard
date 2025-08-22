@@ -7,7 +7,7 @@ export interface ISubscriptionPlan {
 	features: string[];
 }
 
-export interface IUserSubscription {
+export interface ISubscriptionUser {
   id: string;
 	user_id: string;
 	plan_id: string;

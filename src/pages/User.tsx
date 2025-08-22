@@ -9,8 +9,8 @@ const User = () => {
   const {
     users,
     columns,
-    loading,
-    error,
+    loadingUser,
+    errorUser,
     periodTitle,
     setPeriodTitle,
     handleDelete
@@ -20,8 +20,8 @@ const User = () => {
     <Box className="page-user" sx={{ display: 'flex', flexDirection: 'column'}}>
       <PeriodToggle value={periodTitle} onChange={setPeriodTitle} />
 
-      {loading && <Loader />}
-      {error && <Error error={error} />}
+      {loadingUser && <Loader />}
+      {errorUser && <Error error={errorUser} />}
 
       <DataTable
         searchLabel="Research users"

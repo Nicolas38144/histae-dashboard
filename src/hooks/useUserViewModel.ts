@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import React from 'react';
 
 export const useUserViewModel = () => {
-  const { users, loading, error, lastFetched, fetchUsers, removeUser, periodTitle, setPeriodTitle } = useUserStore();
+  const { users, loadingUser, errorUser, lastFetchedUser, fetchUsers, removeUser, periodTitle, setPeriodTitle } = useUserStore();
   const { showNotification } = useNotification();
 
   const handleDelete = async (id: string) => {
@@ -27,7 +27,7 @@ export const useUserViewModel = () => {
   }, [periodTitle]);
 
   useAutoFetchStore({
-    lastFetched,
+    lastFetched: lastFetchedUser,
     fetchFn,
     maxAge: MAX_CACHE_DURATION,
     deps: [periodTitle],
@@ -48,6 +48,7 @@ export const useUserViewModel = () => {
 
   const columns = [
     { field: 'role', headerName: t("userPage.role") },
+    { field: 'plan', headerName: "Plan" },
     { field: 'created_at', headerName: t("userPage.created") },
     { field: 'last_active_at', headerName: t("userPage.lastActiveAt") },
     {
@@ -67,8 +68,8 @@ export const useUserViewModel = () => {
 
   return {
     users: formattedUsers,
-    loading,
-    error,
+    loadingUser,
+    errorUser,
     periodTitle,
     setPeriodTitle,
     columns,

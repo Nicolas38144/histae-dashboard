@@ -10,9 +10,9 @@ import type { PeriodTitle } from '../types/dataTableProps.type';
 
 interface UserState {
   users: IUser[];
-  loading: boolean;
-  error: string | null;
-  lastFetched: number | null;
+  loadingUser: boolean;
+  errorUser: string | null;
+  lastFetchedUser: number | null;
   fetchUsers: (period: number) => Promise<void>;
   addUser: (user: IUser) => Promise<void>;
   editUser: (user: IUser) => Promise<void>;
@@ -24,20 +24,20 @@ interface UserState {
 
 export const useUserStore = create<UserState>((set, get) => ({
   users: [],
-  loading: false,
-  error: null,
-  lastFetched: null,
+  loadingUser: false,
+  errorUser: null,
+  lastFetchedUser: null,
 
   periodTitle: 'last7days',
   setPeriodTitle: (period) => set({ periodTitle: period }),
 
   fetchUsers: async (period: number) => {
-    set({ loading: true, error: null });
+    set({ loadingUser: true, errorUser: null });
     try {
       const data = await getUsers(period);
-      set({ users: data, loading: false, lastFetched: Date.now() });
+      set({ users: data, loadingUser: false, lastFetchedUser: Date.now() });
     } catch (err) {
-      set({ error: 'Error loading users: '+err, loading: false });
+      set({ errorUser: 'Error loadingUser users: '+err, loadingUser: false });
       throw err;
     }
   },
@@ -56,7 +56,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ users: [...get().users, created] });
       }
     } catch (err) {
-      set({ error: 'Error creating user' });
+      set({ errorUser: 'Error creating user' });
       throw err;
     }
   },
@@ -70,7 +70,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         });
       }
     } catch (err) {
-      set({ error: 'Error while editing user' });
+      set({ errorUser: 'Error while editing user' });
       throw err;
     }
   },
@@ -80,7 +80,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await deleteUser(id);
       set({ users: get().users.filter((v) => v.id !== id) });
     } catch (err) {
-      set({ error: 'Error deleting user' });
+      set({ errorUser: 'Error deleting user' });
       throw err;
     }
   },
