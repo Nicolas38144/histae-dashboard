@@ -1,10 +1,5 @@
-html, body, #root {
-  margin: 0;
-	padding: 0;
-}
-
-.page-vibe {
-	h1 {
-		margin: 0;
-	}
-}
+:root { font-synthesis: none; text-rendering: optimizeLegibility; }
+html { min-width: 320px; min-height: 100%; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, textarea, select { font: inherit; }
+* { box-sizing: border-box; }

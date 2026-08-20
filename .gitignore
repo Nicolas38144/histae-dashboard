@@ -2,6 +2,7 @@
 node_modules
 dist
 package-lock.json
+.pnpm-store
 
 # Keep environment variables out of version control
 .env

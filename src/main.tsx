@@ -1,17 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './main.css'
-import Box from '@mui/material/Box';
 import { NotifierProvider } from './components/Notifier';
-import './translations/i18n';
+import './main.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <NotifierProvider>
-      <Box sx={{ m:2 }}>
-        <App />
-      </Box>
-    </NotifierProvider>
-  </React.StrictMode>
-);
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><NotifierProvider><App /></NotifierProvider></React.StrictMode>);

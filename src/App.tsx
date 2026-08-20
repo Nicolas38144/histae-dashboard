@@ -1,23 +1,15 @@
-import { useState, useMemo } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import { getTheme } from './theme';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import { useMemo, useState } from 'react';
 import AppRoutes from './routes/AppRoutes';
+import { getTheme } from './theme';
 
-const App = () => {
-  const [mode, setMode] = useState<'light' | 'dark'>('light');
+export default function App() {
+  const [mode, setMode] = useState<'light' | 'dark'>(() => localStorage.getItem('histae_theme') === 'dark' ? 'dark' : 'light');
   const theme = useMemo(() => getTheme(mode), [mode]);
-
-  const toggleTheme = () => {
-    setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AppRoutes toggleTheme={toggleTheme} mode={mode} />
-    </ThemeProvider>
-  );
-};
-
-export default App;
+  const toggleMode = () => setMode((current) => {
+    const next = current === 'light' ? 'dark' : 'light';
+    localStorage.setItem('histae_theme', next);
+    return next;
+  });
+  return <ThemeProvider theme={theme}><CssBaseline /><AppRoutes mode={mode} toggleMode={toggleMode} /></ThemeProvider>;
+}
