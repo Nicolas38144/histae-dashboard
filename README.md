@@ -38,6 +38,6 @@ Le serveur frontal doit reproduire les en-têtes décrits dans [SECURITY.md](SEC
 
 ## Documentation
 
-- [Résumé technique et fonctionnel](resume.md)
+- [Résumé techniquedds et fonctionnel](resume.md)
 - [Sécurité et déploiement](SECURITY.md)
-- Contrat exhaustif de l’API : `../histae-api/routes.md`
+- [Contrat exhaustif de l’API](https://github.com/Nicolas38144/histae-api/routes.md)
