@@ -1,10 +1,18 @@
-import { ChatBubbleOutline, GavelOutlined, GroupsOutlined, PersonAddAltOutlined, PolicyOutlined, VerifiedUserOutlined } from '@mui/icons-material';
+import {
+  ChatBubbleOutline,
+  GavelOutlined,
+  GroupsOutlined,
+  PersonAddAltOutlined,
+  PolicyOutlined,
+  VerifiedUserOutlined,
+} from '@mui/icons-material';
 import { Box, Paper, Typography } from '@mui/material';
 import { useCallback } from 'react';
 import { getMetrics } from '../api/admin';
 import { AsyncState } from '../components/AsyncState';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
+import { RevenuePanel } from '../components/RevenuePanel';
 import { StatusChip } from '../components/StatusChip';
 import { useAsyncData } from '../hooks/useAsyncData';
 
@@ -28,6 +36,9 @@ export default function Overview() {
             <MetricCard label="Messages conservés" value={data.messages.total} icon={<ChatBubbleOutline color="info" />} accent="info.main" />
             <MetricCard label="Matchs confirmés" value={data.matches.confirmed} icon={<VerifiedUserOutlined color="primary" />} />
           </Box>
+
+          <RevenuePanel initialRevenue={data.revenue} />
+
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.2fr 1fr' }, gap: 2, mt: 3 }}>
             <Paper variant="outlined" sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight={700} gutterBottom>Cycle de vie des matchs</Typography>
@@ -45,4 +56,3 @@ export default function Overview() {
     </>
   );
 }
-

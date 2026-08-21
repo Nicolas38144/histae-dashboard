@@ -18,6 +18,12 @@ pnpm run dev
 
 En développement, Vite transmet `/api` à `VITE_API_PROXY_TARGET`, configuré par défaut sur `http://localhost:8080`.
 
+La vue d’ensemble inclut un CA estimé calculé à partir des abonnements Premium et du tarif mensuel courant.
+Les périodes proposées sont les 7 ou 30 derniers jours, le mois en cours, le mois précédent, l’année en cours
+et l’historique complet. Cette valeur ne remplace pas un registre de paiements réel.
+Le premier affichage fait partie de la synthèse générale ; les changements de période rechargent ensuite
+uniquement la carte CA via `/api/admin/revenue`, avec un indicateur de progression local.
+
 ## Commandes
 
 ```bash
@@ -38,6 +44,6 @@ Le serveur frontal doit reproduire les en-têtes décrits dans [SECURITY.md](SEC
 
 ## Documentation
 
-- [Résumé techniquedds et fonctionnel](resume.md)
+- [Résumé technique et fonctionnel](resume.md)
 - [Sécurité et déploiement](SECURITY.md)
-- [Contrat exhaustif de l’API](https://github.com/Nicolas38144/histae-api/routes.md)
+- [Contrat exhaustif de l’API](https://github.com/Nicolas38144/histae-api/blob/main/routes.md)

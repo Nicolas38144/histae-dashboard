@@ -3,12 +3,26 @@ export type ApiErrorBody = { error: { code: string; message: string } };
 export type TokenPair = { access_token: string; refresh_token: string };
 export type AdminSession = { user_id: string; role: 'admin' | 'superadmin' };
 
+export type RevenuePeriod = 'last_7_days' | 'last_30_days' | 'month_to_date' | 'previous_month' | 'year_to_date' | 'all_time';
+
+export type AdminRevenue = {
+  period: RevenuePeriod;
+  period_start: string | null;
+  period_end: string;
+  premium_subscriptions: number;
+  price_per_subscription_cents: number;
+  estimated_revenue_cents: number;
+  currency: string;
+  basis: 'premium_monthly_price';
+};
+
 export type AdminMetrics = {
   users: { total: number; active: number; banned: number; onboarded: number; created_last_30_days: number };
   moderation: { pending_reports: number; open_data_requests: number };
   matches: Record<'active' | 'awaiting_continuation' | 'confirmed' | 'expired' | 'ended', number>;
   messages: { total: number };
   subscriptions: Array<{ plan: string; users: number }>;
+  revenue: AdminRevenue;
 };
 
 export type UserRole = 'user' | 'admin' | 'superadmin';
@@ -104,4 +118,3 @@ export type ChatMessage = {
   created_at: string;
   read_at?: string;
 };
-

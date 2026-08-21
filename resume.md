@@ -67,7 +67,8 @@ Un module `src/admin` isole les contrats, DTO, réponses OpenAPI, règles métie
 | Méthode | Route | Usage |
 | --- | --- | --- |
 | GET | `/api/admin/me` | Vérifie que la session possède le rôle `admin` ou `superadmin`. |
-| GET | `/api/admin/metrics` | Retourne les agrégats comptes, modération, matchs, messages et abonnements. |
+| GET | `/api/admin/metrics` | Retourne la synthèse initiale et le CA Premium du mois en cours. |
+| GET | `/api/admin/revenue` | Recalcule uniquement le CA Premium estimé pour la période demandée. |
 
 ### Utilisateurs
 
@@ -151,7 +152,17 @@ Un compte non administrateur peut obtenir des tokens valides via OTP, mais il es
 - demandes RGPD ouvertes ;
 - messages conservés ;
 - états des matchs ;
-- répartition des abonnements.
+- répartition des abonnements ;
+- CA estimé à partir des abonnements Premium et du tarif mensuel courant ;
+- sélection rapide : 7 jours, 30 jours, mois en cours, mois précédent, année en cours ou depuis le début.
+
+Un changement de période ne recharge ni les comptes, ni la modération, ni les matchs : seule la carte CA appelle
+`/api/admin/revenue`. Elle affiche sa propre progression circulaire, conserve les anciennes valeurs atténuées pendant
+la requête et protège l’interface contre les réponses obsolètes ou les requêtes annulées.
+
+L’estimation utilise `user_subscription.updated_at` comme date d’activation ou de mise à jour. Elle est
+explicitement présentée comme une estimation et non comme un bénéfice comptable : les renouvellements non
+enregistrés, remboursements, taxes, commissions et charges ne sont pas disponibles dans le modèle actuel.
 
 ### Utilisateurs
 
@@ -254,8 +265,8 @@ No known vulnerabilities found
 
 - typecheck TypeScript réussi ;
 - ESLint réussi avec zéro avertissement ;
-- 23 suites et 123 tests unitaires réussis, dont les nouvelles règles d’administration et la validation CORS ;
-- campagne complète hors intégration : 25 suites et 132 tests réussis ;
+- 23 suites et 126 tests unitaires réussis, dont le calcul de CA, le chargement dédié, les règles d’administration et la validation CORS ;
+- campagne complète hors intégration : 25 suites et 135 tests réussis ;
 - audit de dépendances de production sans vulnérabilité connue.
 
 ### Dashboard

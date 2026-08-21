@@ -1,6 +1,7 @@
 import { api } from './client';
 import type {
   AdminMetrics,
+  AdminRevenue,
   AdminUser,
   AdminUserDetail,
   ChatMessage,
@@ -12,11 +13,18 @@ import type {
   Plan,
   Report,
   ReportStatus,
+  RevenuePeriod,
   Trait,
   UserRole,
 } from './types';
 
-export const getMetrics = async (): Promise<AdminMetrics> => (await api.get<AdminMetrics>('/admin/metrics')).data;
+export const getMetrics = async (): Promise<AdminMetrics> => (
+  await api.get<AdminMetrics>('/admin/metrics')
+).data;
+
+export const getRevenue = async (revenuePeriod: RevenuePeriod, signal?: AbortSignal): Promise<AdminRevenue> => (
+  await api.get<AdminRevenue>('/admin/revenue', { params: { revenue_period: revenuePeriod }, signal })
+).data;
 
 export async function getUsers(filters: {
   status?: 'active' | 'banned';
@@ -88,4 +96,3 @@ export async function getAccessLogs(userId: string): Promise<DataAccessLog[]> {
 export async function getPlans(): Promise<Plan[]> {
   return (await api.get<{ plans: Plan[] }>('/plans')).data.plans;
 }
-
