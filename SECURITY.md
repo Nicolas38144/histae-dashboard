@@ -24,6 +24,10 @@ Cette architecture limite la persistance d’un vol de token, mais une applicati
 - l’ouverture d’une conversation exige une justification explicite ;
 - un admin ne peut pas bannir un autre admin ; un superadmin ne peut ni agir sur lui-même ni bannir un autre superadmin ;
 - l’effacement RGPD reste géré par la machine de transitions de l’API.
+- la file de réconciliation photo ne reçoit ni clé objet, ni URL signée, ni image ; une relance est validée côté API,
+  refuse les photos saines et les workers actifs, puis journalise `admin_reconcile_photo` avec son motif.
+- la suppression d’une question de profil annonce le nombre de réponses concernées et exige une confirmation ;
+  l’autorisation et la cascade définitive restent imposées transactionnellement par l’API et PostgreSQL.
 
 ## En-têtes attendus en production
 
@@ -51,10 +55,9 @@ Le lockfile pnpm est obligatoire. Le seul script d’installation de dépendance
 
 - réserver l’accès réseau du dashboard à un VPN, une passerelle Zero Trust ou une liste d’adresses d’entreprise ;
 - protéger l’hébergement par une authentification supplémentaire si l’infrastructure le permet ;
-- surveiller les événements `admin_ban`, `admin_unban`, `view_messages` et les volumes de consultation ;
+- surveiller les événements `admin_ban`, `admin_unban`, `admin_reconcile_photo`, `view_messages` et les volumes de consultation ;
 - définir une politique de rotation et de révocation des comptes administrateur ;
 - tester régulièrement la restauration, la rétention des logs et les droits superadmin ;
 - ne jamais publier de source maps de production contenant des informations internes.
 
 Les vulnérabilités doivent être signalées de manière privée aux mainteneurs du projet, sans ouvrir de ticket public contenant des données ou secrets exploitables.
-

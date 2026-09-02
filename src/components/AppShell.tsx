@@ -9,7 +9,9 @@ import {
   MenuOutlined,
   PolicyOutlined,
   PriceChangeOutlined,
+  QuestionAnswerOutlined,
   SecurityOutlined,
+  SyncProblemOutlined,
 } from '@mui/icons-material';
 import {
   AppBar, Box, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Tooltip, Typography,
@@ -24,8 +26,10 @@ const entries = [
   { path: '/users', label: 'Utilisateurs', icon: <GroupsOutlined /> },
   { path: '/reports', label: 'Signalements', icon: <GavelOutlined /> },
   { path: '/traits', label: 'Traits', icon: <LocalOfferOutlined /> },
+  { path: '/profile-questions', label: 'Questions de profil', icon: <QuestionAnswerOutlined /> },
   { path: '/privacy-requests', label: 'Demandes RGPD', icon: <PolicyOutlined /> },
   { path: '/plans', label: 'Plans', icon: <PriceChangeOutlined /> },
+  { path: '/photo-reconciliation', label: 'Photos', icon: <SyncProblemOutlined /> },
   { path: '/audit-logs', label: 'Journal d’accès', icon: <SecurityOutlined /> },
 ];
 

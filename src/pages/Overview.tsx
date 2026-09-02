@@ -3,6 +3,7 @@ import {
   GavelOutlined,
   GroupsOutlined,
   PersonAddAltOutlined,
+  PhotoOutlined,
   PolicyOutlined,
   VerifiedUserOutlined,
 } from '@mui/icons-material';
@@ -35,6 +36,7 @@ export default function Overview() {
             <MetricCard label="Comptes bannis" value={data.users.banned} icon={<GroupsOutlined color="error" />} accent="error.main" />
             <MetricCard label="Messages conservés" value={data.messages.total} icon={<ChatBubbleOutline color="info" />} accent="info.main" />
             <MetricCard label="Matchs confirmés" value={data.matches.confirmed} icon={<VerifiedUserOutlined color="primary" />} />
+            <MetricCard label="Photos à réconcilier" value={data.photos.stale_processing + data.photos.deletion_dead_letters + data.photos.deletion_without_active_event} icon={<PhotoOutlined color="warning" />} accent="warning.main" />
           </Box>
 
           <RevenuePanel initialRevenue={data.revenue} />

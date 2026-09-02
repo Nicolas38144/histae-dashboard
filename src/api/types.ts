@@ -21,8 +21,46 @@ export type AdminMetrics = {
   moderation: { pending_reports: number; open_data_requests: number };
   matches: Record<'active' | 'awaiting_continuation' | 'confirmed' | 'expired' | 'ended', number>;
   messages: { total: number };
+  photos: PhotoMetrics;
   subscriptions: Array<{ plan: string; users: number }>;
   revenue: AdminRevenue;
+};
+
+export type PhotoMetrics = {
+  pending: number;
+  processing: number;
+  ready: number;
+  deleting: number;
+  stale_processing: number;
+  deletion_dead_letters: number;
+  deletion_without_active_event: number;
+};
+
+export type PhotoReconciliationFilter = 'all' | 'stale_processing' | 'deleting' | 'dead_letter';
+export type PhotoReconciliationIssue =
+  | 'stale_processing'
+  | 'deletion_queued'
+  | 'deletion_processing'
+  | 'deletion_retry_scheduled'
+  | 'deletion_dead_letter'
+  | 'deletion_event_missing'
+  | 'deletion_event_completed';
+
+export type PhotoReconciliationItem = {
+  photo_id: string;
+  user_id: string;
+  status: 'pending' | 'processing' | 'deleting';
+  size_bytes: number | null;
+  width: number | null;
+  height: number | null;
+  created_at: string;
+  updated_at: string;
+  outbox_status: 'pending' | 'processing' | 'completed' | 'dead_letter' | null;
+  outbox_attempts: number | null;
+  outbox_available_at: string | null;
+  outbox_locked_at: string | null;
+  outbox_last_error_code: string | null;
+  issue: PhotoReconciliationIssue;
 };
 
 export type UserRole = 'user' | 'admin' | 'superadmin';
@@ -65,6 +103,18 @@ export type Report = {
 };
 
 export type Trait = { id: string; name: string };
+
+export type ProfileQuestionCategory = 'daily_life' | 'personality' | 'interests' | 'relationships' | 'conversation';
+export type AdminProfileQuestion = {
+  id: string;
+  code: string;
+  prompt: string;
+  category: ProfileQuestionCategory;
+  display_order: number;
+  answer_count: number;
+  created_at: string;
+  updated_at: string;
+};
 
 export type DataRequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
 export type DataSubjectRequest = {

@@ -1,6 +1,7 @@
 import { api } from './client';
 import type {
   AdminMetrics,
+  AdminProfileQuestion,
   AdminRevenue,
   AdminUser,
   AdminUserDetail,
@@ -10,11 +11,14 @@ import type {
   DataRequestStatus,
   DataSubjectRequest,
   Match,
+  PhotoReconciliationFilter,
+  PhotoReconciliationItem,
   Plan,
   Report,
   ReportStatus,
   RevenuePeriod,
   Trait,
+  ProfileQuestionCategory,
   UserRole,
 } from './types';
 
@@ -25,6 +29,19 @@ export const getMetrics = async (): Promise<AdminMetrics> => (
 export const getRevenue = async (revenuePeriod: RevenuePeriod, signal?: AbortSignal): Promise<AdminRevenue> => (
   await api.get<AdminRevenue>('/admin/revenue', { params: { revenue_period: revenuePeriod }, signal })
 ).data;
+
+export async function getPhotoReconciliation(
+  status: PhotoReconciliationFilter,
+  cursor?: string,
+): Promise<CursorResponse<PhotoReconciliationItem, 'photos'>> {
+  return (await api.get<CursorResponse<PhotoReconciliationItem, 'photos'>>('/admin/photo-reconciliation', {
+    params: { status, cursor, limit: 50 },
+  })).data;
+}
+
+export async function retryPhotoReconciliation(photoId: string, reason: string): Promise<void> {
+  await api.post(`/admin/photo-reconciliation/${photoId}/retry`, { reason });
+}
 
 export async function getUsers(filters: {
   status?: 'active' | 'banned';
@@ -79,6 +96,29 @@ export async function updateTrait(id: string, name: string): Promise<void> {
 
 export async function deleteTrait(id: string): Promise<void> {
   await api.delete(`/admin/traits/${id}`);
+}
+
+export async function getProfileQuestions(): Promise<AdminProfileQuestion[]> {
+  return (await api.get<{ questions: AdminProfileQuestion[] }>('/admin/profile-questions')).data.questions;
+}
+
+export async function createProfileQuestion(input: {
+  prompt: string;
+  category: ProfileQuestionCategory;
+  display_order: number;
+}): Promise<AdminProfileQuestion> {
+  return (await api.post<AdminProfileQuestion>('/admin/profile-questions', input)).data;
+}
+
+export async function updateProfileQuestion(
+  id: string,
+  input: { prompt: string; category: ProfileQuestionCategory; display_order: number },
+): Promise<AdminProfileQuestion> {
+  return (await api.patch<AdminProfileQuestion>(`/admin/profile-questions/${id}`, input)).data;
+}
+
+export async function deleteProfileQuestion(id: string): Promise<void> {
+  await api.delete(`/admin/profile-questions/${id}`);
 }
 
 export async function getDataRequests(status?: DataRequestStatus): Promise<DataSubjectRequest[]> {

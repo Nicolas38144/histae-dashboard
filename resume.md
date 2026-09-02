@@ -1,10 +1,10 @@
 # Histae Dashboard — résumé technique, fonctionnel et sécurité
 
-Mise à jour : 20 août 2026.
+Mise à jour : 2 septembre 2026.
 
 ## 1. Vision du projet
 
-`histae-dashboard` est la console réservée aux administrateurs de Histae. Elle sert à observer l’état de la plateforme, modérer les signalements, gérer les mesures de sûreté, administrer le catalogue de traits et traiter les demandes relatives aux droits des personnes.
+`histae-dashboard` est la console réservée aux administrateurs de Histae. Elle sert à observer l’état de la plateforme, modérer les signalements, gérer les mesures de sûreté, administrer les catalogues de traits et de questions de profil, et traiter les demandes relatives aux droits des personnes.
 
 La sécurité est appliquée côté API. Le dashboard améliore l’expérience de travail, mais ne constitue jamais une frontière d’autorisation autonome.
 
@@ -60,7 +60,7 @@ Les anciens domaines sans équivalent dans l’API n’ont pas été artificiell
 
 ## 5. Ajouts réalisés dans l’API
 
-Un module `src/admin` isole les contrats, DTO, réponses OpenAPI, règles métier, accès PostgreSQL et contrôleur de la console.
+Un module `src/admin` isole les contrats, DTO, modèles de réponse, règles métier, accès PostgreSQL et contrôleur de la console.
 
 ### Session et synthèse
 
@@ -69,6 +69,12 @@ Un module `src/admin` isole les contrats, DTO, réponses OpenAPI, règles métie
 | GET | `/api/admin/me` | Vérifie que la session possède le rôle `admin` ou `superadmin`. |
 | GET | `/api/admin/metrics` | Retourne la synthèse initiale et le CA Premium du mois en cours. |
 | GET | `/api/admin/revenue` | Recalcule uniquement le CA Premium estimé pour la période demandée. |
+| GET | `/api/admin/photo-reconciliation` | Liste les traitements photo anciens et suppressions en cours sans exposer les objets. |
+| POST | `/api/admin/photo-reconciliation/:id/retry` | Remet une opération anormale dans l’outbox avec motif et audit transactionnel. |
+| GET | `/api/admin/profile-questions` | Liste le catalogue avec le nombre de réponses liées. |
+| POST | `/api/admin/profile-questions` | Ajoute une question. |
+| PATCH | `/api/admin/profile-questions/:id` | Modifie son libellé, sa catégorie ou son ordre. |
+| DELETE | `/api/admin/profile-questions/:id` | Supprime la question et toutes ses réponses associées. |
 
 ### Utilisateurs
 
@@ -104,6 +110,9 @@ Le bannissement révoque tous les refresh tokens du compte. Le guard vérifiant 
 La consultation d’un profil enregistre `view_profile`. La consultation des matchs enregistre `view_matches`. La consultation d’une conversation enregistre `view_messages` pour chacun des deux participants.
 
 Une justification de 3 à 500 caractères est obligatoire pour les matchs, profils détaillés et messages. Les actions de bannissement et débannissement utilisent `admin_ban` et `admin_unban`.
+Une relance photo exige la même justification et produit `admin_reconcile_photo`. L’API refuse une photo `ready`,
+un traitement récent et un événement encore possédé par un worker actif. Le dashboard ne reçoit aucune clé objet,
+URL signée ou image dans cette file opérationnelle.
 
 Les informations suivantes ne sont jamais retournées :
 
@@ -187,6 +196,13 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 - renommage ;
 - suppression confirmée.
 
+### Questions de profil
+
+- liste triée avec catégorie, code stable et nombre de réponses ;
+- création et modification du libellé, de la catégorie et de l’ordre ;
+- avertissement lorsque la modification affecte des réponses déjà visibles ;
+- confirmation destructive indiquant le nombre de réponses supprimées en cascade avec la question.
+
 ### Demandes RGPD
 
 - filtre par état ;
@@ -199,6 +215,14 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 - catalogue commercial en lecture seule ;
 - recherche des accès par UUID utilisateur ;
 - affichage de l’acteur, de l’action, de la justification et de la date.
+
+### Réconciliation des photos
+
+- métriques des états `pending`, `processing`, `ready` et `deleting` ;
+- compteurs des traitements bloqués, dead letters et suppressions sans événement ;
+- filtres et pagination par curseur de la file opérationnelle ;
+- diagnostic de l’état outbox et nombre de tentatives ;
+- relance confirmée avec motif obligatoire, uniquement pour les anomalies actionnables.
 
 ## 10. Expérience et accessibilité
 
@@ -265,8 +289,9 @@ No known vulnerabilities found
 
 - typecheck TypeScript réussi ;
 - ESLint réussi avec zéro avertissement ;
-- 23 suites et 126 tests unitaires réussis, dont le calcul de CA, le chargement dédié, les règles d’administration et la validation CORS ;
-- campagne complète hors intégration : 25 suites et 135 tests réussis ;
+- 41 suites et 257 tests unitaires réussis ;
+- campagne complète hors intégration : 51 suites et 319 tests réussis ;
+- 3 suites et 44 tests d’intégration PostgreSQL, ScyllaDB et Redis réussis ;
 - audit de dépendances de production sans vulnérabilité connue.
 
 ### Dashboard

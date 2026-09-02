@@ -24,6 +24,14 @@ et l’historique complet. Cette valeur ne remplace pas un registre de paiements
 Le premier affichage fait partie de la synthèse générale ; les changements de période rechargent ensuite
 uniquement la carte CA via `/api/admin/revenue`, avec un indicateur de progression local.
 
+L’écran « Photos » affiche les métriques `user_photo`, les traitements bloqués et les suppressions en cours. Il
+permet de remettre en file une opération réellement anormale avec un motif obligatoire ; l’API protège et audite
+la mutation et ne transmet au dashboard ni clé objet, ni URL signée, ni contenu d’image.
+
+L’écran « Questions de profil » administre le catalogue présenté dans l’application mobile. Il permet d’ajouter,
+modifier et réordonner les questions. Avant une suppression définitive, il affiche le nombre de réponses
+utilisateur qui seront également supprimées par l’API.
+
 ## Commandes
 
 ```bash
