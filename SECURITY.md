@@ -2,19 +2,23 @@
 
 ## Modèle de sécurité
 
-Le dashboard est une application d’administration : son exposition doit être plus restrictive que celle du client public. L’API reste l’autorité de sécurité. Les contrôles visuels du dashboard ne remplacent jamais `JwtActiveGuard` et `AdminGuard`.
+Le dashboard est une application d’administration : son exposition doit être plus restrictive que celle du client public. L’API reste l’autorité de sécurité. Les contrôles visuels du dashboard ne remplacent jamais `AdminSessionGuard`.
 
 ## Authentification
 
-- connexion OTP avec les routes publiques de l’API ;
-- vérification systématique du rôle par `GET /api/admin/me` après connexion et au rechargement ;
-- access token et refresh token conservés dans `sessionStorage`, jamais dans `localStorage` ;
-- rotation automatique du refresh token sur une réponse `401` ;
-- une seule rotation concurrente, les requêtes en attente étant rejouées ensuite ;
-- suppression locale inconditionnelle des tokens à la déconnexion ou à l’expiration ;
-- bannissement côté API avec vérification à chaque requête et révocation de tous les refresh tokens.
+- passkeys WebAuthn découvrables avec vérification utilisateur obligatoire, sans SSO ni fournisseur externe ;
+- vérification systématique de la session et du rôle par `GET /api/admin/auth/session` au chargement ;
+- aucun access token ou refresh token administrateur dans `localStorage`, `sessionStorage` ou le JavaScript ;
+- session opaque dans un cookie API `HttpOnly; SameSite=Strict`, `Secure` et préfixé `__Host-` en production ;
+- expiration inactive de 30 minutes et absolue de 8 heures par défaut, avec révocation serveur ;
+- relecture à chaque requête du rôle, du bannissement et de la passkey active ;
+- contrôle de l’en-tête `Origin` exact sur toutes les mutations administratives ;
+- authentification récente pour ajouter/révoquer une passkey ou révoquer les autres sessions ;
+- jeton d’enrôlement initial créé hors bande, hashé, à usage unique et de courte durée.
 
-Cette architecture limite la persistance d’un vol de token, mais une application web ne peut pas protéger un token contre une XSS exécutée dans sa propre origine. La CSP, l’absence de HTML injecté et la maîtrise des dépendances restent donc essentielles.
+WebAuthn rend l’authentification résistante au phishing et le cookie `HttpOnly` empêche le JavaScript de lire le
+secret de session. Une XSS pourrait toutefois agir au nom d’une session ouverte : CSP, absence de HTML injecté,
+contrôle des dépendances, sessions courtes et vérification d’origine restent essentiels.
 
 ## Données personnelles
 
@@ -47,7 +51,9 @@ X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 ```
 
-Si l’API se trouve sur une origine séparée, cette origine HTTPS doit être ajoutée à `connect-src` et l’origine du dashboard doit être ajoutée à `CORS_ORIGINS` côté API.
+L’API doit être montée sous `/api` sur la même origine que le dashboard. En développement, l’unique exception de
+transport est le proxy Vite : le navigateur reste sur `http://localhost:5173` tandis que Vite relaie vers
+`http://localhost:8080`. En production, l’origine WebAuthn doit être HTTPS.
 
 ## Dépendances
 
@@ -58,7 +64,8 @@ Le lockfile pnpm est obligatoire. Le seul script d’installation de dépendance
 ## Limites opérationnelles
 
 - réserver l’accès réseau du dashboard à un VPN, une passerelle Zero Trust ou une liste d’adresses d’entreprise ;
-- protéger l’hébergement par une authentification supplémentaire si l’infrastructure le permet ;
+- imposer deux passkeys par administrateur, dont idéalement une clé physique conservée séparément ;
+- documenter et contrôler la procédure hors bande de récupération et de nouvel enrôlement ;
 - surveiller les événements `admin_ban`, `admin_unban`, `admin_reconcile_photo`, `view_moderation_content`,
   `admin_review_content`, `view_messages` et les volumes de consultation ;
 - définir une politique de rotation et de révocation des comptes administrateur ;

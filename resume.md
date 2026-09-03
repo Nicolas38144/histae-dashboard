@@ -143,21 +143,21 @@ src/
   utils/        formatage sans logique métier
 ```
 
-Les anciens stores et view-models ont été supprimés avec leurs contrats obsolètes. Le nombre de dépendances de production est passé à un socle réduit : React, React Router, Axios, Material UI et Emotion.
+Les anciens stores et view-models ont été supprimés avec leurs contrats obsolètes. Le nombre de dépendances de production est passé à un socle réduit : React, React Router, Axios, Material UI, Emotion et le client navigateur SimpleWebAuthn.
 
 ## 8. Authentification du dashboard
 
-1. l’administrateur saisit son numéro français ;
-2. le dashboard appelle `/auth/otp/send` avec une clé d’idempotence UUID v4 ;
-3. le code est vérifié par `/auth/otp/verify` ;
-4. les tokens sont placés dans `sessionStorage` ;
-5. `/admin/me` vérifie immédiatement le rôle ;
-6. cette vérification est rejouée à chaque rechargement de l’application ;
-7. une réponse `401` déclenche une rotation unique du refresh token ;
-8. les requêtes concurrentes reprennent avec le nouvel access token ;
-9. tout échec de rotation efface la session et renvoie vers la connexion.
+1. le dashboard demande des options de connexion WebAuthn anonymes à `/admin/auth/login/options` ;
+2. le navigateur choisit une passkey découvrable et impose la vérification locale de l’utilisateur ;
+3. `/admin/auth/login/verify` vérifie challenge, origine, RP ID, signature et compteur ;
+4. l’API ouvre une session serveur courte dans un cookie `HttpOnly; SameSite=Strict` ;
+5. `/admin/auth/session` relit le rôle, l’état du compte, la passkey et les expirations à chaque chargement ;
+6. une réponse `401` ferme l’interface locale et renvoie vers la connexion ;
+7. l’écran Sécurité ajoute des passkeys et révoque les autres sessions après une authentification récente.
 
-Un compte non administrateur peut obtenir des tokens valides via OTP, mais il est refusé par `AdminGuard` et le dashboard efface immédiatement sa session.
+La première passkey utilise un jeton d’enrôlement généré hors bande par l’API. Le dashboard ne conserve jamais ce
+jeton après la cérémonie et ne reçoit jamais le secret de session. Les JWT/OTP mobiles ne sont acceptés par aucune
+route administrative. Le développement utilise exclusivement `http://localhost:5173` avec le RP ID `localhost`.
 
 ## 9. Écrans disponibles
 
@@ -242,6 +242,15 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 - approbation ou rejet motivé, protégé contre les décisions concurrentes ;
 - actualisation de la file et du compteur de la vue d’ensemble après décision.
 
+### Sécurité du compte
+
+- connexion par passkey ou clé de sécurité, sans OTP, SSO ni fournisseur externe ;
+- enrôlement initial par jeton temporaire affiché une seule fois par l’API ;
+- liste des passkeys et indication de celle utilisée par la session courante ;
+- ajout d’une passkey de secours ;
+- révocation d’une passkey non courante, sans possibilité de supprimer la dernière ;
+- fermeture de toutes les autres sessions administratives.
+
 ## 10. Expérience et accessibilité
 
 - interface française ;
@@ -268,12 +277,13 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 
 ### Corrections de code et configuration
 
-- tokens déplacés de `localStorage` vers `sessionStorage` ;
-- suppression des anciens tokens lors de la première déconnexion ;
+- suppression du stockage des tokens administrateur ; la session est exclusivement un cookie `HttpOnly` ;
+- nettoyage automatique des anciennes clés `localStorage`/`sessionStorage` lors du chargement ;
 - aucune donnée de session dans Zustand ou une persistance applicative ;
 - aucune injection de HTML ;
 - timeout réseau de quinze secondes ;
-- renouvellement concurrent sérialisé ;
+- aucune logique de refresh JWT dans le dashboard ;
+- WebAuthn natif, vérification utilisateur obligatoire et écran de gestion des passkeys ;
 - CSP restrictive en production ;
 - absence de source maps de production ;
 - balise `noindex,nofollow,noarchive` ;
@@ -307,9 +317,9 @@ No known vulnerabilities found
 
 - typecheck TypeScript réussi ;
 - ESLint réussi avec zéro avertissement ;
-- 45 suites et 276 tests unitaires réussis ;
-- campagne complète hors intégration : 56 suites et 342 tests réussis ;
-- 3 suites et 45 tests d’intégration PostgreSQL, ScyllaDB et Redis réussis ;
+- 49 suites et 299 tests unitaires réussis ;
+- campagne complète hors intégration : 61 suites et 371 tests réussis ;
+- 3 suites et 46 tests d’intégration PostgreSQL, ScyllaDB et Redis réussis ;
 - audit de dépendances de production sans vulnérabilité connue.
 
 ### Dashboard
@@ -332,7 +342,10 @@ VITE_API_URL=/api
 VITE_API_PROXY_TARGET=http://localhost:8080
 ```
 
-Le serveur Vite transmet `/api` à l’API sans réécriture. En production, le reverse proxy doit appliquer le même modèle ou une origine HTTPS séparée doit être déclarée à la fois dans la CSP du dashboard et dans `CORS_ORIGINS` de l’API.
+Le serveur Vite transmet `/api` à l’API sans réécriture. Le navigateur doit ouvrir exactement
+`http://localhost:5173`, et non `127.0.0.1`. L’API utilise par défaut `ADMIN_WEBAUTHN_ORIGIN=http://localhost:5173`
+et `ADMIN_WEBAUTHN_RP_ID=localhost`. En production, le reverse proxy doit conserver le modèle même-origine `/api`
+sur une origine HTTPS exacte.
 
 ## 16. Commandes principales
 
@@ -350,11 +363,12 @@ pnpm run security:audit
 - choisir l’URL et le reverse proxy de production ;
 - appliquer les en-têtes de `SECURITY.md` au CDN ou au serveur frontal ;
 - réserver idéalement le dashboard à un VPN ou une passerelle Zero Trust ;
-- configurer `CORS_ORIGINS` seulement si une origine séparée est indispensable.
+- configurer l’origine HTTPS et le RP ID WebAuthn définitifs lors du choix du domaine de production.
 
 ### Exploitation
 
 - créer et gouverner les comptes `admin` et `superadmin` ;
+- imposer deux passkeys par compte, protéger la commande d’enrôlement et documenter la récupération hors bande ;
 - définir les procédures de justification et revue des conversations ;
 - surveiller les actions sensibles du journal d’accès ;
 - définir le SLA, les habilitations et le soutien des reviewers, ainsi qu’une procédure de contestation ;
@@ -364,7 +378,7 @@ pnpm run security:audit
 
 - ajouter des tests de composants avec un serveur API simulé ;
 - ajouter un scénario E2E avec PostgreSQL, Redis, Scylla et un compte administrateur de test ;
-- vérifier les workflows OTP et modération, ainsi que leur calibration, dans un environnement de staging ;
+- vérifier un parcours WebAuthn réel avec plusieurs authenticators et la modération dans un environnement de staging ;
 - tester le reverse proxy et les en-têtes du véritable hébergement.
 
 ## 18. Conclusion

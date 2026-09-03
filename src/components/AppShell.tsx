@@ -13,6 +13,7 @@ import {
   SecurityOutlined,
   SyncProblemOutlined,
   FactCheckOutlined,
+  AdminPanelSettingsOutlined,
 } from '@mui/icons-material';
 import {
   AppBar, Box, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Tooltip, Typography,
@@ -20,6 +21,8 @@ import {
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logout } from '../api/auth';
+import { errorMessage } from '../api/client';
+import { useNotification } from './notification-context';
 
 const width = 250;
 const entries = [
@@ -33,12 +36,23 @@ const entries = [
   { path: '/plans', label: 'Plans', icon: <PriceChangeOutlined /> },
   { path: '/photo-reconciliation', label: 'Photos', icon: <SyncProblemOutlined /> },
   { path: '/audit-logs', label: 'Journal d’accès', icon: <SecurityOutlined /> },
+  { path: '/security', label: 'Sécurité', icon: <AdminPanelSettingsOutlined /> },
 ];
 
 export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleMode: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
+
+  const signOut = async () => {
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (reason) {
+      showNotification(errorMessage(reason), 'error');
+    }
+  };
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -59,7 +73,7 @@ export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleM
       </List>
       <Divider />
       <List sx={{ p: 1.25 }}>
-        <ListItemButton onClick={async () => { await logout(); navigate('/login', { replace: true }); }} sx={{ borderRadius: 2 }}>
+        <ListItemButton onClick={signOut} sx={{ borderRadius: 2 }}>
           <ListItemIcon sx={{ minWidth: 42 }}><LogoutOutlined /></ListItemIcon><ListItemText primary="Se déconnecter" />
         </ListItemButton>
       </List>

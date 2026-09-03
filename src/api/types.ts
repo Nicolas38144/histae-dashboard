@@ -1,7 +1,22 @@
 export type ApiErrorBody = { error: { code: string; message: string } };
 
-export type TokenPair = { access_token: string; refresh_token: string };
-export type AdminSession = { user_id: string; role: 'admin' | 'superadmin' };
+export type AdminSession = {
+  user_id: string;
+  role: 'admin' | 'superadmin';
+  authenticated_at: string;
+  expires_at: string;
+};
+
+export type AdminCredential = {
+  id: string;
+  name: string;
+  device_type: 'singleDevice' | 'multiDevice';
+  backed_up: boolean;
+  transports: string[];
+  created_at: string;
+  last_used_at: string | null;
+  current: boolean;
+};
 
 export type RevenuePeriod = 'last_7_days' | 'last_30_days' | 'month_to_date' | 'previous_month' | 'year_to_date' | 'all_time';
 

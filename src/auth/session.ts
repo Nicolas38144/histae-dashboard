@@ -1,29 +1,12 @@
-import type { TokenPair } from '../api/types';
+export const ADMIN_SESSION_EXPIRED_EVENT = 'histae:session-expired';
 
-const ACCESS_TOKEN_KEY = 'histae_admin_access_token';
-const REFRESH_TOKEN_KEY = 'histae_admin_refresh_token';
-
-export function getAccessToken(): string | null {
-  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-export function getRefreshToken(): string | null {
-  return sessionStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
-export function saveSession(tokens: TokenPair): void {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
-}
-
-export function clearSession(): void {
-  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+export function clearLegacySessions(): void {
+  sessionStorage.removeItem('histae_admin_access_token');
+  sessionStorage.removeItem('histae_admin_refresh_token');
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_id');
 }
 
-export function hasSession(): boolean {
-  return Boolean(getAccessToken() && getRefreshToken());
+export function notifyAdminSessionExpired(): void {
+  window.dispatchEvent(new Event(ADMIN_SESSION_EXPIRED_EVENT));
 }
-

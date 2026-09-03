@@ -1,6 +1,6 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { clearSession, getAccessToken, getRefreshToken, saveSession } from '../auth/session';
-import type { ApiErrorBody, TokenPair } from './types';
+import axios, { AxiosError } from 'axios';
+import { notifyAdminSessionExpired } from '../auth/session';
+import type { ApiErrorBody } from './types';
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -8,53 +8,22 @@ export const api = axios.create({
   baseURL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15_000,
+  withCredentials: true,
 });
-
-api.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-type RetriableRequest = InternalAxiosRequestConfig & { _retry?: boolean };
-let refreshPromise: Promise<string> | null = null;
 
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError<ApiErrorBody>) => {
-    const request = error.config as RetriableRequest | undefined;
-    if (!request || request._retry || error.response?.status !== 401 || request.url?.includes('/auth/refresh')) {
-      return Promise.reject(error);
+  (error: AxiosError<ApiErrorBody>) => {
+    const path = error.config?.url ?? '';
+    if (error.response?.status === 401 && !isPublicAdminAuthentication(path)) {
+      notifyAdminSessionExpired();
     }
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) {
-      expireSession();
-      return Promise.reject(error);
-    }
-    request._retry = true;
-    try {
-      refreshPromise ??= axios.post<TokenPair>(`${baseURL}/auth/refresh`, { refresh_token: refreshToken }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 15_000,
-      }).then(({ data }) => {
-        saveSession(data);
-        return data.access_token;
-      }).finally(() => {
-        refreshPromise = null;
-      });
-      const accessToken = await refreshPromise;
-      request.headers.Authorization = `Bearer ${accessToken}`;
-      return api(request);
-    } catch (refreshError) {
-      expireSession();
-      return Promise.reject(refreshError);
-    }
+    return Promise.reject(error);
   },
 );
 
-function expireSession(): void {
-  clearSession();
-  window.dispatchEvent(new Event('histae:session-expired'));
+function isPublicAdminAuthentication(path: string): boolean {
+  return path.includes('/admin/auth/login/') || path.includes('/admin/auth/bootstrap/');
 }
 
 export function errorMessage(error: unknown): string {
@@ -64,4 +33,3 @@ export function errorMessage(error: unknown): string {
   }
   return error instanceof Error ? error.message : 'Une erreur inattendue est survenue.';
 }
-
