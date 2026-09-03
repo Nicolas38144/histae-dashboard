@@ -18,7 +18,7 @@ export type AdminRevenue = {
 
 export type AdminMetrics = {
   users: { total: number; active: number; banned: number; onboarded: number; created_last_30_days: number };
-  moderation: { pending_reports: number; open_data_requests: number };
+  moderation: { pending_reports: number; pending_content: number; open_data_requests: number };
   matches: Record<'active' | 'awaiting_continuation' | 'confirmed' | 'expired' | 'ended', number>;
   messages: { total: number };
   photos: PhotoMetrics;
@@ -167,4 +167,45 @@ export type ChatMessage = {
   content: string;
   created_at: string;
   read_at?: string;
+};
+
+export type ModerationContentType = 'photo' | 'bio' | 'profile_answer';
+export type ModerationStatus = 'pending' | 'approved' | 'rejected';
+export type ModerationReasonCode =
+  | 'spam' | 'insult' | 'personal_contact' | 'sexual_content'
+  | 'face_not_detected' | 'multiple_faces' | 'blurry' | 'explicit_image'
+  | 'analysis_unavailable' | 'legacy_unreviewed';
+
+export type ModerationCase = {
+  case_id: string;
+  user_id: string;
+  firstname: string | null;
+  content_type: ModerationContentType;
+  status: ModerationStatus;
+  reason_codes: ModerationReasonCode[];
+  policy_version: string;
+  version: number;
+  face_count: number | null;
+  sharpness_score: number | null;
+  nsfw_score: number | null;
+  face_detectable: boolean | null;
+  sharp_enough: boolean | null;
+  content_allowed: boolean | null;
+  review_reason: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ModerationDetail = ModerationCase & {
+  content: string | null;
+  question: string | null;
+  photo: string | null;
+};
+
+export type PhotoReviewChecks = {
+  face_detectable: boolean;
+  sharp_enough: boolean;
+  content_allowed: boolean;
 };

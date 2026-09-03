@@ -20,6 +20,11 @@ import type {
   Trait,
   ProfileQuestionCategory,
   UserRole,
+  ModerationCase,
+  ModerationContentType,
+  ModerationDetail,
+  ModerationStatus,
+  PhotoReviewChecks,
 } from './types';
 
 export const getMetrics = async (): Promise<AdminMetrics> => (
@@ -37,6 +42,36 @@ export async function getPhotoReconciliation(
   return (await api.get<CursorResponse<PhotoReconciliationItem, 'photos'>>('/admin/photo-reconciliation', {
     params: { status, cursor, limit: 50 },
   })).data;
+}
+
+export async function getModerationCases(
+  status?: ModerationStatus,
+  contentType?: ModerationContentType,
+  cursor?: string,
+): Promise<CursorResponse<ModerationCase, 'cases'>> {
+  return (await api.get<CursorResponse<ModerationCase, 'cases'>>('/admin/content-moderation', {
+    params: { status, content_type: contentType, cursor, limit: 50 },
+  })).data;
+}
+
+export async function getModerationDetail(caseId: string, reason: string): Promise<ModerationDetail> {
+  return (await api.get<ModerationDetail>(`/admin/content-moderation/${caseId}`, {
+    params: { reason },
+  })).data;
+}
+
+export async function reviewModerationCase(
+  moderation: ModerationDetail,
+  decision: 'approved' | 'rejected',
+  reason: string,
+  photoChecks?: PhotoReviewChecks,
+): Promise<void> {
+  await api.patch(`/admin/content-moderation/${moderation.case_id}`, {
+    version: moderation.version,
+    decision,
+    reason,
+    ...(photoChecks ? { photo_checks: photoChecks } : {}),
+  });
 }
 
 export async function retryPhotoReconciliation(photoId: string, reason: string): Promise<void> {

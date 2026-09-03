@@ -28,6 +28,10 @@ Cette architecture limite la persistance d’un vol de token, mais une applicati
   refuse les photos saines et les workers actifs, puis journalise `admin_reconcile_photo` avec son motif.
 - la suppression d’une question de profil annonce le nombre de réponses concernées et exige une confirmation ;
   l’autorisation et la cascade définitive restent imposées transactionnellement par l’API et PostgreSQL.
+- la liste de modération ne reçoit aucun texte, image, URL ou clé objet. L’ouverture d’un détail exige un motif et
+  journalise `view_moderation_content`; la décision motivée journalise `admin_review_content`.
+- une photo détaillée utilise uniquement une URL signée courte. La revue impose les trois contrôles visage,
+  netteté et contenu autorisé, et la version optimiste évite d’écraser une décision concurrente.
 
 ## En-têtes attendus en production
 
@@ -55,7 +59,8 @@ Le lockfile pnpm est obligatoire. Le seul script d’installation de dépendance
 
 - réserver l’accès réseau du dashboard à un VPN, une passerelle Zero Trust ou une liste d’adresses d’entreprise ;
 - protéger l’hébergement par une authentification supplémentaire si l’infrastructure le permet ;
-- surveiller les événements `admin_ban`, `admin_unban`, `admin_reconcile_photo`, `view_messages` et les volumes de consultation ;
+- surveiller les événements `admin_ban`, `admin_unban`, `admin_reconcile_photo`, `view_moderation_content`,
+  `admin_review_content`, `view_messages` et les volumes de consultation ;
 - définir une politique de rotation et de révocation des comptes administrateur ;
 - tester régulièrement la restauration, la rétention des logs et les droits superadmin ;
 - ne jamais publier de source maps de production contenant des informations internes.

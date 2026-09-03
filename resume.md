@@ -1,6 +1,6 @@
 # Histae Dashboard — résumé technique, fonctionnel et sécurité
 
-Mise à jour : 2 septembre 2026.
+Mise à jour : 3 septembre 2026.
 
 ## 1. Vision du projet
 
@@ -71,6 +71,9 @@ Un module `src/admin` isole les contrats, DTO, modèles de réponse, règles mé
 | GET | `/api/admin/revenue` | Recalcule uniquement le CA Premium estimé pour la période demandée. |
 | GET | `/api/admin/photo-reconciliation` | Liste les traitements photo anciens et suppressions en cours sans exposer les objets. |
 | POST | `/api/admin/photo-reconciliation/:id/retry` | Remet une opération anormale dans l’outbox avec motif et audit transactionnel. |
+| GET | `/api/admin/content-moderation` | Liste les métadonnées des cas de photo, bio et réponse, sans contenu. |
+| GET | `/api/admin/content-moderation/:id` | Ouvre le contenu après justification et audit. |
+| PATCH | `/api/admin/content-moderation/:id` | Approuve ou rejette avec version optimiste, checklist photo et motif audité. |
 | GET | `/api/admin/profile-questions` | Liste le catalogue avec le nombre de réponses liées. |
 | POST | `/api/admin/profile-questions` | Ajoute une question. |
 | PATCH | `/api/admin/profile-questions/:id` | Modifie son libellé, sa catégorie ou son ordre. |
@@ -113,6 +116,11 @@ Une justification de 3 à 500 caractères est obligatoire pour les matchs, profi
 Une relance photo exige la même justification et produit `admin_reconcile_photo`. L’API refuse une photo `ready`,
 un traitement récent et un événement encore possédé par un worker actif. Le dashboard ne reçoit aucune clé objet,
 URL signée ou image dans cette file opérationnelle.
+
+La file de modération ne reçoit que des métadonnées. L’ouverture du détail exige une justification et produit
+`view_moderation_content` avant qu’un texte ou une URL photo courte soit délivré. Une décision exige son propre motif,
+utilise la version affichée pour détecter une revue concurrente et produit `admin_review_content`. Le dashboard
+n’affiche jamais de clé objet et ne peut pas contourner la checklist d’une photo.
 
 Les informations suivantes ne sont jamais retournées :
 
@@ -159,6 +167,7 @@ Un compte non administrateur peut obtenir des tokens valides via OTP, mais il es
 - créations des trente derniers jours ;
 - signalements en attente ;
 - demandes RGPD ouvertes ;
+- contenus en attente de modération ;
 - messages conservés ;
 - états des matchs ;
 - répartition des abonnements ;
@@ -223,6 +232,15 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 - filtres et pagination par curseur de la file opérationnelle ;
 - diagnostic de l’état outbox et nombre de tentatives ;
 - relance confirmée avec motif obligatoire, uniquement pour les anomalies actionnables.
+
+### Modération des contenus
+
+- filtres par statut et type (`photo`, `bio`, `profile_answer`) avec pagination par curseur ;
+- signaux automatiques et version de politique visibles sans exposer le contenu dans la liste ;
+- justification préalable à l’ouverture du texte ou de la photo signée ;
+- checklist explicite visage/netteté/contenu autorisé pour une photo ;
+- approbation ou rejet motivé, protégé contre les décisions concurrentes ;
+- actualisation de la file et du compteur de la vue d’ensemble après décision.
 
 ## 10. Expérience et accessibilité
 
@@ -289,9 +307,9 @@ No known vulnerabilities found
 
 - typecheck TypeScript réussi ;
 - ESLint réussi avec zéro avertissement ;
-- 41 suites et 257 tests unitaires réussis ;
-- campagne complète hors intégration : 51 suites et 319 tests réussis ;
-- 3 suites et 44 tests d’intégration PostgreSQL, ScyllaDB et Redis réussis ;
+- 45 suites et 276 tests unitaires réussis ;
+- campagne complète hors intégration : 56 suites et 342 tests réussis ;
+- 3 suites et 45 tests d’intégration PostgreSQL, ScyllaDB et Redis réussis ;
 - audit de dépendances de production sans vulnérabilité connue.
 
 ### Dashboard
@@ -339,13 +357,14 @@ pnpm run security:audit
 - créer et gouverner les comptes `admin` et `superadmin` ;
 - définir les procédures de justification et revue des conversations ;
 - surveiller les actions sensibles du journal d’accès ;
-- définir des alertes sur les bannissements et volumes anormaux de consultation.
+- définir le SLA, les habilitations et le soutien des reviewers, ainsi qu’une procédure de contestation ;
+- définir des alertes sur les bannissements, décisions de modération et volumes anormaux de consultation.
 
 ### Tests futurs
 
 - ajouter des tests de composants avec un serveur API simulé ;
 - ajouter un scénario E2E avec PostgreSQL, Redis, Scylla et un compte administrateur de test ;
-- vérifier les workflows OTP et modération dans un environnement de staging ;
+- vérifier les workflows OTP et modération, ainsi que leur calibration, dans un environnement de staging ;
 - tester le reverse proxy et les en-têtes du véritable hébergement.
 
 ## 18. Conclusion

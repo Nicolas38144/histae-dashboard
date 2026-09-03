@@ -32,6 +32,11 @@ L’écran « Questions de profil » administre le catalogue présenté dans l�
 modifier et réordonner les questions. Avant une suppression définitive, il affiche le nombre de réponses
 utilisateur qui seront également supprimées par l’API.
 
+L’écran « Modération » centralise les photos, bios et réponses libres. La liste n’expose aucun contenu ; un motif
+est demandé avant d’ouvrir le détail audité, puis un second motif accompagne toute décision. La revue photo exige
+de confirmer séparément le visage, la netteté et le contenu autorisé. Les versions de cas empêchent d’écraser une
+décision concurrente.
+
 ## Commandes
 
 ```bash

@@ -6,6 +6,7 @@ import {
   PhotoOutlined,
   PolicyOutlined,
   VerifiedUserOutlined,
+  FactCheckOutlined,
 } from '@mui/icons-material';
 import { Box, Paper, Typography } from '@mui/material';
 import { useCallback } from 'react';
@@ -31,6 +32,7 @@ export default function Overview() {
             <MetricCard label="Comptes actifs" value={data.users.active} icon={<GroupsOutlined color="primary" />} />
             <MetricCard label="Créés sur 30 jours" value={data.users.created_last_30_days} icon={<PersonAddAltOutlined color="success" />} accent="success.main" />
             <MetricCard label="Signalements en attente" value={data.moderation.pending_reports} icon={<GavelOutlined color="warning" />} accent="warning.main" />
+            <MetricCard label="Contenus à modérer" value={data.moderation.pending_content} icon={<FactCheckOutlined color="warning" />} accent="warning.main" />
             <MetricCard label="Demandes RGPD ouvertes" value={data.moderation.open_data_requests} icon={<PolicyOutlined color="secondary" />} accent="secondary.main" />
             <MetricCard label="Comptes onboardés" value={data.users.onboarded} icon={<VerifiedUserOutlined color="success" />} accent="success.main" />
             <MetricCard label="Comptes bannis" value={data.users.banned} icon={<GroupsOutlined color="error" />} accent="error.main" />
