@@ -52,6 +52,12 @@ est demandé avant d’ouvrir le détail audité, puis un second motif accompagn
 de confirmer séparément le visage, la netteté et le contenu autorisé. Les versions de cas empêchent d’écraser une
 décision concurrente.
 
+L’écran « Demandes RGPD » suit l’effacement asynchrone : le compte est désactivé à l’acceptation, puis le worker
+traite Stripe, les photos, Scylla et PostgreSQL. Il affiche l’étape, les tentatives et le dernier code d’erreur,
+sans donnée fournisseur. « Reprendre » remet une dead letter en file avec motif et audit, sans réactiver le
+compte. Les transitions et reprises exigent une connexion WebAuthn récente. Déployer l’API et ses workers avec
+la migration `013_resumable_account_erasure` avant cette version du dashboard.
+
 L’écran « Sécurité » liste les passkeys, en ajoute une après authentification WebAuthn récente, permet de révoquer
 une clé non courante sans jamais supprimer la dernière et ferme les autres sessions. Deux passkeys distinctes,
 dont idéalement une clé physique de secours, sont recommandées.

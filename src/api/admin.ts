@@ -160,6 +160,10 @@ export async function getDataRequests(status?: DataRequestStatus): Promise<DataS
   return (await api.get<{ requests: DataSubjectRequest[] }>('/admin/data-subject-requests', { params: { status } })).data.requests;
 }
 
+export async function retryErasure(eventId: string, reason: string): Promise<void> {
+  await api.post(`/admin/outbox/${eventId}/retry`, { reason: reason.trim() });
+}
+
 export async function updateDataRequest(id: string, status: Exclude<DataRequestStatus, 'pending'>, notes?: string): Promise<void> {
   await api.patch(`/admin/data-subject-requests/${id}`, { status, notes: notes || null });
 }

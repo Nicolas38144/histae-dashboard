@@ -14,6 +14,8 @@ Le dashboard est une application d’administration : son exposition doit être 
 - relecture à chaque requête du rôle, du bannissement et de la passkey active ;
 - contrôle de l’en-tête `Origin` exact sur toutes les mutations administratives ;
 - authentification récente pour ajouter/révoquer une passkey ou révoquer les autres sessions ;
+- authentification récente pour les transitions RGPD et la reprise d’un effacement en dead letter ; motif et
+  audit serveur obligatoires pour cette reprise, sans possibilité d’abandonner un `account.erase` ;
 - jeton d’enrôlement initial créé hors bande, hashé, à usage unique et de courte durée.
 
 WebAuthn rend l’authentification résistante au phishing et le cookie `HttpOnly` empêche le JavaScript de lire le

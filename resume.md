@@ -1,6 +1,15 @@
 # Histae Dashboard — résumé technique, fonctionnel et sécurité
 
-Mise à jour : 3 septembre 2026.
+Mise à jour : 4 septembre 2026.
+
+## Effacement reprenable — R02
+
+La page RGPD distingue désormais l’acceptation de l’effacement de sa terminaison. « Lancer l’effacement »
+désactive le compte ; les étapes Stripe, photos, Scylla et PostgreSQL sont suivies depuis `erasure` dans la
+réponse API. Le bouton « Actualiser » recharge les checkpoints. Une dead letter peut être relancée avec motif
+de 3 à 500 caractères via l’outbox auditée ; un traitement commencé ne peut plus être refusé ou annulé.
+Ces mutations exigent une authentification WebAuthn récente. Le dashboard ne reçoit ni clé S3, ni URL photo,
+ni identifiant Customer Stripe et n’a aucun droit de modifier directement l’étape persistée.
 
 ## 1. Vision du projet
 
@@ -217,7 +226,7 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 - filtre par état ;
 - transitions autorisées uniquement ;
 - notes de traitement ;
-- avertissement renforcé avant de terminer une demande d’effacement.
+- lancement asynchrone de l’effacement après confirmation irréversible et authentification récente ; suivi des étapes, actualisation et reprise auditée des dead letters, sans annulation après acceptation.
 
 ### Plans et journal d’accès
 

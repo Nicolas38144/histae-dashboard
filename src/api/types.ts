@@ -141,6 +141,15 @@ export type DataSubjectRequest = {
   completed_at: string | null;
   handled_by: string | null;
   notes?: string | null;
+  erasure?: {
+    step: 'stripe' | 'photos' | 'scylla' | 'postgres' | 'completed';
+    scylla_partition: number;
+    updated_at: string;
+    event_id: string | null;
+    status: 'pending' | 'processing' | 'completed' | 'dead_letter' | 'discarded' | null;
+    attempts: number;
+    last_error_code: string | null;
+  } | null;
 };
 
 export type DataAccessLog = {
