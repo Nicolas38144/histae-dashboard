@@ -14,6 +14,7 @@ import {
   SyncProblemOutlined,
   FactCheckOutlined,
   AdminPanelSettingsOutlined,
+  CreditScoreOutlined,
 } from '@mui/icons-material';
 import {
   AppBar, Box, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Tooltip, Typography,
@@ -35,6 +36,7 @@ const entries = [
   { path: '/privacy-requests', label: 'Demandes RGPD', icon: <PolicyOutlined /> },
   { path: '/plans', label: 'Plans', icon: <PriceChangeOutlined /> },
   { path: '/photo-reconciliation', label: 'Photos', icon: <SyncProblemOutlined /> },
+  { path: '/billing-reconciliation', label: 'Stripe', icon: <CreditScoreOutlined /> },
   { path: '/audit-logs', label: 'Journal d’accès', icon: <SecurityOutlined /> },
   { path: '/security', label: 'Sécurité', icon: <AdminPanelSettingsOutlined /> },
 ];

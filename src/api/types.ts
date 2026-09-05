@@ -105,6 +105,19 @@ export type AdminUserDetail = AdminUser & {
 
 export type CursorResponse<T, K extends string> = Record<K, T[]> & { next_cursor: string | null };
 
+export type BillingReconciliationKind = 'subscription' | 'customer_creation';
+export type BillingReconciliationKindFilter = BillingReconciliationKind | 'all';
+
+export type BillingReconciliationItem = {
+  event_id: string;
+  user_id: string;
+  kind: BillingReconciliationKind;
+  attempts: number;
+  last_error_code: string | null;
+  created_at: string;
+  dead_lettered_at: string;
+};
+
 export type ReportStatus = 'pending' | 'reviewed' | 'dismissed';
 export type Report = {
   id: string;

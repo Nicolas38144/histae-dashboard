@@ -43,6 +43,11 @@ L’écran « Photos » affiche les métriques `user_photo`, les traitements blo
 permet de remettre en file une opération réellement anormale avec un motif obligatoire ; l’API protège et audite
 la mutation et ne transmet au dashboard ni clé objet, ni URL signée, ni contenu d’image.
 
+L’écran « Stripe » affiche uniquement les dead letters d’abonnement et créations Customer incertaines qui exigent
+une action. Une dead letter peut être remise en file après confirmation et motif ;
+l’API exige une authentification WebAuthn récente et effectue seulement une nouvelle lecture du fournisseur. Aucun
+identifiant Stripe, payload ou moyen de paiement n’est envoyé au navigateur.
+
 L’écran « Questions de profil » administre le catalogue présenté dans l’application mobile. Il permet d’ajouter,
 modifier et réordonner les questions. Avant une suppression définitive, il affiche le nombre de réponses
 utilisateur qui seront également supprimées par l’API.
@@ -56,7 +61,7 @@ L’écran « Demandes RGPD » suit l’effacement asynchrone : le compte est d�
 traite Stripe, les photos, Scylla et PostgreSQL. Il affiche l’étape, les tentatives et le dernier code d’erreur,
 sans donnée fournisseur. « Reprendre » remet une dead letter en file avec motif et audit, sans réactiver le
 compte. Les transitions et reprises exigent une connexion WebAuthn récente. Déployer l’API et ses workers avec
-la migration `013_resumable_account_erasure` avant cette version du dashboard.
+la chaîne de migrations courante, dont `015_stripe_reconciliation`, avant cette version du dashboard.
 
 L’écran « Sécurité » liste les passkeys, en ajoute une après authentification WebAuthn récente, permet de révoquer
 une clé non courante sans jamais supprimer la dernière et ferme les autres sessions. Deux passkeys distinctes,
@@ -85,5 +90,6 @@ Le serveur frontal doit reproduire les en-têtes décrits dans [SECURITY.md](SEC
 ## Documentation
 
 - [Résumé technique et fonctionnel](resume.md)
+- [Feuille de route](roadmap.md)
 - [Sécurité et déploiement](SECURITY.md)
 - [Contrat exhaustif de l’API](https://github.com/Nicolas38144/histae-api/blob/main/routes.md)

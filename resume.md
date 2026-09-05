@@ -1,6 +1,14 @@
 # Histae Dashboard — résumé technique, fonctionnel et sécurité
 
-Mise à jour : 4 septembre 2026.
+Mise à jour : 5 septembre 2026.
+
+## Réconciliation Stripe — R05
+
+La page Stripe consomme la file paginée `/api/admin/billing-reconciliation`, limitée aux dead letters et filtrable
+par type. Elle n’affiche que les UUID locaux, tentatives, dates et codes d’erreur normalisés. Une dead letter peut
+être remise en file via l’outbox commune après confirmation et motif ; WebAuthn récent et audit restent imposés
+par l’API. La revérification relit Stripe et ne déclenche ni paiement ni association choisie par l’opérateur. Aucun Customer ID,
+Subscription ID, payload fournisseur ou moyen de paiement n’entre dans le navigateur.
 
 ## Effacement reprenable — R02
 
@@ -80,6 +88,7 @@ Un module `src/admin` isole les contrats, DTO, modèles de réponse, règles mé
 | GET | `/api/admin/revenue` | Recalcule uniquement le CA Premium estimé pour la période demandée. |
 | GET | `/api/admin/photo-reconciliation` | Liste les traitements photo anciens et suppressions en cours sans exposer les objets. |
 | POST | `/api/admin/photo-reconciliation/:id/retry` | Remet une opération anormale dans l’outbox avec motif et audit transactionnel. |
+| GET | `/api/admin/billing-reconciliation` | Liste les anomalies Stripe opérationnelles sans identifiant fournisseur. |
 | GET | `/api/admin/content-moderation` | Liste les métadonnées des cas de photo, bio et réponse, sans contenu. |
 | GET | `/api/admin/content-moderation/:id` | Ouvre le contenu après justification et audit. |
 | PATCH | `/api/admin/content-moderation/:id` | Approuve ou rejette avec version optimiste, checklist photo et motif audité. |
@@ -242,6 +251,13 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 - diagnostic de l’état outbox et nombre de tentatives ;
 - relance confirmée avec motif obligatoire, uniquement pour les anomalies actionnables.
 
+### Réconciliation Stripe
+
+- filtre abonnement/création Customer sur les seules dead letters actionnables ;
+- diagnostic normalisé et dates de file, sans payload ni identifiant Stripe ;
+- nouvelle vérification des dead letters avec confirmation et motif ;
+- aucune action de paiement, d’annulation ou d’association manuelle dans le dashboard.
+
 ### Modération des contenus
 
 - filtres par statut et type (`photo`, `bio`, `profile_answer`) avec pagination par curseur ;
@@ -326,9 +342,8 @@ No known vulnerabilities found
 
 - typecheck TypeScript réussi ;
 - ESLint réussi avec zéro avertissement ;
-- 49 suites et 299 tests unitaires réussis ;
-- campagne complète hors intégration : 61 suites et 371 tests réussis ;
-- 3 suites et 46 tests d’intégration PostgreSQL, ScyllaDB et Redis réussis ;
+- campagne complète hors intégration : 80 suites et 568 tests réussis ;
+- 12 suites et 190 tests d’intégration PostgreSQL, ScyllaDB, Redis, stockage objet et coupures réseau réussis ;
 - audit de dépendances de production sans vulnérabilité connue.
 
 ### Dashboard

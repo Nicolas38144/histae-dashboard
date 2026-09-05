@@ -25,6 +25,8 @@ import type {
   ModerationDetail,
   ModerationStatus,
   PhotoReviewChecks,
+  BillingReconciliationItem,
+  BillingReconciliationKindFilter,
 } from './types';
 
 export const getMetrics = async (): Promise<AdminMetrics> => (
@@ -161,6 +163,20 @@ export async function getDataRequests(status?: DataRequestStatus): Promise<DataS
 }
 
 export async function retryErasure(eventId: string, reason: string): Promise<void> {
+  await retryOutboxEvent(eventId, reason);
+}
+
+export async function getBillingReconciliation(
+  kind: BillingReconciliationKindFilter,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<BillingReconciliationItem, 'events'>> {
+  return (await api.get<CursorResponse<BillingReconciliationItem, 'events'>>('/admin/billing-reconciliation', {
+    params: { kind, cursor, limit: 50 }, signal,
+  })).data;
+}
+
+export async function retryOutboxEvent(eventId: string, reason: string): Promise<void> {
   await api.post(`/admin/outbox/${eventId}/retry`, { reason: reason.trim() });
 }
 
