@@ -158,8 +158,14 @@ export async function deleteProfileQuestion(id: string): Promise<void> {
   await api.delete(`/admin/profile-questions/${id}`);
 }
 
-export async function getDataRequests(status?: DataRequestStatus): Promise<DataSubjectRequest[]> {
-  return (await api.get<{ requests: DataSubjectRequest[] }>('/admin/data-subject-requests', { params: { status } })).data.requests;
+export async function getDataRequests(
+  status?: DataRequestStatus,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<DataSubjectRequest, 'requests'>> {
+  return (await api.get<CursorResponse<DataSubjectRequest, 'requests'>>('/admin/data-subject-requests', {
+    params: { status, cursor, limit: 50 }, signal,
+  })).data;
 }
 
 export async function retryErasure(eventId: string, reason: string): Promise<void> {
@@ -184,8 +190,14 @@ export async function updateDataRequest(id: string, status: Exclude<DataRequestS
   await api.patch(`/admin/data-subject-requests/${id}`, { status, notes: notes || null });
 }
 
-export async function getAccessLogs(userId: string): Promise<DataAccessLog[]> {
-  return (await api.get<{ logs: DataAccessLog[] }>('/admin/data-access-logs', { params: { user_id: userId } })).data.logs;
+export async function getAccessLogs(
+  userId: string,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<DataAccessLog, 'logs'>> {
+  return (await api.get<CursorResponse<DataAccessLog, 'logs'>>('/admin/data-access-logs', {
+    params: { user_id: userId, cursor, limit: 100 }, signal,
+  })).data;
 }
 
 export async function getPlans(): Promise<Plan[]> {

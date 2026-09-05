@@ -2,6 +2,13 @@
 
 Mise à jour : 5 septembre 2026.
 
+## Volumes et traitements — R06
+
+Les demandes RGPD et le journal d’accès suivent désormais `next_cursor` et chargent les pages suivantes sans perdre
+le filtre ou l’utilisateur recherché. La vue d’ensemble affiche pour chaque maintenance son état persistant, le
+nombre d’éléments et de lots traités, la durée et `work_remaining`, sans inventer de pourcentage. Les matchs et
+conversations restent à paginer dans le lot dashboard D01.
+
 ## Réconciliation Stripe — R05
 
 La page Stripe consomme la file paginée `/api/admin/billing-reconciliation`, limitée aux dead letters et filtrable
@@ -188,6 +195,7 @@ route administrative. Le développement utilise exclusivement `http://localhost:
 - contenus en attente de modération ;
 - messages conservés ;
 - états des matchs ;
+- état, durée, nombre de lots et reprise requise des maintenances ;
 - répartition des abonnements ;
 - CA estimé à partir des abonnements Premium et du tarif mensuel courant ;
 - sélection rapide : 7 jours, 30 jours, mois en cours, mois précédent, année en cours ou depuis le début.
@@ -233,6 +241,7 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 ### Demandes RGPD
 
 - filtre par état ;
+- pagination par curseur et chargement cumulatif ;
 - transitions autorisées uniquement ;
 - notes de traitement ;
 - lancement asynchrone de l’effacement après confirmation irréversible et authentification récente ; suivi des étapes, actualisation et reprise auditée des dead letters, sans annulation après acceptation.
@@ -241,6 +250,7 @@ enregistrés, remboursements, taxes, commissions et charges ne sont pas disponib
 
 - catalogue commercial en lecture seule ;
 - recherche des accès par UUID utilisateur ;
+- pagination par curseur sans perdre l’utilisateur recherché ;
 - affichage de l’acteur, de l’action, de la justification et de la date.
 
 ### Réconciliation des photos
@@ -342,8 +352,8 @@ No known vulnerabilities found
 
 - typecheck TypeScript réussi ;
 - ESLint réussi avec zéro avertissement ;
-- campagne complète hors intégration : 80 suites et 568 tests réussis ;
-- 12 suites et 190 tests d’intégration PostgreSQL, ScyllaDB, Redis, stockage objet et coupures réseau réussis ;
+- campagne complète hors intégration : 81 suites et 579 tests réussis ;
+- 13 suites et 194 tests d’intégration PostgreSQL, ScyllaDB, Redis, stockage objet et coupures réseau réussis ;
 - audit de dépendances de production sans vulnérabilité connue.
 
 ### Dashboard

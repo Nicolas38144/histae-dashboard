@@ -31,6 +31,32 @@ export type AdminRevenue = {
   basis: 'premium_monthly_price';
 };
 
+export type MaintenanceJob = {
+  job_name: 'matches' | 'photos' | 'privacy' | 'outbox' | 'billing';
+  status: 'running' | 'succeeded' | 'failed' | 'skipped' | null;
+  started_at: string | null;
+  finished_at: string | null;
+  last_succeeded_at: string | null;
+  duration_ms: number | null;
+  processed_count: number;
+  batch_count: number;
+  work_remaining: boolean;
+  last_error_code: string | null;
+  missing: boolean;
+  overdue: boolean;
+};
+
+export type AdminOperations = {
+  runtime: {
+    uptime_seconds: number;
+    memory_rss_bytes: number;
+    heap_used_bytes: number;
+    event_loop_delay_p95_ms: number;
+  };
+  postgres_pool: { total: number; idle: number; waiting: number };
+  maintenance: MaintenanceJob[];
+};
+
 export type AdminMetrics = {
   users: { total: number; active: number; banned: number; onboarded: number; created_last_30_days: number };
   moderation: { pending_reports: number; pending_content: number; open_data_requests: number };
@@ -39,6 +65,7 @@ export type AdminMetrics = {
   photos: PhotoMetrics;
   subscriptions: Array<{ plan: string; users: number }>;
   revenue: AdminRevenue;
+  operations: AdminOperations;
 };
 
 export type PhotoMetrics = {

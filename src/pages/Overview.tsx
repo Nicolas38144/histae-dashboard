@@ -8,7 +8,7 @@ import {
   VerifiedUserOutlined,
   FactCheckOutlined,
 } from '@mui/icons-material';
-import { Box, Paper, Typography } from '@mui/material';
+import { Alert, Box, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useCallback } from 'react';
 import { getMetrics } from '../api/admin';
 import { AsyncState } from '../components/AsyncState';
@@ -17,6 +17,7 @@ import { PageHeader } from '../components/PageHeader';
 import { RevenuePanel } from '../components/RevenuePanel';
 import { StatusChip } from '../components/StatusChip';
 import { useAsyncData } from '../hooks/useAsyncData';
+import { formatDate } from '../utils/format';
 
 export default function Overview() {
   const load = useCallback(() => getMetrics(), []);
@@ -55,8 +56,44 @@ export default function Overview() {
               {data.subscriptions.map((subscription) => <Box key={subscription.plan} sx={{ display: 'flex', justifyContent: 'space-between', py: 1.25, borderBottom: 1, borderColor: 'divider' }}><Typography textTransform="capitalize">{subscription.plan}</Typography><Typography fontWeight={800}>{subscription.users}</Typography></Box>)}
             </Paper>
           </Box>
+
+          <Paper variant="outlined" sx={{ mt: 3, overflowX: 'auto' }}>
+            <Box sx={{ p: 3, pb: 1 }}>
+              <Typography variant="h6" fontWeight={700}>Traitements bornés</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Dernière passe persistée par worker. « Reprise requise » signifie que le budget de lots a été atteint.
+              </Typography>
+            </Box>
+            {data.operations.maintenance.some((job) => job.work_remaining || job.overdue || job.status === 'failed') && (
+              <Alert severity="warning" sx={{ mx: 3, mb: 2 }}>
+                Au moins un traitement doit être repris ou vérifié.
+              </Alert>
+            )}
+            <Table size="small">
+              <TableHead><TableRow><TableCell>Traitement</TableCell><TableCell>État</TableCell><TableCell align="right">Éléments</TableCell><TableCell align="right">Lots</TableCell><TableCell>Durée</TableCell><TableCell>Dernière fin</TableCell><TableCell>Progression</TableCell></TableRow></TableHead>
+              <TableBody>{data.operations.maintenance.map((job) => (
+                <TableRow key={job.job_name}>
+                  <TableCell>{maintenanceLabels[job.job_name]}</TableCell>
+                  <TableCell>{job.status ? <StatusChip value={job.status} /> : 'Jamais exécuté'}</TableCell>
+                  <TableCell align="right">{job.processed_count}</TableCell>
+                  <TableCell align="right">{job.batch_count}</TableCell>
+                  <TableCell>{job.duration_ms === null ? '—' : `${job.duration_ms} ms`}</TableCell>
+                  <TableCell>{formatDate(job.finished_at)}</TableCell>
+                  <TableCell>{job.work_remaining ? 'Reprise requise' : job.overdue ? 'En retard' : 'À jour'}{job.last_error_code ? ` · ${job.last_error_code}` : ''}</TableCell>
+                </TableRow>
+              ))}</TableBody>
+            </Table>
+          </Paper>
         </>
       )}
     </>
   );
 }
+
+const maintenanceLabels = {
+  matches: 'Matchs',
+  photos: 'Photos',
+  privacy: 'Rétention RGPD',
+  outbox: 'Outbox',
+  billing: 'Réconciliation Stripe',
+} as const;

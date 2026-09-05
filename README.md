@@ -61,7 +61,11 @@ L’écran « Demandes RGPD » suit l’effacement asynchrone : le compte est d�
 traite Stripe, les photos, Scylla et PostgreSQL. Il affiche l’étape, les tentatives et le dernier code d’erreur,
 sans donnée fournisseur. « Reprendre » remet une dead letter en file avec motif et audit, sans réactiver le
 compte. Les transitions et reprises exigent une connexion WebAuthn récente. Déployer l’API et ses workers avec
-la chaîne de migrations courante, dont `015_stripe_reconciliation`, avant cette version du dashboard.
+la chaîne de migrations courante, dont `015_stripe_reconciliation` et `016_bounded_workloads`, avant cette version
+du dashboard.
+
+La vue d’ensemble reprend aussi la progression persistante des maintenances R06. Les demandes RGPD et le journal
+d’accès utilisent `next_cursor` et permettent de charger l’historique au-delà de la première page.
 
 L’écran « Sécurité » liste les passkeys, en ajoute une après authentification WebAuthn récente, permet de révoquer
 une clé non courante sans jamais supprimer la dernière et ferme les autres sessions. Deux passkeys distinctes,

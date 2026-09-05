@@ -32,6 +32,8 @@ de rôle, de réauthentification, de concurrence, d'audit ou de minimisation des
 - réconciliation photo et reprise auditée des dead letters ;
 - dead letters Stripe filtrables et reprise auditée des seules anomalies persistantes ;
 - suivi de l'effacement RGPD reprenable ;
+- demandes RGPD et journal d’accès paginés par curseur, avec filtres préservés ;
+- progression persistante des traitements bornés affichée dans la vue d’ensemble ;
 - interface responsive, thème clair/sombre et pages chargées à la demande ;
 - typecheck, lint, build de production et audit des dépendances disponibles.
 
@@ -51,7 +53,7 @@ fonctionnelle repose donc encore en partie sur une inspection manuelle.
 
 | Référence | Résultat attendu | Priorité | Dépendances | État |
 | --- | --- | --- | --- | --- |
-| D01 | Contrats et listes compatibles avec les volumes réels | P1/P2 | API R06 | À faire |
+| D01 | Contrats et listes compatibles avec les volumes réels | P1/P2 | API R06 livrée | En cours |
 | D03 | Recours de modération instruits et auditables | P1 avant ouverture | API R09, décisions produit | Bloqué par le workflow API |
 | D04 | Récupération WebAuthn exploitable sans affaiblir l'identité | P1 | API R11, exploitation | À concevoir |
 | D05 | Parcours sensibles couverts automatiquement | P1 | Fixtures et environnement de test | À faire |
@@ -61,9 +63,9 @@ fonctionnelle repose donc encore en partie sur une inspection manuelle.
 
 ### Risque traité
 
-Plusieurs écrans utilisent déjà des curseurs, mais les matchs d'un utilisateur, les messages d'un match, les demandes
-RGPD et le journal d'accès sont encore consommés comme des tableaux bornés ou complets. À mesure que les données
-augmentent, l'opérateur pourrait croire à tort qu'il consulte l'historique entier.
+Les demandes RGPD et le journal d’accès suivent désormais les curseurs R06. Les matchs d’un utilisateur et les
+messages d’un match restent consommés comme des tableaux bornés ; l’opérateur pourrait encore croire à tort qu’il
+consulte l’historique entier.
 
 ### Travail
 
@@ -71,11 +73,11 @@ augmentent, l'opérateur pourrait croire à tort qu'il consulte l'historique ent
   100 premiers résultats.
 - [ ] Paginer les conversations sans inverser localement une page comme si elle représentait tout l'historique ;
   préserver un ordre stable lors du chargement de messages plus anciens.
-- [ ] Ajouter la pagination aux demandes RGPD et au journal d'accès dès que les routes R06 la fournissent.
+- [x] Paginer les demandes RGPD et le journal d’accès, préserver leur filtre/recherche et ignorer les réponses obsolètes.
 - [ ] Vérifier utilisateurs, signalements, modération et réconciliation photo lorsque leurs contrats de curseur
   évoluent ; désactiver « Suivant » uniquement à partir du curseur renvoyé par l'API.
 - [ ] Préserver filtres et recherche pendant la pagination et réinitialiser le curseur lorsqu'un filtre change.
-- [ ] Représenter les traitements par lots avec leur progression et leur dernier état persistant, sans extrapoler
+- [x] Représenter les traitements par lots avec leur progression et leur dernier état persistant, sans extrapoler
   un pourcentage absent du contrat.
 - [ ] Ajouter des fixtures de contrat pour les pages vide, initiale, intermédiaire et finale, ainsi que pour un curseur
   invalide ou devenu obsolète.
@@ -205,7 +207,8 @@ livraison et un retour arrière ont été répétés sur l'environnement cible.
 
 ## Dépendances et hors périmètre
 
-- R06, R09 et R11 doivent définir leurs contrats côté API avant les écrans correspondants.
+- R09 et R11 doivent définir leurs contrats côté API avant les écrans correspondants. Les contrats R06 utilisés par
+  le dashboard sont livrés ; D01 reste ouvert pour les matchs, conversations et tests de composants.
 - Les alertes techniques R08 appartiennent à Prometheus/Grafana et à l'exploitation. Le dashboard peut afficher une
   synthèse métier, mais ne doit pas devenir l'unique canal d'alerte.
 - Sauvegardes, restauration des bases et stockage objet relèvent de R10 côté infrastructure.
@@ -216,7 +219,7 @@ livraison et un retour arrière ont été répétés sur l'environnement cible.
 ## Ordre conseillé
 
 1. D05 en premier : il sécurise toutes les évolutions suivantes.
-2. D01 avec R06 pour supprimer les plafonds et ambiguïtés de pagination.
+2. Terminer D01 sur les matchs, conversations et tests de pagination.
 3. D04 avant tout accès administratif en production.
 4. D03 avec R09 avant d'ouvrir la modération et les recours à une équipe réelle.
 5. D06 pendant la préparation du domaine et de l'hébergement définitifs.
