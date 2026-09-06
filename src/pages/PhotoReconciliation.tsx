@@ -23,7 +23,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   getMetrics,
   getPhotoReconciliation,
@@ -38,11 +38,14 @@ import type {
 } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
+import { CursorPaginationControls } from '../components/CursorPaginationControls';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
+import { useAsyncData } from '../hooks/useAsyncData';
+import { useCursorPagination } from '../hooks/useCursorPagination';
 import { compactId, formatDate } from '../utils/format';
 
 const issueLabels: Record<PhotoReconciliationIssue, string> = {
@@ -61,40 +64,28 @@ const retryableIssues = new Set<PhotoReconciliationIssue>([
   'deletion_event_missing',
   'deletion_event_completed',
 ]);
+const photoKey = (photo: PhotoReconciliationItem) => photo.photo_id;
 
 export default function PhotoReconciliation() {
   const [filter, setFilter] = useState<PhotoReconciliationFilter>('all');
-  const [metrics, setMetrics] = useState<AdminMetrics['photos'] | null>(null);
-  const [photos, setPhotos] = useState<PhotoReconciliationItem[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<PhotoReconciliationItem | null>(null);
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
   const { showNotification } = useNotification();
 
-  const load = useCallback(async (nextCursor?: string) => {
-    if (nextCursor) setLoadingMore(true); else setLoading(true);
-    setError(null);
-    try {
-      const [metricResult, queue] = await Promise.all([
-        nextCursor ? Promise.resolve(null) : getMetrics(),
-        getPhotoReconciliation(filter, nextCursor),
-      ]);
-      if (metricResult) setMetrics(metricResult.photos);
-      setPhotos((current) => nextCursor ? [...current, ...queue.photos] : queue.photos);
-      setCursor(queue.next_cursor);
-    } catch (loadError) {
-      setError(errorMessage(loadError));
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
+  const loadMetrics = useCallback(() => getMetrics(), []);
+  const metrics = useAsyncData(loadMetrics);
+  const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
+    const page = await getPhotoReconciliation(filter, cursor, signal);
+    return { items: page.photos, nextCursor: page.next_cursor };
   }, [filter]);
-
-  useEffect(() => { void load(); }, [load]);
+  const pagination = useCursorPagination(loadPage, photoKey);
+  const initialLoading = pagination.loading || (metrics.loading && !metrics.data);
+  const initialError = pagination.error ?? (metrics.data ? null : metrics.error);
+  const reloadAll = () => {
+    metrics.reload();
+    pagination.reload();
+  };
 
   const reconcile = async () => {
     if (!selected) return;
@@ -104,7 +95,7 @@ export default function PhotoReconciliation() {
       showNotification('La photo a été remise dans la file de suppression.', 'success');
       setSelected(null);
       setReason('');
-      await load();
+      reloadAll();
     } catch (reconcileError) {
       showNotification(errorMessage(reconcileError), 'error');
     } finally {
@@ -119,14 +110,14 @@ export default function PhotoReconciliation() {
         description="Surveillance du cycle de vie user_photo et relance auditée des opérations bloquées."
         actions={<PhotoFilter value={filter} onChange={setFilter} />}
       />
-      {metrics && <PhotoMetricGrid metrics={metrics} />}
-      <AsyncState loading={loading} error={error} onRetry={() => void load()} />
-      {!loading && !error && (
+      {metrics.data && <PhotoMetricGrid metrics={metrics.data.photos} />}
+      <AsyncState loading={initialLoading} error={initialError} onRetry={reloadAll} />
+      {!initialLoading && !initialError && (
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">
             <TableHead><TableRow><TableCell>Photo</TableCell><TableCell>Utilisateur</TableCell><TableCell>État</TableCell><TableCell>Diagnostic</TableCell><TableCell>Métadonnées</TableCell><TableCell>Tentatives</TableCell><TableCell>Dernière mise à jour</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
             <TableBody>
-              {photos.map((photo) => (
+              {pagination.items.map((photo) => (
                 <TableRow key={photo.photo_id} hover>
                   <TableCell>{compactId(photo.photo_id)}</TableCell>
                   <TableCell><UserLink id={photo.user_id} /></TableCell>
@@ -142,10 +133,10 @@ export default function PhotoReconciliation() {
                   </TableCell>
                 </TableRow>
               ))}
-              {!photos.length && <TableRow><TableCell colSpan={8} align="center" sx={{ py: 5 }}>Aucune photo dans cette file.</TableCell></TableRow>}
+              {!pagination.items.length && <TableRow><TableCell colSpan={8} align="center" sx={{ py: 5 }}>Aucune photo dans cette file.</TableCell></TableRow>}
             </TableBody>
           </Table>
-          {cursor && <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><Button onClick={() => void load(cursor)} disabled={loadingMore}>{loadingMore ? 'Chargement…' : 'Charger la suite'}</Button></Box>}
+          <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
         </TableContainer>
       )}
       <ConfirmActionDialog

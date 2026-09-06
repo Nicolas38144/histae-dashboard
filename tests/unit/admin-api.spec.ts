@@ -1,6 +1,12 @@
 import { http, HttpResponse } from 'msw';
 import {
   deleteProfileQuestion,
+  getMatchMessages,
+  getModerationCases,
+  getPhotoReconciliation,
+  getReports,
+  getUserMatches,
+  getUsers,
   retryErasure,
   retryOutboxEvent,
   retryPhotoReconciliation,
@@ -9,7 +15,7 @@ import {
   updateDataRequest,
   updateReport,
 } from '../../src/api/admin';
-import { fixtureIds, moderationDetail } from '../fixtures';
+import { fixtureIds, moderationDetail, photoReconciliation, report } from '../fixtures';
 import { server } from '../mocks/server';
 
 const apiUrl = 'http://localhost/api';
@@ -72,5 +78,73 @@ describe('critical administration mutations', () => {
       reason: 'Photo non conforme',
       photo_checks: { face_detectable: false, sharp_enough: true, content_allowed: true },
     });
+  });
+
+  it('forwards opaque cursors and preserves server page order', async () => {
+    const received: Array<{ path: string; cursor: string | null }> = [];
+    const messagePage = [
+      {
+        id: 'a0000000-0000-4000-8000-000000000002',
+        match_id: fixtureIds.event,
+        sender_id: fixtureIds.user,
+        content: 'Message récent fictif',
+        created_at: '2026-09-06T08:02:00.000Z',
+      },
+      {
+        id: 'a0000000-0000-4000-8000-000000000001',
+        match_id: fixtureIds.event,
+        sender_id: fixtureIds.secondUser,
+        content: 'Message ancien fictif',
+        created_at: '2026-09-06T08:01:00.000Z',
+      },
+    ];
+    const capture = ({ request }: { request: Request }) => {
+      const url = new URL(request.url);
+      received.push({ path: url.pathname, cursor: url.searchParams.get('cursor') });
+    };
+    server.use(
+      http.get(`${apiUrl}/admin/users`, (request) => {
+        capture(request);
+        return HttpResponse.json({ users: [], next_cursor: null });
+      }),
+      http.get(`${apiUrl}/admin/reports`, (request) => {
+        capture(request);
+        return HttpResponse.json({ reports: [report], next_cursor: null });
+      }),
+      http.get(`${apiUrl}/admin/content-moderation`, (request) => {
+        capture(request);
+        return HttpResponse.json({ cases: [moderationDetail], next_cursor: null });
+      }),
+      http.get(`${apiUrl}/admin/photo-reconciliation`, (request) => {
+        capture(request);
+        return HttpResponse.json({ photos: [photoReconciliation], next_cursor: null });
+      }),
+      http.get(`${apiUrl}/matches/${fixtureIds.user}`, (request) => {
+        capture(request);
+        return HttpResponse.json({ matches: [], next_cursor: null });
+      }),
+      http.get(`${apiUrl}/admin/matches/${fixtureIds.event}/messages`, (request) => {
+        capture(request);
+        return HttpResponse.json({ messages: messagePage, next_cursor: null });
+      }),
+    );
+    const signal = new AbortController().signal;
+
+    await getUsers({ cursor: 'users-cursor' }, signal);
+    await getReports('pending', 'reports-cursor', signal);
+    await getModerationCases('pending', 'bio', 'moderation-cursor', signal);
+    await getPhotoReconciliation('all', 'photos-cursor', signal);
+    await getUserMatches(fixtureIds.user, 'matches-cursor', signal);
+    const messages = await getMatchMessages(fixtureIds.event, 'Motif fictif', 'messages-cursor', signal);
+
+    expect(received).toEqual([
+      { path: '/api/admin/users', cursor: 'users-cursor' },
+      { path: '/api/admin/reports', cursor: 'reports-cursor' },
+      { path: '/api/admin/content-moderation', cursor: 'moderation-cursor' },
+      { path: '/api/admin/photo-reconciliation', cursor: 'photos-cursor' },
+      { path: `/api/matches/${fixtureIds.user}`, cursor: 'matches-cursor' },
+      { path: `/api/admin/matches/${fixtureIds.event}/messages`, cursor: 'messages-cursor' },
+    ]);
+    expect(messages.messages).toEqual(messagePage);
   });
 });

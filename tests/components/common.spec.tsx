@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { AsyncState } from '../../src/components/AsyncState';
 import { ConfirmActionDialog } from '../../src/components/ConfirmActionDialog';
+import { CursorPaginationControls } from '../../src/components/CursorPaginationControls';
 import { useNotification } from '../../src/components/notification-context';
 import { renderDashboard } from '../helpers/render';
 
@@ -58,5 +59,23 @@ describe('shared interaction components', () => {
     renderDashboard(<Trigger />);
     await user.click(screen.getByRole('button', { name: 'Notifier' }));
     expect(await screen.findByText('Opération confirmée.')).toBeVisible();
+  });
+
+  it('offers a full reload when the next cursor is refused', async () => {
+    const user = userEvent.setup();
+    const reload = vi.fn();
+    renderDashboard(
+      <CursorPaginationControls
+        nextCursor="opaque-cursor"
+        loading={false}
+        error="The pagination cursor is invalid."
+        onLoadMore={() => undefined}
+        onReload={reload}
+      />,
+    );
+
+    expect(screen.getByText(/The pagination cursor is invalid/)).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Recharger depuis le début' }));
+    expect(reload).toHaveBeenCalledOnce();
   });
 });

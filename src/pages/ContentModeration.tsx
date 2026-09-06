@@ -24,7 +24,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { getModerationCases, getModerationDetail, reviewModerationCase } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type {
@@ -36,10 +36,12 @@ import type {
   PhotoReviewChecks,
 } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
+import { CursorPaginationControls } from '../components/CursorPaginationControls';
 import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
+import { useCursorPagination } from '../hooks/useCursorPagination';
 import { formatDate } from '../utils/format';
 
 const contentLabels: Record<ModerationContentType, string> = {
@@ -66,15 +68,11 @@ const initialChecks: PhotoReviewChecks = {
   sharp_enough: false,
   content_allowed: false,
 };
+const moderationKey = (item: ModerationCase) => item.case_id;
 
 export default function ContentModeration() {
   const [statusFilter, setStatusFilter] = useState<'' | ModerationStatus>('pending');
   const [typeFilter, setTypeFilter] = useState<'' | ModerationContentType>('');
-  const [cases, setCases] = useState<ModerationCase[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ModerationCase | null>(null);
   const [accessReason, setAccessReason] = useState('');
   const [detail, setDetail] = useState<ModerationDetail | null>(null);
@@ -84,22 +82,16 @@ export default function ContentModeration() {
   const [saving, setSaving] = useState(false);
   const { showNotification } = useNotification();
 
-  const load = useCallback(async (nextCursor?: string) => {
-    if (nextCursor) setLoadingMore(true); else setLoading(true);
-    setError(null);
-    try {
-      const page = await getModerationCases(statusFilter || undefined, typeFilter || undefined, nextCursor);
-      setCases((current) => nextCursor ? [...current, ...page.cases] : page.cases);
-      setCursor(page.next_cursor);
-    } catch (loadError) {
-      setError(errorMessage(loadError));
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
+  const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
+    const page = await getModerationCases(
+      statusFilter || undefined,
+      typeFilter || undefined,
+      cursor,
+      signal,
+    );
+    return { items: page.cases, nextCursor: page.next_cursor };
   }, [statusFilter, typeFilter]);
-
-  useEffect(() => { void load(); }, [load]);
+  const pagination = useCursorPagination(loadPage, moderationKey);
 
   const requestDetail = (item: ModerationCase) => {
     setSelected(item);
@@ -133,7 +125,7 @@ export default function ContentModeration() {
       await reviewModerationCase(detail, decision, reason.trim(), detail.content_type === 'photo' ? checks : undefined);
       showNotification(decision === 'approved' ? 'Contenu approuvé.' : 'Contenu refusé.', 'success');
       setDetail(null);
-      await load();
+      pagination.reload();
     } catch (reviewError) {
       showNotification(errorMessage(reviewError), 'error');
     } finally {
@@ -151,11 +143,11 @@ export default function ContentModeration() {
           <Filter label="Contenu" value={typeFilter} onChange={(value) => setTypeFilter(value as '' | ModerationContentType)} items={[['', 'Tous'], ['photo', 'Photos'], ['bio', 'Bios'], ['profile_answer', 'Réponses']]} />
         </Stack>}
       />
-      <AsyncState loading={loading} error={error} onRetry={() => void load()} />
-      {!loading && !error && <TableContainer component={Paper} variant="outlined"><Table size="small">
+      <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
+      {!pagination.loading && !pagination.error && <TableContainer component={Paper} variant="outlined"><Table size="small">
         <TableHead><TableRow><TableCell>Mise à jour</TableCell><TableCell>Utilisateur</TableCell><TableCell>Type</TableCell><TableCell>Signaux</TableCell><TableCell>État</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
         <TableBody>
-          {cases.map((item) => <TableRow key={item.case_id} hover>
+          {pagination.items.map((item) => <TableRow key={item.case_id} hover>
             <TableCell>{formatDate(item.updated_at)}</TableCell>
             <TableCell><UserLink id={item.user_id} />{item.firstname && <Typography variant="caption" display="block">{item.firstname}</Typography>}</TableCell>
             <TableCell>{contentLabels[item.content_type]}</TableCell>
@@ -163,9 +155,9 @@ export default function ContentModeration() {
             <TableCell><StatusChip value={item.status} /></TableCell>
             <TableCell align="right"><Button size="small" disabled={detailLoading} onClick={() => requestDetail(item)}>Examiner</Button></TableCell>
           </TableRow>)}
-          {!cases.length && <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5 }}>Aucun contenu dans cette file.</TableCell></TableRow>}
+          {!pagination.items.length && <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5 }}>Aucun contenu dans cette file.</TableCell></TableRow>}
         </TableBody>
-      </Table>{cursor && <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><Button disabled={loadingMore} onClick={() => void load(cursor)}>{loadingMore ? 'Chargement…' : 'Charger la suite'}</Button></Box>}</TableContainer>}
+      </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></TableContainer>}
       <AccessReasonDialog
         item={selected}
         reason={accessReason}

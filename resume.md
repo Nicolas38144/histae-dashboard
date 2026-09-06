@@ -55,9 +55,9 @@ non sensible `histae_theme` peut être conservée localement.
 | Journal d’accès | recherche par utilisateur et historique paginé |
 | Sécurité | passkeys et révocation des autres sessions |
 
-Les demandes RGPD, consultations d’accès, utilisateurs, photos, modération et anomalies Stripe utilisent les contrats
-de curseur disponibles. Les matchs et conversations administratives restent bornés par leur contrat actuel et sont
-suivis dans D01.
+Toutes les collections administratives non catalogues utilisent les curseurs opaques renvoyés par l’API. Les pages
+suivantes sont dédupliquées par identifiant et une erreur de curseur conserve les données déjà affichées tout en
+proposant un rechargement depuis le début.
 
 ## Données et actions sensibles
 
@@ -78,8 +78,9 @@ checkpoint directement.
 
 - timeout HTTP de 15 secondes et aucune reprise automatique de mutation ;
 - erreurs API affichées depuis l’enveloppe `{ error: { code, message } }` ;
-- requêtes annulables et protection contre les réponses obsolètes sur les écrans concernés ;
-- pagination par curseur avec filtres préservés ;
+- requêtes annulables et protection contre les réponses obsolètes après changement de filtre ou de profil ;
+- pagination par curseur avec filtres préservés et déduplication entre pages ;
+- matchs sans plafond implicite et messages plus anciens ajoutés avant les messages récents, en ordre chronologique ;
 - chargement différé des pages ;
 - états de chargement, erreur, absence de résultat et notifications accessibles ;
 - thème clair/sombre et mise en page responsive.
@@ -88,8 +89,9 @@ checkpoint directement.
 
 Vitest, Testing Library et MSW vérifient le client HTTP, les erreurs, l’expiration de session, l’absence de retry,
 WebAuthn, les contrats de mutations critiques, les dialogues, notifications, filtres, curseurs et réponses
-concurrentes. Les tests de sécurité contrôlent également l’absence de token persistant, de journal navigateur et de
-secret ayant une forme de production dans les fixtures.
+concurrentes. D01 couvre également les pages vide, intermédiaire et finale, les recouvrements d’identifiants, le
+refus d’un curseur, un ancien filtre retardé et l’ordre global des messages. Les tests de sécurité contrôlent
+l’absence de token persistant, de journal navigateur et de secret ayant une forme de production dans les fixtures.
 
 Playwright couvre la redirection d’une session expirée et une cérémonie complète d’enrôlement puis de connexion avec
 un authenticator Chromium virtuel. Un smoke test facultatif vérifie en lecture seule `/health/ready` et la frontière
@@ -97,7 +99,6 @@ administrative d’une API locale. Voir [test.md](test.md).
 
 ## Limites connues
 
-- les matchs et conversations ne parcourent pas encore toutes les pages disponibles ;
 - la récupération WebAuthn après perte de tous les authenticators reste à formaliser ;
 - le workflow de recours de modération n’est pas défini ;
 - sécurité, accessibilité et en-têtes doivent encore être validés sur l’hébergement réel ;

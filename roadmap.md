@@ -17,30 +17,15 @@ de réauthentification ou d’audit dans React.
 | Modération | liste minimisée, détail justifié, checklist photo et décision optimiste |
 | Identité | connexion WebAuthn, gestion des passkeys et cookie de session inaccessible au JavaScript |
 | D05 | Vitest/Testing Library/MSW, parcours Playwright WebAuthn et smoke test API local facultatif |
+| D01 | pagination complète, déduplication, filtres stables et conversations en ordre chronologique |
 
 ## Priorités
 
 | Lot | Objectif | Priorité | Dépendance |
 | --- | --- | --- | --- |
-| D01 | terminer pagination et volumes des vues administratives | P1/P2 | contrats API |
 | D04 | rendre la récupération WebAuthn exploitable | P1 avant production | API R11, exploitation |
 | D03 | instruire et auditer les recours de modération | P1 avant ouverture | API R09, produit |
 | D06 | valider sécurité, accessibilité et déploiement réels | P1 avant production | domaine et hébergement |
-
-## D01 — Pagination et volumes
-
-### Travail
-
-- [ ] parcourir au-delà des 100 premiers matchs d’un utilisateur ;
-- [ ] charger les messages plus anciens sans inverser chaque page ni créer de trou ;
-- [ ] aligner utilisateurs, signalements, modération et photos sur tout futur curseur renvoyé par l’API ;
-- [ ] préserver recherche et filtres, et ignorer toute réponse issue d’un filtre devenu obsolète ;
-- [ ] ajouter les cas vide, première page, page intermédiaire, dernière page et curseur refusé aux tests.
-
-### Critère de fin
-
-Chaque collection non catalogue est parcourable sans plafond implicite, doublon ou inversion et son comportement est
-couvert automatiquement.
 
 ## D04 — Exploitation et récupération WebAuthn
 
@@ -97,10 +82,9 @@ livraison comme un retour arrière ont été réellement exécutés.
 
 ## Ordre conseillé
 
-1. D01 pendant que les contrats de volume sont récents.
-2. D04 avant tout accès administratif en production.
-3. D03 avec les décisions R09.
-4. D06 sur l’hébergement cible.
+1. D04 avant tout accès administratif en production.
+2. D03 avec les décisions R09.
+3. D06 sur l’hébergement cible.
 
 Mettre cette roadmap à jour à la fin de chaque lot. Une fois un lot terminé, déplacer uniquement ses invariants
 durables dans `resume.md`, `SECURITY.md` ou `test.md` puis retirer son détail d’ici.

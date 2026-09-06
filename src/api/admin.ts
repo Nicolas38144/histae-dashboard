@@ -40,9 +40,11 @@ export const getRevenue = async (revenuePeriod: RevenuePeriod, signal?: AbortSig
 export async function getPhotoReconciliation(
   status: PhotoReconciliationFilter,
   cursor?: string,
+  signal?: AbortSignal,
 ): Promise<CursorResponse<PhotoReconciliationItem, 'photos'>> {
   return (await api.get<CursorResponse<PhotoReconciliationItem, 'photos'>>('/admin/photo-reconciliation', {
     params: { status, cursor, limit: 50 },
+    signal,
   })).data;
 }
 
@@ -50,9 +52,11 @@ export async function getModerationCases(
   status?: ModerationStatus,
   contentType?: ModerationContentType,
   cursor?: string,
+  signal?: AbortSignal,
 ): Promise<CursorResponse<ModerationCase, 'cases'>> {
   return (await api.get<CursorResponse<ModerationCase, 'cases'>>('/admin/content-moderation', {
     params: { status, content_type: contentType, cursor, limit: 50 },
+    signal,
   })).data;
 }
 
@@ -85,8 +89,11 @@ export async function getUsers(filters: {
   role?: UserRole;
   search?: string;
   cursor?: string;
-}): Promise<CursorResponse<AdminUser, 'users'>> {
-  return (await api.get<CursorResponse<AdminUser, 'users'>>('/admin/users', { params: { ...filters, limit: 50 } })).data;
+}, signal?: AbortSignal): Promise<CursorResponse<AdminUser, 'users'>> {
+  return (await api.get<CursorResponse<AdminUser, 'users'>>('/admin/users', {
+    params: { ...filters, limit: 50 },
+    signal,
+  })).data;
 }
 
 export async function getUser(userId: string): Promise<AdminUserDetail> {
@@ -99,20 +106,38 @@ export async function setUserBanned(userId: string, isBanned: boolean, reason?: 
   await api.patch(`/admin/users/${userId}/status`, { is_banned: isBanned, reason: reason || null });
 }
 
-export async function getUserMatches(userId: string): Promise<Match[]> {
+export async function getUserMatches(
+  userId: string,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<Match, 'matches'>> {
   return (await api.get<CursorResponse<Match, 'matches'>>(`/matches/${userId}`, {
-    params: { limit: 100, reason: 'Consultation administrative des matchs depuis le dashboard' },
-  })).data.matches;
+    params: { limit: 100, cursor, reason: 'Consultation administrative des matchs depuis le dashboard' },
+    signal,
+  })).data;
 }
 
-export async function getMatchMessages(matchId: string, reason: string): Promise<ChatMessage[]> {
+export async function getMatchMessages(
+  matchId: string,
+  reason: string,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<ChatMessage, 'messages'>> {
   return (await api.get<CursorResponse<ChatMessage, 'messages'>>(`/admin/matches/${matchId}/messages`, {
-    params: { limit: 100, reason },
-  })).data.messages.reverse();
+    params: { limit: 100, cursor, reason },
+    signal,
+  })).data;
 }
 
-export async function getReports(status?: ReportStatus, cursor?: string): Promise<CursorResponse<Report, 'reports'>> {
-  return (await api.get<CursorResponse<Report, 'reports'>>('/admin/reports', { params: { status, cursor, limit: 100 } })).data;
+export async function getReports(
+  status?: ReportStatus,
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<Report, 'reports'>> {
+  return (await api.get<CursorResponse<Report, 'reports'>>('/admin/reports', {
+    params: { status, cursor, limit: 100 },
+    signal,
+  })).data;
 }
 
 export async function updateReport(id: string, status: ReportStatus): Promise<void> {

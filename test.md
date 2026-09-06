@@ -31,7 +31,7 @@ pnpm test
 pnpm run validate
 ```
 
-- `test:unit` couvre client HTTP, WebAuthn simulé, hooks, composants et actions administratives ;
+- `test:unit` couvre client HTTP, WebAuthn simulé, hooks, pagination, composants et actions administratives ;
 - `test:e2e` démarre Vite sur `http://localhost:4173`, exclut les tests marqués `@real` et utilise Chromium ;
 - `test` exécute les deux niveaux autonomes ;
 - `validate` ajoute typecheck, lint et build de production.
@@ -41,6 +41,11 @@ Windows. Cette sérialisation privilégie la reproductibilité ; elle ne change 
 
 Le serveur MSW refuse toute requête non déclarée. Une mutation `POST`, `PATCH` ou `DELETE` ne doit jamais être
 réessayée implicitement par un test ou par le client HTTP.
+
+Les scénarios de pagination vérifient une collection vide, les pages initiale, intermédiaire et finale, la
+déduplication d’un élément recouvrant deux pages, le refus d’un curseur et l’abandon d’une réponse liée à un ancien
+filtre. Le parcours utilisateur charge plusieurs pages de matchs puis recompose les pages de messages, reçues de la
+plus récente à la plus ancienne, dans un ordre chronologique global.
 
 ## Smoke test contre l’API locale
 

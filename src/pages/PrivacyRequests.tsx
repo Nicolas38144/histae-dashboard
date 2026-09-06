@@ -1,59 +1,34 @@
 import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { getDataRequests, retryErasure, updateDataRequest } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type { DataRequestStatus, DataSubjectRequest } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
+import { CursorPaginationControls } from '../components/CursorPaginationControls';
 import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
+import { useCursorPagination } from '../hooks/useCursorPagination';
 import { formatDate } from '../utils/format';
 
 type NextStatus = Exclude<DataRequestStatus, 'pending'> | 'retry';
 type Action = { request: DataSubjectRequest; status: NextStatus };
 const steps = { stripe: 'Stripe', photos: 'Photos privées', scylla: 'Découverte Scylla', postgres: 'Anonymisation PostgreSQL', completed: 'Effacement terminé' };
+const requestKey = (request: DataSubjectRequest) => request.id;
 
 export default function PrivacyRequests() {
   const [filter, setFilter] = useState<'' | DataRequestStatus>('');
   const [action, setAction] = useState<Action | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [requests, setRequests] = useState<DataSubjectRequest[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const requestSequence = useRef(0);
   const { showNotification } = useNotification();
-  const load = useCallback(async (nextCursor?: string, signal?: AbortSignal) => {
-    const requestId = ++requestSequence.current;
-    if (nextCursor) setLoadingMore(true); else setLoading(true);
-    setError(null);
-    try {
-      const page = await getDataRequests(filter || undefined, nextCursor, signal);
-      if (requestId !== requestSequence.current) return;
-      setRequests((current) => nextCursor ? [...current, ...page.requests] : page.requests);
-      setCursor(page.next_cursor);
-    } catch (loadError) {
-      if (signal?.aborted || requestId !== requestSequence.current) return;
-      setError(errorMessage(loadError));
-    } finally {
-      if (requestId === requestSequence.current) {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    }
+  const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
+    const page = await getDataRequests(filter || undefined, cursor, signal);
+    return { items: page.requests, nextCursor: page.next_cursor };
   }, [filter]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void load(undefined, controller.signal);
-    return () => controller.abort();
-  }, [load]);
-
-  const reload = () => void load();
+  const pagination = useCursorPagination(loadPage, requestKey);
   const close = () => { setAction(null); setNotes(''); };
 
   const update = async () => {
@@ -74,7 +49,7 @@ export default function PrivacyRequests() {
       showNotification(action.status === 'completed' && action.request.type === 'erasure'
         ? 'Effacement enregistré. Le compte est désactivé ; le traitement se poursuit en arrière-plan.'
         : action.status === 'retry' ? 'Reprise mise en file.' : 'Demande RGPD mise à jour.', 'success');
-      close(); await load();
+      close(); pagination.reload();
     } catch (reason) { showNotification(errorMessage(reason), 'error'); }
     finally { setSaving(false); }
   };
@@ -83,17 +58,17 @@ export default function PrivacyRequests() {
     <>
       <PageHeader title="Demandes RGPD" description="Suivi des droits d’accès, d’effacement, de portabilité et de rectification." actions={
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button disabled={loading || saving} onClick={() => void load()}>Actualiser</Button>
+          <Button disabled={pagination.loading || saving} onClick={pagination.reload}>Actualiser</Button>
           <FormControl size="small" sx={{ minWidth: 190 }}><InputLabel>État</InputLabel><Select label="État" value={filter} onChange={(event) => setFilter(event.target.value as '' | DataRequestStatus)}>
             <MenuItem value="">Tous</MenuItem><MenuItem value="pending">En attente</MenuItem><MenuItem value="in_progress">En cours</MenuItem><MenuItem value="completed">Terminées</MenuItem><MenuItem value="rejected">Refusées</MenuItem>
           </Select></FormControl>
         </Box>
       } />
       <Alert severity="info" sx={{ mb: 2 }}>Une authentification administrateur récente est requise pour les transitions et reprises. Reconnectez-vous si elle a expiré. Un effacement commencé ne peut pas être annulé.</Alert>
-      <AsyncState loading={loading} error={error} onRetry={reload} />
-      {!loading && !error && <Paper variant="outlined" sx={{ overflowX: 'auto' }}><Table size="small">
+      <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
+      {!pagination.loading && !pagination.error && <Paper variant="outlined" sx={{ overflowX: 'auto' }}><Table size="small">
         <TableHead><TableRow><TableCell>Demande</TableCell><TableCell>Utilisateur</TableCell><TableCell>Type</TableCell><TableCell>Date</TableCell><TableCell>État / progression</TableCell><TableCell>Notes</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
-        <TableBody>{requests.map((request) => <TableRow key={request.id}>
+        <TableBody>{pagination.items.map((request) => <TableRow key={request.id}>
           <TableCell>{request.id}</TableCell><TableCell><UserLink id={request.user_id} /></TableCell><TableCell>{request.type}</TableCell><TableCell>{formatDate(request.requested_at)}</TableCell>
           <TableCell><StatusChip value={request.status} /><ErasureProgress request={request} /></TableCell><TableCell>{request.notes || '—'}</TableCell>
           <TableCell align="right"><Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
@@ -102,8 +77,8 @@ export default function PrivacyRequests() {
             {!request.erasure && (request.status === 'pending' || request.status === 'in_progress') && <Button disabled={saving} size="small" color="error" onClick={() => setAction({ request, status: 'rejected' })}>Refuser</Button>}
             {request.erasure?.status === 'dead_letter' && request.erasure.event_id && <Button disabled={saving} size="small" onClick={() => setAction({ request, status: 'retry' })}>Reprendre</Button>}
           </Box></TableCell>
-        </TableRow>)}{!requests.length && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5 }}>Aucune demande dans cette file.</TableCell></TableRow>}</TableBody>
-      </Table>{cursor && <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><Button onClick={() => void load(cursor)} disabled={loadingMore}>{loadingMore ? 'Chargement…' : 'Charger la suite'}</Button></Box>}</Paper>}
+        </TableRow>)}{!pagination.items.length && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5 }}>Aucune demande dans cette file.</TableCell></TableRow>}</TableBody>
+      </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></Paper>}
       <ConfirmActionDialog open={Boolean(action)} title={dialogTitle(action)} description={dialogDescription(action)} confirmLabel="Confirmer" danger={action?.status === 'rejected' || (action?.status === 'completed' && action.request.type === 'erasure')} value={notes} onValueChange={setNotes} valueLabel={action?.status === 'retry' ? 'Motif de reprise (3 à 500 caractères)' : 'Notes de traitement'} requireValue={action?.status === 'rejected' || action?.status === 'retry'} loading={saving} onCancel={close} onConfirm={() => void update()} />
     </>
   );
