@@ -7,9 +7,16 @@ export type CursorPage<T> = {
   nextCursor: string | null;
 };
 
+export type MergeCursorPage<T> = (
+  current: T[],
+  incoming: T[],
+  getKey: (item: T) => string,
+) => T[];
+
 export function useCursorPagination<T>(
   loader: (cursor: string | undefined, signal: AbortSignal) => Promise<CursorPage<T>>,
   getKey: (item: T) => string,
+  mergePage: MergeCursorPage<T> = appendUniqueBy,
 ) {
   const [items, setItems] = useState<T[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -42,7 +49,7 @@ export function useCursorPagination<T>(
       const page = await loader(cursor, controller.signal);
       if (controller.signal.aborted || requestId !== requestSequence.current) return;
       setItems((current) => append
-        ? appendUniqueBy(current, page.items, getKey)
+        ? mergePage(current, page.items, getKey)
         : uniqueBy(page.items, getKey));
       setNextCursor(page.nextCursor);
     } catch (reason) {
@@ -55,7 +62,7 @@ export function useCursorPagination<T>(
         else setLoading(false);
       }
     }
-  }, [getKey, loader]);
+  }, [getKey, loader, mergePage]);
 
   useEffect(() => {
     void load();

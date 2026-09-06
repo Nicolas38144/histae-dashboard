@@ -9,7 +9,7 @@ export function appendUniqueBy<T>(current: T[], incoming: T[], getKey: (item: T)
   return unique.length ? [...current, ...unique] : current;
 }
 
-export function prependUniqueBy<T>(incoming: T[], current: T[], getKey: (item: T) => string): T[] {
+export function prependUniqueBy<T>(current: T[], incoming: T[], getKey: (item: T) => string): T[] {
   const currentKeys = new Set(current.map(getKey));
   const seen = new Set<string>();
   const unique = incoming.filter((item) => {
