@@ -1,6 +1,9 @@
 # General
 node_modules
 dist
+playwright-report
+test-results
+coverage
 package-lock.json
 .pnpm-store
 

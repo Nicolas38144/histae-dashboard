@@ -1,99 +1,75 @@
 # Histae Dashboard
 
-Console d’administration et de modération de Histae, alignée sur le contrat de `histae-api` v3.
+Console React d’administration, de modération et d’exploitation de Histae. Elle consomme le contrat HTTP de
+`histae-api` v3 ; l’API reste l’unique autorité pour les rôles, les autorisations, les transactions et l’audit.
 
-## Prérequis
+## Démarrage local
 
-- Node.js 22 ou supérieur
-- pnpm 11.22.0
-- une instance de `histae-api` configurée
-- un compte Histae possédant le rôle `admin` ou `superadmin`
-- un navigateur compatible WebAuthn et une passkey ou clé de sécurité
+Prérequis : Node.js 22 ou supérieur, pnpm 11.22.0, l’API locale configurée et un navigateur compatible WebAuthn.
 
-## Démarrage
-
-```bash
+```powershell
 pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
-En développement, ouvrez exactement **`http://localhost:5173`**. Vite transmet `/api` à
-`VITE_API_PROXY_TARGET`, configuré par défaut sur `http://localhost:8080`. N’utilisez pas `127.0.0.1` pour le
-dashboard : le RP ID WebAuthn de développement est `localhost`.
+Ouvrir exactement `http://localhost:5173`. Le RP ID WebAuthn local est `localhost` : utiliser `127.0.0.1` dans le
+navigateur ferait échouer les cérémonies. Vite relaie `/api` vers `VITE_API_PROXY_TARGET`, par défaut
+`http://localhost:8080`.
 
-L’authentification administrateur est native à Histae, sans SSO ni fournisseur externe. Elle n’utilise ni l’OTP
-mobile, ni un token accessible au JavaScript : l’API conserve la session dans un cookie `HttpOnly`, strictement
-même-origine. Pour la première connexion, appliquez `007_native_admin_webauthn`, puis générez depuis le dépôt API
-un jeton temporaire :
+La première passkey nécessite un compte `admin` ou `superadmin` et un jeton à usage unique généré depuis le dépôt
+API :
 
 ```powershell
+# À exécuter depuis le dépôt histae-api
 pnpm run admin:webauthn:bootstrap -- <uuid-du-compte-admin>
 ```
 
-Collez ce jeton dans « Enregistrer la première passkey ». Il expire après quinze minutes par défaut et n’est
-utilisable qu’une fois.
+Le jeton est saisi dans « Enregistrer la première passkey ». Le dashboard ne le persiste pas et ne reçoit jamais le
+secret de session, conservé dans un cookie API `HttpOnly`.
 
-La vue d’ensemble inclut un CA estimé calculé à partir des abonnements Premium et du tarif mensuel courant.
-Les périodes proposées sont les 7 ou 30 derniers jours, le mois en cours, le mois précédent, l’année en cours
-et l’historique complet. Cette valeur ne remplace pas un registre de paiements réel.
-Le premier affichage fait partie de la synthèse générale ; les changements de période rechargent ensuite
-uniquement la carte CA via `/api/admin/revenue`, avec un indicateur de progression local.
+## Configuration
 
-L’écran « Photos » affiche les métriques `user_photo`, les traitements bloqués et les suppressions en cours. Il
-permet de remettre en file une opération réellement anormale avec un motif obligatoire ; l’API protège et audite
-la mutation et ne transmet au dashboard ni clé objet, ni URL signée, ni contenu d’image.
+| Variable | Usage local |
+| --- | --- |
+| `VITE_ENV` | Nom de l’environnement affichable au build |
+| `VITE_API_URL` | Préfixe appelé par le navigateur, normalement `/api` |
+| `VITE_API_PROXY_TARGET` | Origine de l’API derrière le proxy Vite |
 
-L’écran « Stripe » affiche uniquement les dead letters d’abonnement et créations Customer incertaines qui exigent
-une action. Une dead letter peut être remise en file après confirmation et motif ;
-l’API exige une authentification WebAuthn récente et effectue seulement une nouvelle lecture du fournisseur. Aucun
-identifiant Stripe, payload ou moyen de paiement n’est envoyé au navigateur.
-
-L’écran « Questions de profil » administre le catalogue présenté dans l’application mobile. Il permet d’ajouter,
-modifier et réordonner les questions. Avant une suppression définitive, il affiche le nombre de réponses
-utilisateur qui seront également supprimées par l’API.
-
-L’écran « Modération » centralise les photos, bios et réponses libres. La liste n’expose aucun contenu ; un motif
-est demandé avant d’ouvrir le détail audité, puis un second motif accompagne toute décision. La revue photo exige
-de confirmer séparément le visage, la netteté et le contenu autorisé. Les versions de cas empêchent d’écraser une
-décision concurrente.
-
-L’écran « Demandes RGPD » suit l’effacement asynchrone : le compte est désactivé à l’acceptation, puis le worker
-traite Stripe, les photos, Scylla et PostgreSQL. Il affiche l’étape, les tentatives et le dernier code d’erreur,
-sans donnée fournisseur. « Reprendre » remet une dead letter en file avec motif et audit, sans réactiver le
-compte. Les transitions et reprises exigent une connexion WebAuthn récente. Déployer l’API et ses workers avec
-la chaîne de migrations courante, dont `015_stripe_reconciliation` et `016_bounded_workloads`, avant cette version
-du dashboard.
-
-La vue d’ensemble reprend aussi la progression persistante des maintenances R06. Les demandes RGPD et le journal
-d’accès utilisent `next_cursor` et permettent de charger l’historique au-delà de la première page.
-
-L’écran « Sécurité » liste les passkeys, en ajoute une après authentification WebAuthn récente, permet de révoquer
-une clé non courante sans jamais supprimer la dernière et ferme les autres sessions. Deux passkeys distinctes,
-dont idéalement une clé physique de secours, sont recommandées.
+Copier `.env.example` vers `.env.development` si nécessaire. Aucune variable `VITE_*` ne doit contenir un secret :
+ces valeurs sont intégrées au JavaScript livré au navigateur.
 
 ## Commandes
 
-```bash
+```powershell
 pnpm run typecheck
 pnpm run lint
 pnpm run build
 pnpm run check
+pnpm run test:unit
+pnpm run test:e2e
+pnpm test
+pnpm run validate
 pnpm run security:audit
 ```
 
-`pnpm run check` exécute le typecheck, le lint et le build de production. npm n’est plus utilisé et aucun `package-lock.json` ne doit être créé.
+- `check` exécute typecheck, lint et build de production ;
+- `test:unit` exécute Vitest, Testing Library et MSW sans API réelle ;
+- `test:e2e` exécute les parcours Chromium isolés, dont WebAuthn virtuel ;
+- `test:e2e:real` vérifie en lecture seule une API locale lorsque `HISTAE_REAL_API_URL` est défini ;
+- `validate` regroupe le contrôle statique, le build et tous les tests autonomes.
 
-## Déploiement
+Les détails d’isolation et d’installation du navigateur sont dans [test.md](test.md).
 
-Le dashboard et l’API doivent être publiés sous la même origine, l’API étant exposée via `/api`. En production,
-cette origine doit être HTTPS et correspondre exactement à `ADMIN_WEBAUTHN_ORIGIN`; son hôte doit correspondre à
-`ADMIN_WEBAUTHN_RP_ID`. Cloudflare peut transporter le trafic, mais ne participe ni à l’identité ni aux passkeys.
+## Production
 
-Le serveur frontal doit reproduire les en-têtes décrits dans [SECURITY.md](SECURITY.md), servir l’application uniquement en HTTPS et rediriger les routes SPA vers `index.html`.
+Servir le dashboard et `/api` sous la même origine HTTPS. Cette origine doit correspondre exactement à
+`ADMIN_WEBAUTHN_ORIGIN` et son hôte à `ADMIN_WEBAUTHN_RP_ID`. Le serveur frontal doit appliquer les en-têtes de
+[SECURITY.md](SECURITY.md), ne publier aucune source map et renvoyer les routes SPA vers `index.html`.
 
 ## Documentation
 
-- [Résumé technique et fonctionnel](resume.md)
-- [Feuille de route](roadmap.md)
-- [Sécurité et déploiement](SECURITY.md)
-- [Contrat exhaustif de l’API](https://github.com/Nicolas38144/histae-api/blob/main/routes.md)
+- [resume.md](resume.md) : architecture et capacités actuellement livrées ;
+- [test.md](test.md) : stratégie, commandes et isolation des tests ;
+- [SECURITY.md](SECURITY.md) : modèle de sécurité et checklist de déploiement ;
+- [roadmap.md](roadmap.md) : travaux encore ouverts uniquement ;
+- [`histae-api/routes.md`](../histae-api/routes.md) : contrat HTTP de référence.

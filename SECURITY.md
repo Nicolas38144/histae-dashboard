@@ -1,47 +1,48 @@
 # Sécurité du dashboard Histae
 
-## Modèle de sécurité
+## Modèle de confiance
 
-Le dashboard est une application d’administration : son exposition doit être plus restrictive que celle du client public. L’API reste l’autorité de sécurité. Les contrôles visuels du dashboard ne remplacent jamais `AdminSessionGuard`.
+Le dashboard manipule des fonctions administratives et doit être moins exposé que l’application publique. L’API
+reste l’autorité : `AdminSessionGuard`, les DTO, les transactions et l’audit serveur doivent refuser une action même
+si le navigateur est compromis ou modifié.
 
-## Authentification
+Une restriction réseau, un tunnel ou Cloudflare réduit l’exposition, mais ne remplace jamais l’authentification et
+l’autorisation applicatives.
 
-- passkeys WebAuthn découvrables avec vérification utilisateur obligatoire, sans SSO ni fournisseur externe ;
-- vérification systématique de la session et du rôle par `GET /api/admin/auth/session` au chargement ;
-- aucun access token ou refresh token administrateur dans `localStorage`, `sessionStorage` ou le JavaScript ;
-- session opaque dans un cookie API `HttpOnly; SameSite=Strict`, `Secure` et préfixé `__Host-` en production ;
-- expiration inactive de 30 minutes et absolue de 8 heures par défaut, avec révocation serveur ;
-- relecture à chaque requête du rôle, du bannissement et de la passkey active ;
-- contrôle de l’en-tête `Origin` exact sur toutes les mutations administratives ;
-- authentification récente pour ajouter/révoquer une passkey ou révoquer les autres sessions ;
-- authentification récente pour les transitions RGPD et la reprise d’un effacement en dead letter ; motif et
-  audit serveur obligatoires pour cette reprise, sans possibilité d’abandonner un `account.erase` ;
-- jeton d’enrôlement initial créé hors bande, hashé, à usage unique et de courte durée.
+## Authentification et session
 
-WebAuthn rend l’authentification résistante au phishing et le cookie `HttpOnly` empêche le JavaScript de lire le
-secret de session. Une XSS pourrait toutefois agir au nom d’une session ouverte : CSP, absence de HTML injecté,
-contrôle des dépendances, sessions courtes et vérification d’origine restent essentiels.
+- WebAuthn natif avec credential découvrable et vérification utilisateur obligatoire ;
+- origine et RP ID exacts, sans mot de passe de secours ni SSO ;
+- session opaque hashée côté API et cookie `HttpOnly; SameSite=Strict` ;
+- cookie `Secure` préfixé `__Host-` en production ;
+- relecture serveur du rôle, du bannissement, des expirations et de la passkey active ;
+- vérification exacte de `Origin` pour les mutations ;
+- authentification récente pour la gestion des passkeys et les opérations sensibles ;
+- bootstrap initial hors bande, court, hashé et à usage unique.
 
-## Données personnelles
+Le JavaScript ne doit jamais recevoir ni stocker le secret de session. Une XSS pourrait néanmoins agir avec une
+session ouverte : CSP, dépendances maîtrisées, sessions courtes et validation serveur restent indispensables.
 
-- les numéros de téléphone, leurs empreintes et leur valeur chiffrée ne sont jamais exposés ;
-- les coordonnées géographiques précises ne sont pas retournées au dashboard ;
-- les consultations de profils, matchs et messages sont inscrites dans `data_access_log` ;
-- l’ouverture d’une conversation exige une justification explicite ;
-- un admin ne peut pas bannir un autre admin ; un superadmin ne peut ni agir sur lui-même ni bannir un autre superadmin ;
-- l’effacement RGPD reste géré par la machine de transitions de l’API.
-- la file de réconciliation photo ne reçoit ni clé objet, ni URL signée, ni image ; une relance est validée côté API,
-  refuse les photos saines et les workers actifs, puis journalise `admin_reconcile_photo` avec son motif.
-- la suppression d’une question de profil annonce le nombre de réponses concernées et exige une confirmation ;
-  l’autorisation et la cascade définitive restent imposées transactionnellement par l’API et PostgreSQL.
-- la liste de modération ne reçoit aucun texte, image, URL ou clé objet. L’ouverture d’un détail exige un motif et
-  journalise `view_moderation_content`; la décision motivée journalise `admin_review_content`.
-- une photo détaillée utilise uniquement une URL signée courte. La revue impose les trois contrôles visage,
-  netteté et contenu autorisé, et la version optimiste évite d’écraser une décision concurrente.
+## Minimisation des données
 
-## En-têtes attendus en production
+Ne jamais exposer au dashboard :
 
-Le serveur frontal doit au minimum envoyer :
+- téléphone, empreinte ou valeur chiffrée ;
+- latitude et longitude précises ;
+- clé objet, URL photo durable ou image dans une collection administrative ;
+- payload, Customer ID ou moyen de paiement Stripe ;
+- token/hash de session, clé publique complète ou secret WebAuthn.
+
+Les consultations de profils, matchs, conversations et contenus sont motivées et auditées par l’API. La liste de
+modération reste sans contenu ; une URL photo signée courte n’est produite qu’après ouverture justifiée du détail.
+Les décisions utilisent un motif et une version optimiste.
+
+Le navigateur ne conserve que la préférence `histae_theme`. Les tests empêchent la réintroduction d’un token dans
+`localStorage` ou `sessionStorage` et l’usage de `console.*` dans les sources applicatives.
+
+## En-têtes de production
+
+Le serveur qui distribue le build doit envoyer au minimum :
 
 ```text
 Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
@@ -53,25 +54,40 @@ X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 ```
 
-L’API doit être montée sous `/api` sur la même origine que le dashboard. En développement, l’unique exception de
-transport est le proxy Vite : le navigateur reste sur `http://localhost:5173` tandis que Vite relaie vers
-`http://localhost:8080`. En production, l’origine WebAuthn doit être HTTPS.
+Le dashboard et `/api` doivent partager la même origine HTTPS. Les routes SPA retournent `index.html`, mais aucun
+fichier inconnu, source map ou fichier d’environnement ne doit être publié. Les erreurs et redirections doivent
+également recevoir les en-têtes applicables.
 
-## Dépendances
+En développement, le navigateur reste sur `http://localhost:5173`; seul Vite contacte
+`http://localhost:8080`. Cette exception locale ne doit pas être reproduite en production.
 
-Audit effectué le 20 août 2026 avec `pnpm audit --prod` : aucune vulnérabilité connue après mise à niveau d’Axios et React Router et verrouillage de `yaml@1.10.3`.
+## Dépendances et chaîne de construction
 
-Le lockfile pnpm est obligatoire. Le seul script d’installation de dépendance explicitement autorisé est celui d’`esbuild`, via `pnpm-workspace.yaml`.
+- pnpm et `pnpm-lock.yaml` sont obligatoires ; ne pas créer de `package-lock.json` ;
+- les scripts d’installation autorisés sont déclarés dans `pnpm-workspace.yaml` ; `msw` est uniquement une
+  dépendance de test ;
+- `pnpm run security:audit` contrôle les dépendances de production ;
+- le build de production n’émet pas de source map ;
+- aucune variable `VITE_*` ne doit contenir un secret ;
+- une mise à jour de dépendance sensible doit être suivie de `pnpm run validate` et de l’audit.
 
-## Limites opérationnelles
+Les audits de dépendances ne couvrent ni l’infrastructure, ni une compromission de compte, ni les erreurs métier et
+ne remplacent pas un pentest.
 
-- réserver l’accès réseau du dashboard à un VPN, une passerelle Zero Trust ou une liste d’adresses d’entreprise ;
-- imposer deux passkeys par administrateur, dont idéalement une clé physique conservée séparément ;
-- documenter et contrôler la procédure hors bande de récupération et de nouvel enrôlement ;
-- surveiller les événements `admin_ban`, `admin_unban`, `admin_reconcile_photo`, `view_moderation_content`,
-  `admin_review_content`, `view_messages` et les volumes de consultation ;
-- définir une politique de rotation et de révocation des comptes administrateur ;
-- tester régulièrement la restauration, la rétention des logs et les droits superadmin ;
-- ne jamais publier de source maps de production contenant des informations internes.
+## Vérifications avant déploiement
 
-Les vulnérabilités doivent être signalées de manière privée aux mainteneurs du projet, sans ouvrir de ticket public contenant des données ou secrets exploitables.
+- URL HTTPS, certificat, redirections, origine et RP ID vérifiés sur la cible ;
+- cookie réellement `__Host-`, `Secure`, `HttpOnly` et `SameSite=Strict` ;
+- en-têtes contrôlés sur HTML, actifs, erreurs et redirections ;
+- accès réseau restreint selon la politique retenue ;
+- au moins deux passkeys distinctes par administrateur et procédure de récupération testée ;
+- rôle révoqué et passkey compromise invalidant immédiatement les sessions ;
+- build inspecté sans source map, secret, URL interne ou fichier local ;
+- `pnpm run validate` et smoke test réel exécutés contre l’environnement cible ;
+- procédures de déploiement, retour arrière et révocation urgente répétées.
+
+## Signalement et incident
+
+Une vulnérabilité doit être signalée en privé aux mainteneurs, sans ticket public contenant un secret ou une donnée
+personnelle. En cas de compromission : restreindre l’accès, révoquer passkeys et sessions côté API, préserver les
+audits utiles, corriger la cause puis vérifier la restauration avant réouverture.
