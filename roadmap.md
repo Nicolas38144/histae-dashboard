@@ -1,6 +1,6 @@
 # Histae Dashboard — feuille de route
 
-État au 6 septembre 2026.
+État au 7 septembre 2026.
 
 Ce document contient uniquement les travaux ouverts. Les capacités livrées sont dans [resume.md](resume.md), la
 validation dans [test.md](test.md), la sécurité dans [SECURITY.md](SECURITY.md) et le contrat dans

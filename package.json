@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "pnpm run test:unit && pnpm run test:e2e",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --pool=forks --fileParallelism=false --maxWorkers=1",
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test --grep-invert @real",
     "test:e2e:real": "playwright test --grep @real",

@@ -107,7 +107,15 @@ jamais le secret de session et ne le stocke ni dans `localStorage` ni dans `sess
 
 ## 5. Enregistrer la première passkey
 
-Après avoir attribué le rôle `admin` ou `superadmin` à un compte, exécuter depuis le dépôt `histae-api` :
+Après avoir attribué le rôle `admin` ou `superadmin` à un compte, exécuter depuis le dépôt `histae-api`. Avec la
+pile Docker recommandée :
+
+```bash
+docker compose --env-file .env -f compose.yaml -f compose.dev.yaml \
+  exec api pnpm run admin:webauthn:bootstrap -- <uuid-du-compte-admin>
+```
+
+Si l’API tourne directement sur l’hôte :
 
 ```bash
 pnpm run admin:webauthn:bootstrap -- <uuid-du-compte-admin>
@@ -132,7 +140,8 @@ ssh \
 ```
 
 Le port 5173 donne accès au dashboard et à son proxy API. Le port 8333 est utile pour afficher les photos signées
-du stockage objet local. Ne pas rendre Vite, SeaweedFS ou l’API directement publics pour contourner le tunnel.
+du stockage objet local : `storage.histae.localhost` résout vers la boucle locale et traverse donc ce tunnel. Ne
+pas rendre Vite, SeaweedFS ou l’API directement publics pour contourner le tunnel.
 
 ## Tests et validation
 

@@ -1,6 +1,6 @@
 # Histae Dashboard — état du projet
 
-Mise à jour : 6 septembre 2026.
+Mise à jour : 7 septembre 2026.
 
 Ce document résume ce qui est livré. Il ne duplique ni le démarrage du [README](README.md), ni les procédures de
 [test](test.md), ni les exigences de [sécurité](SECURITY.md), ni le travail restant de la [roadmap](roadmap.md).
@@ -84,6 +84,8 @@ checkpoint directement.
 - chargement différé des pages ;
 - états de chargement, erreur, absence de résultat et notifications accessibles ;
 - thème clair/sombre et mise en page responsive.
+- CSP de développement limitée aux deux origines loopback du stockage photo, dont
+  `storage.histae.localhost` partagé avec l’API conteneurisée.
 
 ## Tests livrés — D05
 
@@ -96,6 +98,9 @@ l’absence de token persistant, de journal navigateur et de secret ayant une fo
 Playwright couvre la redirection d’une session expirée et une cérémonie complète d’enrôlement puis de connexion avec
 un authenticator Chromium virtuel. Un smoke test facultatif vérifie en lecture seule `/health/ready` et la frontière
 administrative d’une API locale. Voir [test.md](test.md).
+
+Dernière validation le 7 septembre 2026 : typecheck, lint, build de production, 37 tests Vitest et 2 parcours
+Playwright autonomes. Le bundle partagé de 505 kB reste à mesurer et découper sur l’hébergement cible dans D06.
 
 ## Limites connues
 

@@ -59,7 +59,9 @@ fichier inconnu, source map ou fichier d’environnement ne doit être publié. 
 également recevoir les en-têtes applicables.
 
 En développement, le navigateur reste sur `http://localhost:5173`; seul Vite contacte
-`http://localhost:8080`. Cette exception locale ne doit pas être reproduite en production.
+`http://localhost:8080` pour l’API. Le navigateur peut aussi charger une URL photo signée depuis
+`http://storage.histae.localhost:8333` (ou l’ancien endpoint loopback `127.0.0.1:8333`), tous deux explicitement
+bornés par la CSP Vite. Ces exceptions HTTP locales ne doivent pas être reproduites en production.
 
 ## Dépendances et chaîne de construction
 
