@@ -21,9 +21,10 @@ import {
   AppBar, Box, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Tooltip, Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { logout } from '../api/auth';
 import { errorMessage } from '../api/client';
+import type { AdminSession } from '../api/types';
 import { useNotification } from './notification-context';
 
 const width = 250;
@@ -44,6 +45,7 @@ const entries = [
 ];
 
 export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleMode: () => void }) {
+  const session = useOutletContext<AdminSession>();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -100,7 +102,7 @@ export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleM
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0, bgcolor: 'background.default' }}>
         <Toolbar />
         <Box sx={{ p: { xs: 2, sm: 3, lg: 4 } }}>
-          <Outlet />
+          <Outlet context={session} />
         </Box>
       </Box>
     </Box>

@@ -11,6 +11,7 @@ import Reports from '../../src/pages/Reports';
 import UserDetails from '../../src/pages/UserDetails';
 import {
   adminMetrics,
+  adminSession,
   adminUser,
   billingReconciliation,
   erasureRequest,
@@ -64,7 +65,7 @@ describe('critical dashboard actions', () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id' });
+    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
 
     await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Examen du compte signalé');
     await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
@@ -76,6 +77,51 @@ describe('critical dashboard actions', () => {
 
     await waitFor(() => expect(body).toEqual({ is_banned: true, reason: 'Abus confirmé pendant le test' }));
     expect(await screen.findByText('Compte banni et sessions révoquées.')).toBeVisible();
+  });
+
+  it('lets only the superadmin promote and remove an administrator', async () => {
+    const user = userEvent.setup();
+    const changes: unknown[] = [];
+    let role: 'user' | 'admin' = 'user';
+    server.use(
+      http.get(`${apiUrl}/admin/users/${fixtureIds.user}`, () => HttpResponse.json({ ...adminUser, role })),
+      http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [], next_cursor: null })),
+      http.patch(`${apiUrl}/admin/users/${fixtureIds.user}/role`, async ({ request }) => {
+        const body = await request.json() as { role: 'user' | 'admin'; reason: string };
+        changes.push(body);
+        role = body.role;
+        return HttpResponse.json({ message: 'role updated' });
+      }),
+    );
+    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
+    await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Gestion des droits administrateur');
+    await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
+    await user.click(await screen.findByRole('button', { name: 'Promouvoir admin' }));
+    const promotion = screen.getByRole('dialog', { name: 'Promouvoir administrateur ?' });
+    await user.type(within(promotion).getByLabelText('Motif obligatoire (3 à 500 caractères)'), 'Nomination justifiée');
+    await user.click(within(promotion).getByRole('button', { name: 'Promouvoir' }));
+    await waitFor(() => expect(changes).toEqual([{ role: 'admin', reason: 'Nomination justifiée' }]));
+    await user.click(await screen.findByRole('button', { name: 'Retirer les droits admin' }));
+    const removal = screen.getByRole('dialog', { name: 'Retirer les droits administrateur ?' });
+    await user.type(within(removal).getByLabelText('Motif obligatoire (3 à 500 caractères)'), 'Fin de mission');
+    await user.click(within(removal).getByRole('button', { name: 'Retirer les droits' }));
+    await waitFor(() => expect(changes).toEqual([
+      { role: 'admin', reason: 'Nomination justifiée' },
+      { role: 'user', reason: 'Fin de mission' },
+    ]));
+  });
+
+  it('hides role changes from an ordinary administrator', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(`${apiUrl}/admin/users/${fixtureIds.user}`, () => HttpResponse.json(adminUser)),
+      http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [], next_cursor: null })),
+    );
+    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: { ...adminSession, role: 'admin' } });
+    await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Consultation du compte utilisateur');
+    await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
+    expect(await screen.findByRole('button', { name: 'Bannir' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Promouvoir admin' })).not.toBeInTheDocument();
   });
 
   it('surfaces an optimistic-concurrency conflict during moderation', async () => {

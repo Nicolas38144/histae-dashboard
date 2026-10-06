@@ -14,6 +14,7 @@ import {
   retryPhotoReconciliation,
   reviewModerationCase,
   setUserBanned,
+  setUserRole,
   updateDataRequest,
   updateReport,
 } from '../../src/api/admin';
@@ -31,6 +32,7 @@ describe('critical administration mutations', () => {
     };
     server.use(
       http.patch(`${apiUrl}/admin/users/${fixtureIds.user}/status`, capture('PATCH')),
+      http.patch(`${apiUrl}/admin/users/${fixtureIds.user}/role`, capture('PATCH')),
       http.patch(`${apiUrl}/admin/reports/${fixtureIds.report}`, capture('PATCH')),
       http.delete(`${apiUrl}/admin/profile-questions/${fixtureIds.question}`, capture('DELETE')),
       http.patch(`${apiUrl}/admin/content-moderation/${fixtureIds.moderation}`, capture('PATCH')),
@@ -40,6 +42,7 @@ describe('critical administration mutations', () => {
     );
 
     await setUserBanned(fixtureIds.user, true, 'Motif de test contrôlé');
+    await setUserRole(fixtureIds.user, 'admin', '  Nomination contrôlée  ');
     await updateReport(fixtureIds.report, 'reviewed');
     await deleteProfileQuestion(fixtureIds.question);
     await reviewModerationCase(moderationDetail, 'approved', 'Décision de test');
@@ -50,6 +53,7 @@ describe('critical administration mutations', () => {
 
     expect(received).toEqual([
       { method: 'PATCH', path: `/api/admin/users/${fixtureIds.user}/status`, body: { is_banned: true, reason: 'Motif de test contrôlé' } },
+      { method: 'PATCH', path: `/api/admin/users/${fixtureIds.user}/role`, body: { role: 'admin', reason: 'Nomination contrôlée' } },
       { method: 'PATCH', path: `/api/admin/reports/${fixtureIds.report}`, body: { status: 'reviewed' } },
       { method: 'DELETE', path: `/api/admin/profile-questions/${fixtureIds.question}`, body: null },
       { method: 'PATCH', path: `/api/admin/content-moderation/${fixtureIds.moderation}`, body: { version: 3, decision: 'approved', reason: 'Décision de test' } },

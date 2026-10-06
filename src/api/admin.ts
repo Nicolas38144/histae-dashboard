@@ -107,6 +107,10 @@ export async function setUserBanned(userId: string, isBanned: boolean, reason?: 
   await api.patch(`/admin/users/${userId}/status`, { is_banned: isBanned, reason: reason || null });
 }
 
+export async function setUserRole(userId: string, role: 'user' | 'admin', reason: string): Promise<void> {
+  await api.patch(`/admin/users/${userId}/role`, { role, reason: reason.trim() });
+}
+
 export async function getUserMatches(
   userId: string,
   reason: string,

@@ -3,6 +3,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { ADMIN_SESSION_EXPIRED_EVENT, clearLegacySessions } from '../auth/session';
 import { getAdminSession } from '../api/auth';
+import type { AdminSession } from '../api/types';
 import { AppShell } from '../components/AppShell';
 
 const AuditLogs = lazy(() => import('../pages/AuditLogs'));
@@ -22,22 +23,22 @@ const UserDetails = lazy(() => import('../pages/UserDetails'));
 const Users = lazy(() => import('../pages/Users'));
 
 function RequireSession() {
-  const [state, setState] = useState<'checking' | 'authenticated' | 'anonymous'>('checking');
+  const [session, setSession] = useState<AdminSession | null | undefined>();
   useEffect(() => {
     let active = true;
     clearLegacySessions();
-    getAdminSession().then(() => { if (active) setState('authenticated'); }).catch(() => {
-      if (active) setState('anonymous');
+    getAdminSession().then((value) => { if (active) setSession(value); }).catch(() => {
+      if (active) setSession(null);
     });
-    const expire = () => setState('anonymous');
+    const expire = () => setSession(null);
     window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, expire);
     return () => {
       active = false;
       window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, expire);
     };
   }, []);
-  if (state === 'checking') return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>;
-  return state === 'authenticated' ? <Outlet /> : <Navigate to="/login" replace />;
+  if (session === undefined) return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>;
+  return session ? <Outlet context={session} /> : <Navigate to="/login" replace />;
 }
 
 export default function AppRoutes({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleMode: () => void }) {

@@ -1,10 +1,10 @@
 import { ArrowBack, BlockOutlined, CheckCircleOutline } from '@mui/icons-material';
 import { Avatar, Box, Button, Chip, Divider, Paper, TextField, Typography } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
-import { Link as RouterLink, useParams } from 'react-router-dom';
-import { getUser, setUserBanned } from '../api/admin';
+import { Link as RouterLink, useOutletContext, useParams } from 'react-router-dom';
+import { getUser, setUserBanned, setUserRole } from '../api/admin';
 import { errorMessage } from '../api/client';
-import type { AdminUserDetail } from '../api/types';
+import type { AdminSession, AdminUserDetail } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { PageHeader } from '../components/PageHeader';
@@ -42,29 +42,58 @@ function UserDetailsAccess({ id }: { id: string }) {
 function UserDetailsForId({ id, accessReason }: { id: string; accessReason: string }) {
   const loadUser = useCallback(() => getUser(id, accessReason), [id, accessReason]);
   const userState = useAsyncData(loadUser);
-  const [banOpen, setBanOpen] = useState(false);
-  const [banReason, setBanReason] = useState('');
-  const [banSaving, setBanSaving] = useState(false);
+  const session = useOutletContext<AdminSession>();
+  const [action, setAction] = useState<'ban' | 'role' | null>(null);
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
   const { showNotification } = useNotification();
+
+  const closeAction = () => {
+    setAction(null);
+    setReason('');
+  };
 
   const updateBan = async () => {
     const user = userState.data;
     if (!user) return;
-    setBanSaving(true);
+    setSaving(true);
     try {
-      await setUserBanned(id, !user.is_banned, user.is_banned ? undefined : banReason);
+      await setUserBanned(id, !user.is_banned, user.is_banned ? undefined : reason);
       showNotification(user.is_banned ? 'Compte débanni.' : 'Compte banni et sessions révoquées.', 'success');
-      setBanOpen(false);
-      setBanReason('');
+      closeAction();
       userState.reload();
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
     } finally {
-      setBanSaving(false);
+      setSaving(false);
+    }
+  };
+
+  const updateRole = async () => {
+    const user = userState.data;
+    if (!user) return;
+    const role = user.role === 'admin' ? 'user' : 'admin';
+    setSaving(true);
+    try {
+      await setUserRole(id, role, reason);
+      showNotification(role === 'admin'
+        ? 'Compte promu administrateur. Générez ensuite son jeton d’enrôlement pour la première passkey.'
+        : 'Droits administrateur retirés et accès admin révoqués.', 'success');
+      closeAction();
+      userState.reload();
+    } catch (reason) {
+      showNotification(errorMessage(reason), 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
   const user = !userState.loading && !userState.error ? userState.data : null;
+  const canChangeRole = user && session?.role === 'superadmin'
+    && user.user_id !== session.user_id
+    && (user.role === 'admin' || (user.role === 'user' && !user.is_banned));
+  const canBan = user && session && user.user_id !== session.user_id
+    && (session.role === 'superadmin' ? user.role !== 'superadmin' : user.role === 'user');
   return (
     <>
       <Button component={RouterLink} to="/users" startIcon={<ArrowBack />} sx={{ mb: 2 }}>
@@ -74,14 +103,19 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         title={user?.firstname || 'Profil utilisateur'}
         description={id}
         actions={user && (
-          <Button
-            variant={user.is_banned ? 'outlined' : 'contained'}
-            color={user.is_banned ? 'success' : 'error'}
-            startIcon={user.is_banned ? <CheckCircleOutline /> : <BlockOutlined />}
-            onClick={() => setBanOpen(true)}
-          >
-            {user.is_banned ? 'Débannir' : 'Bannir'}
-          </Button>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {canChangeRole && <Button variant="outlined" onClick={() => setAction('role')}>
+              {user.role === 'admin' ? 'Retirer les droits admin' : 'Promouvoir admin'}
+            </Button>}
+            {canBan && <Button
+              variant={user.is_banned ? 'outlined' : 'contained'}
+              color={user.is_banned ? 'success' : 'error'}
+              startIcon={user.is_banned ? <CheckCircleOutline /> : <BlockOutlined />}
+              onClick={() => setAction('ban')}
+            >
+              {user.is_banned ? 'Débannir' : 'Bannir'}
+            </Button>}
+          </Box>
         )}
       />
       <AsyncState loading={userState.loading} error={userState.error} onRetry={userState.reload} />
@@ -92,19 +126,37 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         </>
       )}
       <ConfirmActionDialog
-        open={banOpen}
+        open={action === 'role'}
+        title={user?.role === 'admin' ? 'Retirer les droits administrateur ?' : 'Promouvoir administrateur ?'}
+        description={user?.role === 'admin'
+          ? 'Le compte utilisateur reste actif. Les sessions, passkeys et jetons d’enrôlement administrateur seront révoqués.'
+          : 'Ce compte pourra accéder au dashboard après l’enrôlement de sa première passkey.'}
+        confirmLabel={user?.role === 'admin' ? 'Retirer les droits' : 'Promouvoir'}
+        danger={user?.role === 'admin'}
+        value={reason}
+        onValueChange={setReason}
+        valueLabel="Motif obligatoire (3 à 500 caractères)"
+        requireValue
+        minValueLength={3}
+        maxValueLength={500}
+        loading={saving}
+        onCancel={closeAction}
+        onConfirm={() => void updateRole()}
+      />
+      <ConfirmActionDialog
+        open={action === 'ban'}
         title={user?.is_banned ? 'Débannir ce compte ?' : 'Bannir ce compte ?'}
         description={user?.is_banned ? 'Le compte pourra de nouveau se connecter.' : 'Toutes les sessions actives seront immédiatement révoquées.'}
         confirmLabel={user?.is_banned ? 'Débannir' : 'Bannir'}
         danger={!user?.is_banned}
-        value={banReason}
-        onValueChange={setBanReason}
+        value={reason}
+        onValueChange={setReason}
         valueLabel={user?.is_banned ? undefined : 'Motif obligatoire'}
         requireValue={!user?.is_banned}
         minValueLength={3}
         maxValueLength={500}
-        loading={banSaving}
-        onCancel={() => setBanOpen(false)}
+        loading={saving}
+        onCancel={closeAction}
         onConfirm={() => void updateBan()}
       />
     </>

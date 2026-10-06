@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { ChatMessage, Match } from '../../src/api/types';
 import UserDetails from '../../src/pages/UserDetails';
 import { compactId } from '../../src/utils/format';
-import { adminUser, fixtureIds } from '../fixtures';
+import { adminSession, adminUser, fixtureIds } from '../fixtures';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
 
@@ -78,7 +78,7 @@ describe('administrative match and message pagination', () => {
           : HttpResponse.json({ messages: [recentMessage, middleMessage], next_cursor: 'message-page-2' });
       }),
     );
-    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id' });
+    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
 
     await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Contrôle de pagination fictif');
     await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
