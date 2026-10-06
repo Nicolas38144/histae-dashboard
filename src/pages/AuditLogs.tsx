@@ -1,5 +1,6 @@
 import { SearchOutlined } from '@mui/icons-material';
 import {
+  Box,
   Button,
   InputAdornment,
   Paper,
@@ -12,8 +13,8 @@ import {
   Typography,
 } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
-import { getAccessLogs } from '../api/admin';
-import type { DataAccessLog } from '../api/types';
+import { getAccessLogs, getUsers } from '../api/admin';
+import type { AdminUser, DataAccessLog, UserRole } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
 import { PageHeader } from '../components/PageHeader';
@@ -27,6 +28,7 @@ type AuditSearch = {
 };
 
 const logKey = (log: DataAccessLog) => log.id;
+const adminKey = (admin: AdminUser) => admin.user_id;
 
 export default function AuditLogs() {
   const [userId, setUserId] = useState('');
@@ -67,9 +69,37 @@ export default function AuditLogs() {
           Rechercher
         </Button>
       </Paper>
+      <AdministratorList role="superadmin" />
+      <AdministratorList role="admin" />
       {search && <AuditLogResults key={search.key} userId={search.userId} />}
     </>
   );
+}
+
+function AdministratorList({ role }: { role: Extract<UserRole, 'admin' | 'superadmin'> }) {
+  const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
+    const page = await getUsers({ role, cursor }, signal);
+    return { items: page.users, nextCursor: page.next_cursor };
+  }, [role]);
+  const pagination = useCursorPagination(loadPage, adminKey);
+
+  return <Paper variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
+    <Box sx={{ p: 2 }}><Typography variant="h6">{role === 'superadmin' ? 'Superadmins' : 'Admins'}</Typography></Box>
+    <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
+    {!pagination.loading && !pagination.error && <>
+      <Table size="small">
+        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>UUID</TableCell><TableCell>État</TableCell></TableRow></TableHead>
+        <TableBody>{pagination.items.map((admin) => <TableRow key={admin.user_id}>
+          <TableCell>{admin.firstname || 'Nom non renseigné'}</TableCell>
+          <TableCell>{admin.user_id}</TableCell>
+          <TableCell>{admin.is_banned ? 'Banni' : 'Actif'}</TableCell>
+        </TableRow>)}
+          {!pagination.items.length && <TableRow><TableCell colSpan={3}>Aucun compte dans ce rôle.</TableCell></TableRow>}
+        </TableBody>
+      </Table>
+      <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
+    </>}
+  </Paper>;
 }
 
 function AuditLogResults({ userId }: { userId: string }) {

@@ -147,7 +147,7 @@ export async function updateReport(id: string, status: ReportStatus): Promise<vo
 }
 
 export async function getTraits(): Promise<Trait[]> {
-  return (await api.get<{ traits: Trait[] }>('/traits')).data.traits;
+  return (await api.get<{ traits: Trait[] }>('/admin/traits')).data.traits;
 }
 
 export async function createTrait(name: string): Promise<Trait> {

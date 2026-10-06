@@ -6,6 +6,7 @@ import {
   getModerationCases,
   getPhotoReconciliation,
   getReports,
+  getTraits,
   getUserMatches,
   getUsers,
   retryErasure,
@@ -97,6 +98,12 @@ describe('critical administration mutations', () => {
     await getUser(fixtureIds.user, 'Examen du compte signalé');
     await getUserMatches(fixtureIds.user, 'Examen du compte signalé');
     expect(reasons).toEqual(['Examen du compte signalé', 'Examen du compte signalé']);
+  });
+
+  it('reads the trait catalogue with the admin session', async () => {
+    server.use(http.get(`${apiUrl}/admin/traits`, () => HttpResponse.json({ traits: [{ id: fixtureIds.question, name: 'Créatif' }] })));
+
+    await expect(getTraits()).resolves.toEqual([{ id: fixtureIds.question, name: 'Créatif' }]);
   });
 
   it('forwards opaque cursors and preserves server page order', async () => {
