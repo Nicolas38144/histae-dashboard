@@ -1,7 +1,8 @@
-import { SearchOutlined } from '@mui/icons-material';
+import { SearchOutlined, VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
+  IconButton,
   InputAdornment,
   Paper,
   Table,
@@ -10,6 +11,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
@@ -41,6 +43,15 @@ export default function AuditLogs() {
     setSearch((current) => ({ key: (current?.key ?? 0) + 1, userId: targetUserId }));
   };
 
+  const viewAdministrator = (adminId: string) => {
+    if (search?.userId.toLowerCase() === adminId.toLowerCase()) {
+      setSearch(null);
+      return;
+    }
+    setUserId(adminId);
+    setSearch((current) => ({ key: (current?.key ?? 0) + 1, userId: adminId }));
+  };
+
   return (
     <>
       <PageHeader
@@ -69,14 +80,14 @@ export default function AuditLogs() {
           Rechercher
         </Button>
       </Paper>
-      <AdministratorList role="superadmin" />
-      <AdministratorList role="admin" />
+      <AdministratorList role="superadmin" openUserId={search?.userId ?? null} onView={viewAdministrator} />
+      <AdministratorList role="admin" openUserId={search?.userId ?? null} onView={viewAdministrator} />
       {search && <AuditLogResults key={search.key} userId={search.userId} />}
     </>
   );
 }
 
-function AdministratorList({ role }: { role: Extract<UserRole, 'admin' | 'superadmin'> }) {
+function AdministratorList({ role, openUserId, onView }: { role: Extract<UserRole, 'admin' | 'superadmin'>; openUserId: string | null; onView: (adminId: string) => void }) {
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getUsers({ role, cursor }, signal);
     return { items: page.users, nextCursor: page.next_cursor };
@@ -88,13 +99,25 @@ function AdministratorList({ role }: { role: Extract<UserRole, 'admin' | 'supera
     <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
     {!pagination.loading && !pagination.error && <>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>UUID</TableCell><TableCell>État</TableCell></TableRow></TableHead>
-        <TableBody>{pagination.items.map((admin) => <TableRow key={admin.user_id}>
-          <TableCell>{admin.firstname || 'Nom non renseigné'}</TableCell>
-          <TableCell>{admin.user_id}</TableCell>
-          <TableCell>{admin.is_banned ? 'Banni' : 'Actif'}</TableCell>
-        </TableRow>)}
-          {!pagination.items.length && <TableRow><TableCell colSpan={3}>Aucun compte dans ce rôle.</TableCell></TableRow>}
+        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>UUID</TableCell><TableCell>État</TableCell><TableCell align="right">Voir</TableCell></TableRow></TableHead>
+        <TableBody>{pagination.items.map((admin) => {
+          const open = openUserId?.toLowerCase() === admin.user_id.toLowerCase();
+          return (
+            <TableRow key={admin.user_id}>
+              <TableCell>{admin.firstname || 'Nom non renseigné'}</TableCell>
+              <TableCell>{admin.user_id}</TableCell>
+              <TableCell>{admin.is_banned ? 'Banni' : 'Actif'}</TableCell>
+              <TableCell align="right">
+                <Tooltip title={open ? 'Fermer le journal de ce compte' : 'Voir les accès à ce compte'}>
+                  <IconButton aria-label={`${open ? 'Fermer' : 'Voir'} le journal de ${admin.firstname || admin.user_id}`} size="small" onClick={() => onView(admin.user_id)}>
+                    {open ? <VisibilityOutlined fontSize="small" /> : <VisibilityOffOutlined fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+          {!pagination.items.length && <TableRow><TableCell colSpan={4}>Aucun compte dans ce rôle.</TableCell></TableRow>}
         </TableBody>
       </Table>
       <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
