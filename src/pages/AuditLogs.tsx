@@ -1,4 +1,4 @@
-import { SearchOutlined, VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
+import { DownloadOutlined, SearchOutlined, VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -16,12 +16,15 @@ import {
 } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
 import { getAccessLogs, getUsers } from '../api/admin';
+import { errorMessage } from '../api/client';
 import type { AdminUser, DataAccessLog, UserRole } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
 import { PageHeader } from '../components/PageHeader';
 import { UserLink } from '../components/UserLink';
+import { useNotification } from '../components/notification-context';
 import { useCursorPagination } from '../hooks/useCursorPagination';
+import { downloadAccessLogsCsv } from '../utils/accessLogsCsv';
 import { formatDate } from '../utils/format';
 
 type AuditSearch = {
@@ -35,6 +38,8 @@ const adminKey = (admin: AdminUser) => admin.user_id;
 export default function AuditLogs() {
   const [userId, setUserId] = useState('');
   const [search, setSearch] = useState<AuditSearch | null>(null);
+  const [exportingUserId, setExportingUserId] = useState<string | null>(null);
+  const { showNotification } = useNotification();
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -50,6 +55,30 @@ export default function AuditLogs() {
     }
     setUserId(adminId);
     setSearch((current) => ({ key: (current?.key ?? 0) + 1, userId: adminId }));
+  };
+
+  const exportAdministrator = async (adminId: string) => {
+    if (exportingUserId) return;
+    setExportingUserId(adminId);
+    try {
+      const logs: DataAccessLog[] = [];
+      const cursors = new Set<string>();
+      let cursor: string | undefined;
+      while (true) {
+        const page = await getAccessLogs(adminId, cursor);
+        logs.push(...page.logs);
+        if (!page.next_cursor) break;
+        if (cursors.has(page.next_cursor)) throw new Error('La pagination du journal est incohérente. Réessayez.');
+        cursors.add(page.next_cursor);
+        cursor = page.next_cursor;
+      }
+      downloadAccessLogsCsv(adminId, logs);
+      showNotification(`${logs.length} entrée${logs.length === 1 ? '' : 's'} exportée${logs.length === 1 ? '' : 's'}.`, 'success');
+    } catch (reason) {
+      showNotification(errorMessage(reason), 'error');
+    } finally {
+      setExportingUserId(null);
+    }
   };
 
   return (
@@ -80,14 +109,20 @@ export default function AuditLogs() {
           Rechercher
         </Button>
       </Paper>
-      <AdministratorList role="superadmin" openUserId={search?.userId ?? null} onView={viewAdministrator} />
-      <AdministratorList role="admin" openUserId={search?.userId ?? null} onView={viewAdministrator} />
+      <AdministratorList role="superadmin" openUserId={search?.userId ?? null} exportingUserId={exportingUserId} onView={viewAdministrator} onExport={exportAdministrator} />
+      <AdministratorList role="admin" openUserId={search?.userId ?? null} exportingUserId={exportingUserId} onView={viewAdministrator} onExport={exportAdministrator} />
       {search && <AuditLogResults key={search.key} userId={search.userId} />}
     </>
   );
 }
 
-function AdministratorList({ role, openUserId, onView }: { role: Extract<UserRole, 'admin' | 'superadmin'>; openUserId: string | null; onView: (adminId: string) => void }) {
+function AdministratorList({ role, openUserId, exportingUserId, onView, onExport }: {
+  role: Extract<UserRole, 'admin' | 'superadmin'>;
+  openUserId: string | null;
+  exportingUserId: string | null;
+  onView: (adminId: string) => void;
+  onExport: (adminId: string) => void;
+}) {
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getUsers({ role, cursor }, signal);
     return { items: page.users, nextCursor: page.next_cursor };
@@ -99,7 +134,7 @@ function AdministratorList({ role, openUserId, onView }: { role: Extract<UserRol
     <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
     {!pagination.loading && !pagination.error && <>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>UUID</TableCell><TableCell>État</TableCell><TableCell align="right">Voir</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>UUID</TableCell><TableCell>État</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead>
         <TableBody>{pagination.items.map((admin) => {
           const open = openUserId?.toLowerCase() === admin.user_id.toLowerCase();
           return (
@@ -111,6 +146,11 @@ function AdministratorList({ role, openUserId, onView }: { role: Extract<UserRol
                 <Tooltip title={open ? 'Fermer le journal de ce compte' : 'Voir les accès à ce compte'}>
                   <IconButton aria-label={`${open ? 'Fermer' : 'Voir'} le journal de ${admin.firstname || admin.user_id}`} size="small" onClick={() => onView(admin.user_id)}>
                     {open ? <VisibilityOutlined fontSize="small" /> : <VisibilityOffOutlined fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Exporter les accès à ce compte en CSV">
+                  <IconButton aria-label={`Exporter le journal de ${admin.firstname || admin.user_id} en CSV`} size="small" disabled={exportingUserId !== null} onClick={() => void onExport(admin.user_id)}>
+                    <DownloadOutlined fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </TableCell>
