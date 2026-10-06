@@ -80,6 +80,8 @@ describe('administrative match and message pagination', () => {
     );
     renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id' });
 
+    await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Contrôle de pagination fictif');
+    await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
     expect(await screen.findByText(compactId(recentMatch.id))).toBeVisible();
     expect(screen.queryByText(compactId(olderMatch.id))).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Charger la suite' }));
@@ -90,7 +92,7 @@ describe('administrative match and message pagination', () => {
     const recentRow = screen.getByText(compactId(recentMatch.id)).closest('tr')!;
     await user.click(within(recentRow).getByRole('button', { name: 'Consulter' }));
     const accessDialog = await screen.findByRole('dialog', { name: 'Justifier l’accès à la conversation' });
-    await user.type(within(accessDialog).getByLabelText('Motif obligatoire'), 'Contrôle de pagination fictif');
+    await user.type(within(accessDialog).getByLabelText(/Motif obligatoire/), 'Contrôle de pagination fictif');
     await user.click(within(accessDialog).getByRole('button', { name: 'Ouvrir la conversation' }));
 
     await screen.findByText(recentMessage.content);

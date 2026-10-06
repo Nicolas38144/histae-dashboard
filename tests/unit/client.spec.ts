@@ -22,7 +22,7 @@ describe('HTTP client', () => {
     const denied = await api.get('/failure').catch((error: unknown) => error);
     const offline = await api.get('/offline').catch((error: unknown) => error);
 
-    expect(errorMessage(denied)).toBe('Action refusée.');
+    expect(errorMessage(denied)).toBe('La requête a échoué (denied).');
     expect(errorMessage(offline)).toBe('Le serveur est momentanément inaccessible.');
   });
 
@@ -30,7 +30,7 @@ describe('HTTP client', () => {
     const expired = vi.fn();
     window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, expired);
     server.use(
-      http.get(`${apiUrl}/admin/metrics`, () => HttpResponse.json({ error: { code: 'unauthorized', message: 'Session expirée.' } }, { status: 401 })),
+      http.get(`${apiUrl}/admin/metrics`, () => HttpResponse.json({ error: { code: 'admin_session_invalid', message: 'Session expirée.' } }, { status: 401 })),
       http.post(`${apiUrl}/admin/auth/login/options`, () => HttpResponse.json({ error: { code: 'unauthorized', message: 'Connexion refusée.' } }, { status: 401 })),
     );
 
@@ -38,6 +38,19 @@ describe('HTTP client', () => {
     expect(expired).toHaveBeenCalledOnce();
     await expect(api.post('/admin/auth/login/options')).rejects.toBeDefined();
     expect(expired).toHaveBeenCalledOnce();
+    window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, expired);
+  });
+
+  it('keeps the session on a recent-authentication 401', async () => {
+    const expired = vi.fn();
+    window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, expired);
+    server.use(http.post(`${apiUrl}/admin/outbox/test/retry`, () => HttpResponse.json({
+      error: { code: 'admin_reauthentication_required', message: 'A recent WebAuthn authentication is required.' },
+    }, { status: 401 })));
+
+    const error = await api.post('/admin/outbox/test/retry', { reason: 'Contrôle' }).catch((reason: unknown) => reason);
+    expect(expired).not.toHaveBeenCalled();
+    expect(errorMessage(error)).toBe('Reconnectez-vous avec votre passkey pour effectuer cette action.');
     window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, expired);
   });
 

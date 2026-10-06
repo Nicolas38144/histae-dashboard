@@ -1,6 +1,6 @@
 import { ArrowBack, BlockOutlined, CheckCircleOutline } from '@mui/icons-material';
-import { Avatar, Box, Button, Chip, Divider, Paper, Typography } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { Avatar, Box, Button, Chip, Divider, Paper, TextField, Typography } from '@mui/material';
+import { useCallback, useState, type FormEvent } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { getUser, setUserBanned } from '../api/admin';
 import { errorMessage } from '../api/client';
@@ -16,11 +16,31 @@ import { formatDate, formatDateOnly } from '../utils/format';
 
 export default function UserDetails() {
   const { id = '' } = useParams();
-  return <UserDetailsForId key={id} id={id} />;
+  return <UserDetailsAccess key={id} id={id} />;
 }
 
-function UserDetailsForId({ id }: { id: string }) {
-  const loadUser = useCallback(() => getUser(id), [id]);
+function UserDetailsAccess({ id }: { id: string }) {
+  const [reason, setReason] = useState('');
+  const [accessReason, setAccessReason] = useState<string | null>(null);
+  const authorize = (event: FormEvent) => {
+    event.preventDefault();
+    const value = reason.trim();
+    if (value.length >= 3 && value.length <= 500) setAccessReason(value);
+  };
+
+  if (accessReason) return <UserDetailsForId id={id} accessReason={accessReason} />;
+  return <>
+    <Button component={RouterLink} to="/users" startIcon={<ArrowBack />} sx={{ mb: 2 }}>Retour aux utilisateurs</Button>
+    <PageHeader title="Justifier la consultation" description="L’accès à ce dossier et à ses matchs sera audité avec votre motif." />
+    <Paper component="form" onSubmit={authorize} variant="outlined" sx={{ p: 3, maxWidth: 640 }}>
+      <TextField fullWidth multiline minRows={2} label="Motif d’accès (3 à 500 caractères)" value={reason} onChange={(event) => setReason(event.target.value)} inputProps={{ maxLength: 500 }} />
+      <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={reason.trim().length < 3}>Consulter le dossier</Button>
+    </Paper>
+  </>;
+}
+
+function UserDetailsForId({ id, accessReason }: { id: string; accessReason: string }) {
+  const loadUser = useCallback(() => getUser(id, accessReason), [id, accessReason]);
   const userState = useAsyncData(loadUser);
   const [banOpen, setBanOpen] = useState(false);
   const [banReason, setBanReason] = useState('');
@@ -68,7 +88,7 @@ function UserDetailsForId({ id }: { id: string }) {
       {user && (
         <>
           <UserProfile user={user} />
-          <UserMatches userId={id} />
+          <UserMatches userId={id} profileReason={accessReason} />
         </>
       )}
       <ConfirmActionDialog
@@ -81,6 +101,8 @@ function UserDetailsForId({ id }: { id: string }) {
         onValueChange={setBanReason}
         valueLabel={user?.is_banned ? undefined : 'Motif obligatoire'}
         requireValue={!user?.is_banned}
+        minValueLength={3}
+        maxValueLength={500}
         loading={banSaving}
         onCancel={() => setBanOpen(false)}
         onConfirm={() => void updateBan()}

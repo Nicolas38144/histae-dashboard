@@ -7,7 +7,7 @@ import {
 } from '@simplewebauthn/browser';
 import { notifyAdminSessionExpired } from '../auth/session';
 import { api } from './client';
-import type { AdminCredential, AdminSession } from './types';
+import type { AdminAuthEvent, AdminCredential, AdminSession, AdminSessionSummary, CursorResponse } from './types';
 
 type AuthenticationOptions = {
   challenge_id: string;
@@ -69,8 +69,26 @@ export async function getAdminCredentials(): Promise<AdminCredential[]> {
   return (await api.get<AdminCredential[]>('/admin/auth/credentials')).data;
 }
 
+export async function renameCredential(id: string, name: string): Promise<void> {
+  await api.patch(`/admin/auth/credentials/${id}`, { name: name.trim() });
+}
+
 export async function revokeCredential(id: string): Promise<void> {
   await api.delete(`/admin/auth/credentials/${id}`);
+}
+
+export async function getAdminSessions(): Promise<AdminSessionSummary[]> {
+  return (await api.get<AdminSessionSummary[]>('/admin/auth/sessions')).data;
+}
+
+export async function revokeAdminSession(id: string): Promise<void> {
+  await api.delete(`/admin/auth/sessions/${id}`);
+}
+
+export async function getAdminAuthEvents(cursor?: string, signal?: AbortSignal): Promise<CursorResponse<AdminAuthEvent, 'events'>> {
+  return (await api.get<CursorResponse<AdminAuthEvent, 'events'>>('/admin/auth/events', {
+    params: { limit: 50, cursor }, signal,
+  })).data;
 }
 
 export async function revokeOtherSessions(): Promise<number> {

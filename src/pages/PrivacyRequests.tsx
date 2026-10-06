@@ -15,7 +15,7 @@ import { formatDate } from '../utils/format';
 
 type NextStatus = Exclude<DataRequestStatus, 'pending'> | 'retry';
 type Action = { request: DataSubjectRequest; status: NextStatus };
-const steps = { stripe: 'Stripe', photos: 'Photos privées', scylla: 'Découverte Scylla', postgres: 'Anonymisation PostgreSQL', completed: 'Effacement terminé' };
+const steps = { stripe: 'Stripe', photos: 'Photos privées', swipes: 'Décisions de découverte', postgres: 'Anonymisation PostgreSQL', completed: 'Effacement terminé' };
 const requestKey = (request: DataSubjectRequest) => request.id;
 
 export default function PrivacyRequests() {
@@ -47,7 +47,7 @@ export default function PrivacyRequests() {
         await updateDataRequest(action.request.id, action.status, notes);
       }
       showNotification(action.status === 'completed' && action.request.type === 'erasure'
-        ? 'Effacement enregistré. Le compte est désactivé ; le traitement se poursuit en arrière-plan.'
+        ? 'Effacement programmé. La demande reste en cours jusqu’à la fin du traitement.'
         : action.status === 'retry' ? 'Reprise mise en file.' : 'Demande RGPD mise à jour.', 'success');
       close(); pagination.reload();
     } catch (reason) { showNotification(errorMessage(reason), 'error'); }
@@ -79,7 +79,7 @@ export default function PrivacyRequests() {
           </Box></TableCell>
         </TableRow>)}{!pagination.items.length && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5 }}>Aucune demande dans cette file.</TableCell></TableRow>}</TableBody>
       </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></Paper>}
-      <ConfirmActionDialog open={Boolean(action)} title={dialogTitle(action)} description={dialogDescription(action)} confirmLabel="Confirmer" danger={action?.status === 'rejected' || (action?.status === 'completed' && action.request.type === 'erasure')} value={notes} onValueChange={setNotes} valueLabel={action?.status === 'retry' ? 'Motif de reprise (3 à 500 caractères)' : 'Notes de traitement'} requireValue={action?.status === 'rejected' || action?.status === 'retry'} loading={saving} onCancel={close} onConfirm={() => void update()} />
+      <ConfirmActionDialog open={Boolean(action)} title={dialogTitle(action)} description={dialogDescription(action)} confirmLabel="Confirmer" danger={action?.status === 'rejected' || (action?.status === 'completed' && action.request.type === 'erasure')} value={notes} onValueChange={setNotes} valueLabel={action?.status === 'retry' ? 'Motif de reprise (3 à 500 caractères)' : 'Notes de traitement'} requireValue={action?.status === 'rejected' || action?.status === 'retry'} minValueLength={action?.status === 'retry' ? 3 : 1} maxValueLength={action?.status === 'retry' ? 500 : 2000} loading={saving} onCancel={close} onConfirm={() => void update()} />
     </>
   );
 }
@@ -88,7 +88,7 @@ function ErasureProgress({ request }: { request: DataSubjectRequest }) {
   const erasure = request.erasure;
   if (!erasure) return null;
   return <Box sx={{ mt: 1 }}>
-    <Typography variant="body2">{steps[erasure.step]}{erasure.step === 'scylla' ? ' (' + erasure.scylla_partition + '/64 partitions)' : ''}</Typography>
+    <Typography variant="body2">{steps[erasure.step]}</Typography>
     <Typography variant="caption">{erasure.status === 'dead_letter' ? 'Intervention nécessaire' : erasure.status === 'processing' ? 'Traitement en cours' : erasure.step === 'completed' ? 'Terminé' : 'En attente de reprise'} · {erasure.attempts} tentative(s)</Typography>
     <Typography variant="caption" display="block">Dernière progression : {formatDate(erasure.updated_at)}</Typography>
     {erasure.last_error_code && <Typography variant="caption" color="error" display="block">{erasure.last_error_code}</Typography>}
@@ -105,6 +105,6 @@ function dialogTitle(action: Action | null): string {
 
 function dialogDescription(action: Action | null): string {
   if (action?.status === 'retry') return 'Vérifiez que la cause de l’échec est résolue. La reprise conserve la progression, exige un motif et sera auditée ; elle ne réactive pas le compte.';
-  if (action?.status === 'completed' && action.request.type === 'erasure') return 'Le compte sera immédiatement désactivé. Stripe, les photos, Scylla puis PostgreSQL seront traités en arrière-plan. La demande ne sera terminée qu’après leur réussite. Cette action est irréversible.';
+  if (action?.status === 'completed' && action.request.type === 'erasure') return 'Le workflow d’effacement sera programmé. Stripe, les photos, les décisions de découverte puis PostgreSQL seront traités en arrière-plan. La demande ne sera terminée qu’après leur réussite. Cette action est irréversible.';
   return 'La transition et l’administrateur responsable seront inscrits au journal de conformité.';
 }

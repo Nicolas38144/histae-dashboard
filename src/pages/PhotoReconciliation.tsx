@@ -92,7 +92,7 @@ export default function PhotoReconciliation() {
     setSaving(true);
     try {
       await retryPhotoReconciliation(selected.photo_id, reason.trim());
-      showNotification('La photo a été remise dans la file de suppression.', 'success');
+      showNotification('La réconciliation de la photo a été programmée.', 'success');
       setSelected(null);
       setReason('');
       reloadAll();
@@ -142,12 +142,14 @@ export default function PhotoReconciliation() {
       <ConfirmActionDialog
         open={Boolean(selected)}
         title="Réconcilier cette photo ?"
-        description="La photo sera rendue invisible si nécessaire puis sa suppression sera remise en file. L’action et son motif seront journalisés."
+        description="L’API relancera le traitement adapté à l’état de cette photo. L’action et son motif seront journalisés."
         confirmLabel="Remettre en file"
         value={reason}
         onValueChange={setReason}
         valueLabel="Motif opérationnel"
         requireValue
+        minValueLength={3}
+        maxValueLength={500}
         loading={saving}
         onCancel={() => { setSelected(null); setReason(''); }}
         onConfirm={() => void reconcile()}

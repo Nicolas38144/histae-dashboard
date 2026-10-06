@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import {
   deleteProfileQuestion,
+  getUser,
   getMatchMessages,
   getModerationCases,
   getPhotoReconciliation,
@@ -15,7 +16,7 @@ import {
   updateDataRequest,
   updateReport,
 } from '../../src/api/admin';
-import { fixtureIds, moderationDetail, photoReconciliation, report } from '../fixtures';
+import { adminUser, fixtureIds, moderationDetail, photoReconciliation, report } from '../fixtures';
 import { server } from '../mocks/server';
 
 const apiUrl = 'http://localhost/api';
@@ -80,6 +81,24 @@ describe('critical administration mutations', () => {
     });
   });
 
+  it('sends the administrator-entered reason for both audited user reads', async () => {
+    const reasons: string[] = [];
+    server.use(
+      http.get(`${apiUrl}/admin/users/${fixtureIds.user}`, ({ request }) => {
+        reasons.push(new URL(request.url).searchParams.get('reason') ?? '');
+        return HttpResponse.json(adminUser);
+      }),
+      http.get(`${apiUrl}/matches/${fixtureIds.user}`, ({ request }) => {
+        reasons.push(new URL(request.url).searchParams.get('reason') ?? '');
+        return HttpResponse.json({ matches: [], next_cursor: null });
+      }),
+    );
+
+    await getUser(fixtureIds.user, 'Examen du compte signalé');
+    await getUserMatches(fixtureIds.user, 'Examen du compte signalé');
+    expect(reasons).toEqual(['Examen du compte signalé', 'Examen du compte signalé']);
+  });
+
   it('forwards opaque cursors and preserves server page order', async () => {
     const received: Array<{ path: string; cursor: string | null }> = [];
     const messagePage = [
@@ -134,7 +153,7 @@ describe('critical administration mutations', () => {
     await getReports('pending', 'reports-cursor', signal);
     await getModerationCases('pending', 'bio', 'moderation-cursor', signal);
     await getPhotoReconciliation('all', 'photos-cursor', signal);
-    await getUserMatches(fixtureIds.user, 'matches-cursor', signal);
+    await getUserMatches(fixtureIds.user, 'Contrôle administratif', 'matches-cursor', signal);
     const messages = await getMatchMessages(fixtureIds.event, 'Motif fictif', 'messages-cursor', signal);
 
     expect(received).toEqual([

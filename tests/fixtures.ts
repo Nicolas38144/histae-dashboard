@@ -149,7 +149,6 @@ export const erasureRequest: DataSubjectRequest = {
   notes: null,
   erasure: {
     step: 'photos',
-    scylla_partition: 0,
     updated_at: now,
     event_id: fixtureIds.event,
     status: 'dead_letter',
@@ -184,7 +183,7 @@ export const adminMetrics: AdminMetrics = {
     basis: 'premium_monthly_price',
   },
   operations: {
-    runtime: { uptime_seconds: 10, memory_rss_bytes: 1_000, heap_used_bytes: 500, event_loop_delay_p95_ms: 1 },
+    runtime: { runtime: 'rust', uptime_seconds: 10, memory_rss_bytes: 1_000 },
     postgres_pool: { total: 2, idle: 2, waiting: 0 },
     maintenance: [],
   },

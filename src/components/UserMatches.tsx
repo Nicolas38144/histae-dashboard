@@ -30,11 +30,11 @@ type ActiveConversation = {
 const matchKey = (match: Match) => match.id;
 const messageKey = (message: ChatMessage) => message.id;
 
-export function UserMatches({ userId }: { userId: string }) {
+export function UserMatches({ userId, profileReason }: { userId: string; profileReason: string }) {
   const loadMatchPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
-    const page = await getUserMatches(userId, cursor, signal);
+    const page = await getUserMatches(userId, profileReason, cursor, signal);
     return { items: page.matches, nextCursor: page.next_cursor };
-  }, [userId]);
+  }, [userId, profileReason]);
   const matches = useCursorPagination(loadMatchPage, matchKey);
   const [pendingMatch, setPendingMatch] = useState<Match | null>(null);
   const [accessReason, setAccessReason] = useState('');
@@ -65,7 +65,7 @@ export function UserMatches({ userId }: { userId: string }) {
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" fontWeight={750}>Matchs</Typography>
           <Typography variant="body2" color="text.secondary">
-            La consultation est inscrite au journal d’accès.
+            La consultation est inscrite au journal d’accès avec le motif saisi.
           </Typography>
         </Box>
         <AsyncState loading={matches.loading} error={matches.error} onRetry={matches.reload} />
@@ -123,8 +123,10 @@ export function UserMatches({ userId }: { userId: string }) {
         confirmLabel="Ouvrir la conversation"
         value={accessReason}
         onValueChange={setAccessReason}
-        valueLabel="Motif obligatoire"
+        valueLabel="Motif obligatoire (3 à 500 caractères)"
         requireValue
+        minValueLength={3}
+        maxValueLength={500}
         onCancel={closeConversation}
         onConfirm={authorizeConversation}
       />

@@ -18,6 +18,24 @@ export type AdminCredential = {
   current: boolean;
 };
 
+export type AdminSessionSummary = {
+  id: string;
+  credential_id: string;
+  credential_name: string;
+  authenticated_at: string;
+  last_seen_at: string;
+  expires_at: string;
+  current: boolean;
+};
+
+export type AdminAuthEvent = {
+  id: string;
+  event_type: string;
+  credential_id: string | null;
+  session_id: string | null;
+  created_at: string;
+};
+
 export type RevenuePeriod = 'last_7_days' | 'last_30_days' | 'month_to_date' | 'previous_month' | 'year_to_date' | 'all_time';
 
 export type AdminRevenue = {
@@ -48,10 +66,9 @@ export type MaintenanceJob = {
 
 export type AdminOperations = {
   runtime: {
+    runtime: 'rust';
     uptime_seconds: number;
     memory_rss_bytes: number;
-    heap_used_bytes: number;
-    event_loop_delay_p95_ms: number;
   };
   postgres_pool: { total: number; idle: number; waiting: number };
   maintenance: MaintenanceJob[];
@@ -172,24 +189,33 @@ export type AdminProfileQuestion = {
 };
 
 export type DataRequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
+export type DataRequestType = 'access' | 'erasure' | 'portability' | 'rectification' | 'restriction' | 'objection';
 export type DataSubjectRequest = {
   id: string;
   user_id: string;
-  type: string;
+  type: DataRequestType;
   status: DataRequestStatus;
   requested_at: string;
   completed_at: string | null;
   handled_by: string | null;
-  notes?: string | null;
-  erasure?: {
-    step: 'stripe' | 'photos' | 'scylla' | 'postgres' | 'completed';
-    scylla_partition: number;
+  notes: string | null;
+  erasure: {
+    step: 'stripe' | 'photos' | 'swipes' | 'postgres' | 'completed';
     updated_at: string;
     event_id: string | null;
     status: 'pending' | 'processing' | 'completed' | 'dead_letter' | 'discarded' | null;
     attempts: number;
     last_error_code: string | null;
   } | null;
+};
+
+export type OutboxDeadLetter = {
+  event_id: string;
+  event_type: string;
+  attempts: number;
+  last_error_code: string | null;
+  created_at: string;
+  dead_lettered_at: string;
 };
 
 export type DataAccessLog = {
@@ -217,7 +243,7 @@ export type Match = {
   id: string;
   user1_id: string;
   user2_id: string;
-  status: string;
+  status: 'active' | 'awaiting_continuation' | 'confirmed' | 'expired' | 'ended';
   expires_at: string;
   purge_after?: string;
   created_at: string;

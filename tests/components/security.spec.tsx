@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Security from '../../src/pages/Security';
 import { adminCredential } from '../fixtures';
@@ -80,5 +80,46 @@ describe('passkey management screen', () => {
     }));
     expect(webauthn.register).toHaveBeenCalledOnce();
     expect(await screen.findByText('La nouvelle passkey a été enregistrée.')).toBeVisible();
+  });
+
+  it('renames a passkey and revokes another session through the admin routes', async () => {
+    const user = userEvent.setup();
+    const sessionId = 'a0000000-0000-4000-8000-000000000001';
+    let renamed: unknown;
+    let revoked = 0;
+    server.use(
+      http.get(`${apiUrl}/admin/auth/credentials`, () => HttpResponse.json([adminCredential])),
+      http.get(`${apiUrl}/admin/auth/sessions`, () => HttpResponse.json([{
+        id: sessionId,
+        credential_id: adminCredential.id,
+        credential_name: adminCredential.name,
+        authenticated_at: adminCredential.created_at,
+        last_seen_at: adminCredential.created_at,
+        expires_at: adminCredential.created_at,
+        current: false,
+      }])),
+      http.get(`${apiUrl}/admin/auth/events`, () => HttpResponse.json({ events: [], next_cursor: null })),
+      http.patch(`${apiUrl}/admin/auth/credentials/${adminCredential.id}`, async ({ request }) => {
+        renamed = await request.json();
+        return HttpResponse.json({ message: 'administrator credential renamed' });
+      }),
+      http.delete(`${apiUrl}/admin/auth/sessions/${sessionId}`, () => {
+        revoked += 1;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderDashboard(<Security />);
+
+    await user.click(await screen.findByRole('button', { name: 'Renommer' }));
+    const name = screen.getByLabelText('Nom de la passkey');
+    await user.clear(name);
+    await user.type(name, 'Clé de secours');
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Renommer' }));
+    await waitFor(() => expect(renamed).toEqual({ name: 'Clé de secours' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Renommer cette passkey' })).not.toBeInTheDocument());
+
+    await user.click(screen.getAllByRole('button', { name: 'Révoquer' }).find((button) => !button.hasAttribute('disabled'))!);
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Révoquer' }));
+    await waitFor(() => expect(revoked).toBe(1));
   });
 });

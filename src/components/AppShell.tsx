@@ -15,6 +15,7 @@ import {
   FactCheckOutlined,
   AdminPanelSettingsOutlined,
   CreditScoreOutlined,
+  MarkunreadMailboxOutlined,
 } from '@mui/icons-material';
 import {
   AppBar, Box, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Tooltip, Typography,
@@ -37,6 +38,7 @@ const entries = [
   { path: '/plans', label: 'Plans', icon: <PriceChangeOutlined /> },
   { path: '/photo-reconciliation', label: 'Photos', icon: <SyncProblemOutlined /> },
   { path: '/billing-reconciliation', label: 'Stripe', icon: <CreditScoreOutlined /> },
+  { path: '/outbox-dead-letters', label: 'Outbox', icon: <MarkunreadMailboxOutlined /> },
   { path: '/audit-logs', label: 'Journal d’accès', icon: <SecurityOutlined /> },
   { path: '/security', label: 'Sécurité', icon: <AdminPanelSettingsOutlined /> },
 ];

@@ -120,6 +120,8 @@ export default function BillingReconciliation() {
         onValueChange={setReason}
         valueLabel="Motif opérationnel"
         requireValue
+        minValueLength={3}
+        maxValueLength={500}
         loading={saving}
         onCancel={() => { setSelected(null); setReason(''); }}
         onConfirm={() => void retry()}

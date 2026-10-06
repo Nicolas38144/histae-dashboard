@@ -27,6 +27,7 @@ import type {
   PhotoReviewChecks,
   BillingReconciliationItem,
   BillingReconciliationKindFilter,
+  OutboxDeadLetter,
 } from './types';
 
 export const getMetrics = async (): Promise<AdminMetrics> => (
@@ -96,9 +97,9 @@ export async function getUsers(filters: {
   })).data;
 }
 
-export async function getUser(userId: string): Promise<AdminUserDetail> {
+export async function getUser(userId: string, reason: string): Promise<AdminUserDetail> {
   return (await api.get<AdminUserDetail>(`/admin/users/${userId}`, {
-    params: { reason: 'Consultation administrative du profil depuis le dashboard' },
+    params: { reason },
   })).data;
 }
 
@@ -108,11 +109,12 @@ export async function setUserBanned(userId: string, isBanned: boolean, reason?: 
 
 export async function getUserMatches(
   userId: string,
+  reason: string,
   cursor?: string,
   signal?: AbortSignal,
 ): Promise<CursorResponse<Match, 'matches'>> {
   return (await api.get<CursorResponse<Match, 'matches'>>(`/matches/${userId}`, {
-    params: { limit: 100, cursor, reason: 'Consultation administrative des matchs depuis le dashboard' },
+    params: { limit: 100, cursor, reason },
     signal,
   })).data;
 }
@@ -209,6 +211,19 @@ export async function getBillingReconciliation(
 
 export async function retryOutboxEvent(eventId: string, reason: string): Promise<void> {
   await api.post(`/admin/outbox/${eventId}/retry`, { reason: reason.trim() });
+}
+
+export async function getOutboxDeadLetters(
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<CursorResponse<OutboxDeadLetter, 'events'>> {
+  return (await api.get<CursorResponse<OutboxDeadLetter, 'events'>>('/admin/outbox/dead-letters', {
+    params: { limit: 50, cursor }, signal,
+  })).data;
+}
+
+export async function discardOutboxEvent(eventId: string, reason: string): Promise<void> {
+  await api.post(`/admin/outbox/${eventId}/discard`, { reason: reason.trim() });
 }
 
 export async function updateDataRequest(id: string, status: Exclude<DataRequestStatus, 'pending'>, notes?: string): Promise<void> {

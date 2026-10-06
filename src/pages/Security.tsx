@@ -1,4 +1,4 @@
-import { AddOutlined, DevicesOutlined, KeyOutlined, LogoutOutlined } from '@mui/icons-material';
+import { AddOutlined, KeyOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -6,12 +6,11 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider,
   Stack,
   Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
-import { addCredential, getAdminCredentials, revokeCredential, revokeOtherSessions } from '../api/auth';
+import { addCredential, getAdminCredentials, renameCredential, revokeCredential } from '../api/auth';
 import { errorMessage } from '../api/client';
 import type { AdminCredential } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
@@ -20,6 +19,7 @@ import { useNotification } from '../components/notification-context';
 import { PageHeader } from '../components/PageHeader';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { formatDate } from '../utils/format';
+import { AdminSecurityHistory } from '../components/AdminSecurityHistory';
 
 export default function Security() {
   const loader = useCallback(() => getAdminCredentials(), []);
@@ -28,6 +28,8 @@ export default function Security() {
   const [adding, setAdding] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [revoking, setRevoking] = useState<AdminCredential | null>(null);
+  const [renaming, setRenaming] = useState<AdminCredential | null>(null);
+  const [renamedName, setRenamedName] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const { showNotification } = useNotification();
 
@@ -61,11 +63,14 @@ export default function Security() {
     }
   };
 
-  const revokeSessions = async () => {
+  const rename = async () => {
+    if (!renaming || !renamedName.trim()) return;
     setActionLoading(true);
     try {
-      const count = await revokeOtherSessions();
-      showNotification(`${count} autre${count === 1 ? '' : 's'} session${count === 1 ? '' : 's'} révoquée${count === 1 ? '' : 's'}.`, 'success');
+      await renameCredential(renaming.id, renamedName);
+      setRenaming(null);
+      showNotification('La passkey a été renommée.', 'success');
+      reload();
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
     } finally {
@@ -107,31 +112,18 @@ export default function Security() {
                       )}
                     </Box>
                   </Stack>
-                  <Button
-                    color="error"
-                    disabled={credential.current || (data?.length ?? 0) <= 1}
-                    onClick={() => setRevoking(credential)}
-                  >
-                    Révoquer
-                  </Button>
+                  <Stack direction="row" spacing={1}>
+                    <Button onClick={() => { setRenaming(credential); setRenamedName(credential.name); }}>Renommer</Button>
+                    <Button color="error" disabled={credential.current || (data?.length ?? 0) <= 1} onClick={() => setRevoking(credential)}>Révoquer</Button>
+                  </Stack>
                 </Stack>
               </CardContent>
             </Card>
           ))}
-          <Divider sx={{ my: 1 }} />
-          <Card variant="outlined">
-            <CardContent>
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={2}>
-                <Box>
-                  <Stack direction="row" spacing={1} alignItems="center"><DevicesOutlined /><Typography fontWeight={750}>Autres sessions</Typography></Stack>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Ferme toutes les sessions administrateur sauf celle utilisée actuellement.</Typography>
-                </Box>
-                <Button variant="outlined" startIcon={<LogoutOutlined />} disabled={actionLoading} onClick={revokeSessions}>Révoquer les autres sessions</Button>
-              </Stack>
-            </CardContent>
-          </Card>
         </Stack>
       )}
+
+      <AdminSecurityHistory />
 
       <ConfirmActionDialog
         open={addOpen}
@@ -142,9 +134,24 @@ export default function Security() {
         onValueChange={setNewName}
         valueLabel="Nom de la passkey"
         requireValue
+        maxValueLength={100}
         loading={adding}
         onCancel={() => setAddOpen(false)}
         onConfirm={add}
+      />
+      <ConfirmActionDialog
+        open={Boolean(renaming)}
+        title="Renommer cette passkey"
+        description="Le changement de nom sera audité et nécessite une authentification WebAuthn récente."
+        confirmLabel="Renommer"
+        value={renamedName}
+        onValueChange={setRenamedName}
+        valueLabel="Nom de la passkey"
+        requireValue
+        maxValueLength={100}
+        loading={actionLoading}
+        onCancel={() => setRenaming(null)}
+        onConfirm={() => void rename()}
       />
       <ConfirmActionDialog
         open={Boolean(revoking)}

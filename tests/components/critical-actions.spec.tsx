@@ -66,6 +66,8 @@ describe('critical dashboard actions', () => {
     );
     renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id' });
 
+    await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Examen du compte signalé');
+    await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
     await user.click(await screen.findByRole('button', { name: 'Bannir' }));
     const confirm = screen.getByRole('button', { name: 'Bannir' });
     expect(confirm).toBeDisabled();
@@ -84,7 +86,7 @@ describe('critical dashboard actions', () => {
       http.get(`${apiUrl}/admin/content-moderation/${fixtureIds.moderation}`, () => HttpResponse.json(moderationDetail)),
       http.patch(`${apiUrl}/admin/content-moderation/${fixtureIds.moderation}`, async ({ request }) => {
         submitted = await request.json();
-        return HttpResponse.json({ error: { code: 'moderation_version_conflict', message: 'Cette décision a déjà changé.' } }, { status: 409 });
+        return HttpResponse.json({ error: { code: 'moderation_case_stale', message: 'Cette décision a déjà changé.' } }, { status: 409 });
       }),
     );
     renderDashboard(<ContentModeration />);
@@ -98,7 +100,7 @@ describe('critical dashboard actions', () => {
     await user.type(within(reviewDialog).getByRole('textbox', { name: /Motif de la décision/ }), 'Contenu acceptable');
     await user.click(within(reviewDialog).getByRole('button', { name: 'Approuver' }));
 
-    expect(await screen.findByText('Cette décision a déjà changé.')).toBeVisible();
+    expect(await screen.findByText('Ce contenu a changé. Rechargez-le avant de décider.')).toBeVisible();
     expect(submitted).toEqual({ version: 3, decision: 'approved', reason: 'Contenu acceptable' });
   });
 
