@@ -1,0 +1,14 @@
+.git
+.agents
+.codex
+node_modules
+dist
+.pnpm-store
+.env
+.env.*
+playwright-report
+test-results
+coverage
+*.log
+*.tsbuildinfo
+deploy
