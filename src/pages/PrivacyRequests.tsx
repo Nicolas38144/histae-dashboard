@@ -1,8 +1,9 @@
 import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { getDataRequests, retryErasure, updateDataRequest } from '../api/admin';
 import { errorMessage } from '../api/client';
-import type { DataRequestStatus, DataSubjectRequest } from '../api/types';
+import type { AdminSession, DataRequestStatus, DataSubjectRequest } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
@@ -19,6 +20,7 @@ const steps = { stripe: 'Stripe', photos: 'Photos privées', swipes: 'Décisions
 const requestKey = (request: DataSubjectRequest) => request.id;
 
 export default function PrivacyRequests() {
+  const session = useOutletContext<AdminSession>();
   const [filter, setFilter] = useState<'' | DataRequestStatus>('');
   const [action, setAction] = useState<Action | null>(null);
   const [notes, setNotes] = useState('');
@@ -33,7 +35,7 @@ export default function PrivacyRequests() {
 
   const update = async () => {
     if (!action) return;
-    if (action.status === 'retry' && (notes.trim().length < 3 || notes.trim().length > 500)) {
+    if (session.role !== 'superadmin' && action.status === 'retry' && (notes.trim().length < 3 || notes.trim().length > 500)) {
       showNotification('Le motif de reprise doit contenir entre 3 et 500 caractères.', 'error');
       return;
     }
@@ -79,7 +81,24 @@ export default function PrivacyRequests() {
           </Box></TableCell>
         </TableRow>)}{!pagination.items.length && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5 }}>Aucune demande dans cette file.</TableCell></TableRow>}</TableBody>
       </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></Paper>}
-      <ConfirmActionDialog open={Boolean(action)} title={dialogTitle(action)} description={dialogDescription(action)} confirmLabel="Confirmer" danger={action?.status === 'rejected' || (action?.status === 'completed' && action.request.type === 'erasure')} value={notes} onValueChange={setNotes} valueLabel={action?.status === 'retry' ? 'Motif de reprise (3 à 500 caractères)' : 'Notes de traitement'} requireValue={action?.status === 'rejected' || action?.status === 'retry'} minValueLength={action?.status === 'retry' ? 3 : 1} maxValueLength={action?.status === 'retry' ? 500 : 2000} loading={saving} onCancel={close} onConfirm={() => void update()} />
+      <ConfirmActionDialog
+        open={Boolean(action)}
+        title={dialogTitle(action)}
+        description={dialogDescription(action)}
+        confirmLabel="Confirmer"
+        danger={action?.status === 'rejected' || (action?.status === 'completed' && action.request.type === 'erasure')}
+        value={notes}
+        onValueChange={setNotes}
+        valueLabel={session.role === 'superadmin'
+          ? undefined
+          : action?.status === 'retry' ? 'Motif de reprise (3 à 500 caractères)' : 'Notes de traitement'}
+        requireValue={session.role !== 'superadmin' && (action?.status === 'rejected' || action?.status === 'retry')}
+        minValueLength={action?.status === 'retry' ? 3 : 1}
+        maxValueLength={action?.status === 'retry' ? 500 : 2000}
+        loading={saving}
+        onCancel={close}
+        onConfirm={() => void update()}
+      />
     </>
   );
 }
@@ -104,7 +123,7 @@ function dialogTitle(action: Action | null): string {
 }
 
 function dialogDescription(action: Action | null): string {
-  if (action?.status === 'retry') return 'Vérifiez que la cause de l’échec est résolue. La reprise conserve la progression, exige un motif et sera auditée ; elle ne réactive pas le compte.';
+  if (action?.status === 'retry') return 'Vérifiez que la cause de l’échec est résolue. La reprise conserve la progression et sera auditée ; elle ne réactive pas le compte.';
   if (action?.status === 'completed' && action.request.type === 'erasure') return 'Le workflow d’effacement sera programmé. Stripe, les photos, les décisions de découverte puis PostgreSQL seront traités en arrière-plan. La demande ne sera terminée qu’après leur réussite. Cette action est irréversible.';
   return 'La transition et l’administrateur responsable seront inscrits au journal de conformité.';
 }

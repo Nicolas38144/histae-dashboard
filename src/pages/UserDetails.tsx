@@ -1,5 +1,5 @@
 import { ArrowBack, BlockOutlined, CheckCircleOutline } from '@mui/icons-material';
-import { Avatar, Box, Button, Chip, Divider, Paper, TextField, Typography } from '@mui/material';
+import { Avatar, Box, Button, Chip, Divider, Paper, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
 import { Link as RouterLink, useOutletContext, useParams } from 'react-router-dom';
 import { getUser, setUserBanned, setUserRole } from '../api/admin';
@@ -20,6 +20,7 @@ export default function UserDetails() {
 }
 
 function UserDetailsAccess({ id }: { id: string }) {
+  const session = useOutletContext<AdminSession>();
   const [reason, setReason] = useState('');
   const [accessReason, setAccessReason] = useState<string | null>(null);
   const authorize = (event: FormEvent) => {
@@ -28,7 +29,7 @@ function UserDetailsAccess({ id }: { id: string }) {
     if (value.length >= 3 && value.length <= 500) setAccessReason(value);
   };
 
-  if (accessReason) return <UserDetailsForId id={id} accessReason={accessReason} />;
+  if (session.role === 'superadmin' || accessReason) return <UserDetailsForId id={id} accessReason={accessReason || ''} />;
   return <>
     <Button component={RouterLink} to="/users" startIcon={<ArrowBack />} sx={{ mb: 2 }}>Retour aux utilisateurs</Button>
     <PageHeader title="Justifier la consultation" description="L’accès à ce dossier et à ses matchs sera audité avec votre motif." />
@@ -100,8 +101,8 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         Retour aux utilisateurs
       </Button>
       <PageHeader
-        title={user?.firstname || 'Profil utilisateur'}
-        description={id}
+        title={<Tooltip title={id}><span>{user?.firstname || 'Profil utilisateur'}</span></Tooltip>}
+        description="Dossier et activité du compte."
         actions={user && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {canChangeRole && <Button variant="outlined" onClick={() => setAction('role')}>
@@ -135,8 +136,8 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         danger={user?.role === 'admin'}
         value={reason}
         onValueChange={setReason}
-        valueLabel="Motif obligatoire (3 à 500 caractères)"
-        requireValue
+        valueLabel={session.role === 'superadmin' ? undefined : 'Motif obligatoire (3 à 500 caractères)'}
+        requireValue={session.role !== 'superadmin'}
         minValueLength={3}
         maxValueLength={500}
         loading={saving}
@@ -151,8 +152,8 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         danger={!user?.is_banned}
         value={reason}
         onValueChange={setReason}
-        valueLabel={user?.is_banned ? undefined : 'Motif obligatoire'}
-        requireValue={!user?.is_banned}
+        valueLabel={session.role === 'superadmin' || user?.is_banned ? undefined : 'Motif obligatoire'}
+        requireValue={session.role !== 'superadmin' && !user?.is_banned}
         minValueLength={3}
         maxValueLength={500}
         loading={saving}

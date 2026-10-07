@@ -11,8 +11,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { getMatchMessages, getUserMatches } from '../api/admin';
-import type { ChatMessage, Match } from '../api/types';
+import type { AdminSession, ChatMessage, Match } from '../api/types';
 import { useCursorPagination } from '../hooks/useCursorPagination';
 import { compactId, formatDate } from '../utils/format';
 import { prependUniqueBy } from '../utils/pagination';
@@ -31,6 +32,7 @@ const matchKey = (match: Match) => match.id;
 const messageKey = (message: ChatMessage) => message.id;
 
 export function UserMatches({ userId, profileReason }: { userId: string; profileReason: string }) {
+  const session = useOutletContext<AdminSession>();
   const loadMatchPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getUserMatches(userId, profileReason, cursor, signal);
     return { items: page.matches, nextCursor: page.next_cursor };
@@ -41,6 +43,10 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
   const [activeConversation, setActiveConversation] = useState<ActiveConversation | null>(null);
 
   const openConversation = (match: Match) => {
+    if (session.role === 'superadmin') {
+      setActiveConversation({ match, accessReason: '' });
+      return;
+    }
     setPendingMatch(match);
     setAccessReason('');
     setActiveConversation(null);
@@ -65,7 +71,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" fontWeight={750}>Matchs</Typography>
           <Typography variant="body2" color="text.secondary">
-            La consultation est inscrite au journal d’accès avec le motif saisi.
+            La consultation est inscrite au journal d’accès.
           </Typography>
         </Box>
         <AsyncState loading={matches.loading} error={matches.error} onRetry={matches.reload} />
@@ -116,7 +122,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
           onClose={closeConversation}
         />
       )}
-      <ConfirmActionDialog
+      {session.role !== 'superadmin' && <ConfirmActionDialog
         open={Boolean(pendingMatch)}
         title="Justifier l’accès à la conversation"
         description="Les deux participants verront cet accès représenté dans le journal de traçabilité."
@@ -129,7 +135,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
         maxValueLength={500}
         onCancel={closeConversation}
         onConfirm={authorizeConversation}
-      />
+      />}
     </>
   );
 }
@@ -173,7 +179,7 @@ function MatchConversation({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Box>
           <Typography variant="h6">Conversation {compactId(match.id)}</Typography>
-          <Typography variant="caption" color="text.secondary">Accès justifié et journalisé</Typography>
+          <Typography variant="caption" color="text.secondary">Accès journalisé</Typography>
         </Box>
         <Button onClick={onClose}>Fermer</Button>
       </Box>
@@ -200,7 +206,7 @@ function MatchConversation({
               >
                 <Paper sx={{ p: 1.5, maxWidth: '75%' }}>
                   <Typography variant="caption" color="text.secondary">
-                    {compactId(message.sender_id)} · {formatDate(message.created_at)}
+                    <UserLink id={message.sender_id} /> · {formatDate(message.created_at)}
                   </Typography>
                   <Typography sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                     {message.content}

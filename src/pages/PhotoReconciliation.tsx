@@ -24,6 +24,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import {
   getMetrics,
   getPhotoReconciliation,
@@ -31,6 +32,7 @@ import {
 } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type {
+  AdminSession,
   AdminMetrics,
   PhotoReconciliationFilter,
   PhotoReconciliationIssue,
@@ -67,6 +69,7 @@ const retryableIssues = new Set<PhotoReconciliationIssue>([
 const photoKey = (photo: PhotoReconciliationItem) => photo.photo_id;
 
 export default function PhotoReconciliation() {
+  const session = useOutletContext<AdminSession>();
   const [filter, setFilter] = useState<PhotoReconciliationFilter>('all');
   const [selected, setSelected] = useState<PhotoReconciliationItem | null>(null);
   const [reason, setReason] = useState('');
@@ -142,12 +145,12 @@ export default function PhotoReconciliation() {
       <ConfirmActionDialog
         open={Boolean(selected)}
         title="Réconcilier cette photo ?"
-        description="L’API relancera le traitement adapté à l’état de cette photo. L’action et son motif seront journalisés."
+        description="L’API relancera le traitement adapté à l’état de cette photo. L’action sera journalisée."
         confirmLabel="Remettre en file"
         value={reason}
         onValueChange={setReason}
-        valueLabel="Motif opérationnel"
-        requireValue
+        valueLabel={session.role === 'superadmin' ? undefined : 'Motif opérationnel'}
+        requireValue={session.role !== 'superadmin'}
         minValueLength={3}
         maxValueLength={500}
         loading={saving}

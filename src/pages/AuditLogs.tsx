@@ -134,13 +134,12 @@ function AdministratorList({ role, openUserId, exportingUserId, onView, onExport
     <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
     {!pagination.loading && !pagination.error && <>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>UUID</TableCell><TableCell>État</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>État</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead>
         <TableBody>{pagination.items.map((admin) => {
           const open = openUserId?.toLowerCase() === admin.user_id.toLowerCase();
           return (
             <TableRow key={admin.user_id}>
-              <TableCell>{admin.firstname || 'Nom non renseigné'}</TableCell>
-              <TableCell>{admin.user_id}</TableCell>
+              <TableCell><UserLink id={admin.user_id} label={admin.firstname} /></TableCell>
               <TableCell>{admin.is_banned ? 'Banni' : 'Actif'}</TableCell>
               <TableCell align="right">
                 <Tooltip title={open ? 'Fermer le journal de ce compte' : 'Voir les accès à ce compte'}>
@@ -157,7 +156,7 @@ function AdministratorList({ role, openUserId, exportingUserId, onView, onExport
             </TableRow>
           );
         })}
-          {!pagination.items.length && <TableRow><TableCell colSpan={4}>Aucun compte dans ce rôle.</TableCell></TableRow>}
+          {!pagination.items.length && <TableRow><TableCell colSpan={3}>Aucun compte dans ce rôle.</TableCell></TableRow>}
         </TableBody>
       </Table>
       <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />

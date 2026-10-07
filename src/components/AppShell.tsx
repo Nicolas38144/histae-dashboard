@@ -26,6 +26,7 @@ import { logout } from '../api/auth';
 import { errorMessage } from '../api/client';
 import type { AdminSession } from '../api/types';
 import { useNotification } from './notification-context';
+import { clearUserNames } from '../utils/userNames';
 
 const width = 250;
 const entries = [
@@ -54,6 +55,7 @@ export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleM
   const signOut = async () => {
     try {
       await logout();
+      clearUserNames();
       navigate('/login', { replace: true });
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');

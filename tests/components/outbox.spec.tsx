@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import OutboxDeadLetters from '../../src/pages/OutboxDeadLetters';
+import { adminSession } from '../fixtures';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
 
@@ -27,7 +28,7 @@ describe('dead-letter operations', () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    renderDashboard(<OutboxDeadLetters />);
+    renderDashboard(<OutboxDeadLetters />, { session: { ...adminSession, role: 'admin' } });
 
     const discardButtons = await screen.findAllByRole('button', { name: 'Abandonner' });
     expect(discardButtons).toHaveLength(2);

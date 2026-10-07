@@ -65,7 +65,7 @@ describe('critical dashboard actions', () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
+    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: { ...adminSession, role: 'admin' } });
 
     await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Examen du compte signalé');
     await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
@@ -87,27 +87,25 @@ describe('critical dashboard actions', () => {
       http.get(`${apiUrl}/admin/users/${fixtureIds.user}`, () => HttpResponse.json({ ...adminUser, role })),
       http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [], next_cursor: null })),
       http.patch(`${apiUrl}/admin/users/${fixtureIds.user}/role`, async ({ request }) => {
-        const body = await request.json() as { role: 'user' | 'admin'; reason: string };
+        const body = await request.json() as { role: 'user' | 'admin'; reason?: string };
         changes.push(body);
         role = body.role;
         return HttpResponse.json({ message: 'role updated' });
       }),
     );
     renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
-    await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Gestion des droits administrateur');
-    await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
     await user.click(await screen.findByRole('button', { name: 'Promouvoir admin' }));
     const promotion = screen.getByRole('dialog', { name: 'Promouvoir administrateur ?' });
-    await user.type(within(promotion).getByLabelText('Motif obligatoire (3 à 500 caractères)'), 'Nomination justifiée');
+    expect(within(promotion).queryByRole('textbox')).not.toBeInTheDocument();
     await user.click(within(promotion).getByRole('button', { name: 'Promouvoir' }));
-    await waitFor(() => expect(changes).toEqual([{ role: 'admin', reason: 'Nomination justifiée' }]));
+    await waitFor(() => expect(changes).toEqual([{ role: 'admin' }]));
     await user.click(await screen.findByRole('button', { name: 'Retirer les droits admin' }));
     const removal = screen.getByRole('dialog', { name: 'Retirer les droits administrateur ?' });
-    await user.type(within(removal).getByLabelText('Motif obligatoire (3 à 500 caractères)'), 'Fin de mission');
+    expect(within(removal).queryByRole('textbox')).not.toBeInTheDocument();
     await user.click(within(removal).getByRole('button', { name: 'Retirer les droits' }));
     await waitFor(() => expect(changes).toEqual([
-      { role: 'admin', reason: 'Nomination justifiée' },
-      { role: 'user', reason: 'Fin de mission' },
+      { role: 'admin' },
+      { role: 'user' },
     ]));
   });
 
@@ -138,19 +136,16 @@ describe('critical dashboard actions', () => {
     renderDashboard(<ContentModeration />);
 
     await user.click(await screen.findByRole('button', { name: 'Examiner' }));
-    const accessDialog = await screen.findByRole('dialog', { name: 'Justifier l’accès au contenu' });
-    await user.type(within(accessDialog).getByRole('textbox', { name: /Motif de consultation/ }), 'Vérification manuelle');
-    await user.click(within(accessDialog).getByRole('button', { name: 'Ouvrir le contenu' }));
     expect(await screen.findByText(moderationDetail.content!)).toBeVisible();
     const reviewDialog = await screen.findByRole('dialog', { name: 'Examiner : Bio' });
-    await user.type(within(reviewDialog).getByRole('textbox', { name: /Motif de la décision/ }), 'Contenu acceptable');
+    expect(within(reviewDialog).queryByRole('textbox', { name: /Motif de la décision/ })).not.toBeInTheDocument();
     await user.click(within(reviewDialog).getByRole('button', { name: 'Approuver' }));
 
     expect(await screen.findByText('Ce contenu a changé. Rechargez-le avant de décider.')).toBeVisible();
-    expect(submitted).toEqual({ version: 3, decision: 'approved', reason: 'Contenu acceptable' });
+    expect(submitted).toEqual({ version: 3, decision: 'approved' });
   });
 
-  it('retries photo and Stripe dead letters only after an explicit reason', async () => {
+  it('retries photo and Stripe dead letters without a reason for the superadmin', async () => {
     const user = userEvent.setup();
     const retries: Array<{ path: string; body: unknown }> = [];
     server.use(
@@ -164,7 +159,7 @@ describe('critical dashboard actions', () => {
     const photoView = renderDashboard(<PhotoReconciliation />);
     await user.click(await screen.findByRole('button', { name: 'Réconcilier' }));
     const photoDialog = await screen.findByRole('dialog', { name: 'Réconcilier cette photo ?' });
-    await user.type(within(photoDialog).getByLabelText('Motif opérationnel'), 'Stockage de nouveau disponible');
+    expect(within(photoDialog).queryByRole('textbox')).not.toBeInTheDocument();
     await user.click(within(photoDialog).getByRole('button', { name: 'Remettre en file' }));
     await waitFor(() => expect(retries).toHaveLength(1));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -180,14 +175,12 @@ describe('critical dashboard actions', () => {
     renderDashboard(<BillingReconciliation />);
     await user.click(await screen.findByRole('button', { name: 'Revérifier' }));
     const billingDialog = await screen.findByRole('dialog', { name: 'Revérifier cette anomalie Stripe ?' });
-    const billingReason = within(billingDialog).getByLabelText('Motif opérationnel');
-    await user.clear(billingReason);
-    await user.type(billingReason, 'Anomalie Stripe examinée');
+    expect(within(billingDialog).queryByRole('textbox')).not.toBeInTheDocument();
     await user.click(within(billingDialog).getByRole('button', { name: 'Remettre en file' }));
 
     await waitFor(() => expect(retries).toEqual([
-      { path: `/api/admin/photo-reconciliation/${fixtureIds.photo}/retry`, body: { reason: 'Stockage de nouveau disponible' } },
-      { path: `/api/admin/outbox/${fixtureIds.event}/retry`, body: { reason: 'Anomalie Stripe examinée' } },
+      { path: `/api/admin/photo-reconciliation/${fixtureIds.photo}/retry`, body: {} },
+      { path: `/api/admin/outbox/${fixtureIds.event}/retry`, body: {} },
     ]));
   });
 
@@ -206,12 +199,10 @@ describe('critical dashboard actions', () => {
     await user.click(await screen.findByRole('button', { name: 'Reprendre' }));
     expect(screen.getByText(/elle ne réactive pas le compte/)).toBeVisible();
     const retryDialog = await screen.findByRole('dialog', { name: 'Reprendre cet effacement ?' });
-    const retryReason = within(retryDialog).getByLabelText('Motif de reprise (3 à 500 caractères)');
-    await user.clear(retryReason);
-    await user.type(retryReason, 'Incident de stockage résolu');
+    expect(within(retryDialog).queryByRole('textbox')).not.toBeInTheDocument();
     await user.click(within(retryDialog).getByRole('button', { name: 'Confirmer' }));
 
-    await waitFor(() => expect(retryBody).toEqual({ reason: 'Incident de stockage résolu' }));
+    await waitFor(() => expect(retryBody).toEqual({}));
     expect(await screen.findByText('Reprise mise en file.')).toBeVisible();
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });

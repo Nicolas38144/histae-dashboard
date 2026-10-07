@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ChatMessage, Match } from '../../src/api/types';
 import UserDetails from '../../src/pages/UserDetails';
@@ -80,8 +80,6 @@ describe('administrative match and message pagination', () => {
     );
     renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
 
-    await user.type(screen.getByLabelText('Motif d’accès (3 à 500 caractères)'), 'Contrôle de pagination fictif');
-    await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
     expect(await screen.findByText(compactId(recentMatch.id))).toBeVisible();
     expect(screen.queryByText(compactId(olderMatch.id))).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Charger la suite' }));
@@ -91,12 +89,8 @@ describe('administrative match and message pagination', () => {
 
     const recentRow = screen.getByText(compactId(recentMatch.id)).closest('tr')!;
     await user.click(within(recentRow).getByRole('button', { name: 'Consulter' }));
-    const accessDialog = await screen.findByRole('dialog', { name: 'Justifier l’accès à la conversation' });
-    await user.type(within(accessDialog).getByLabelText(/Motif obligatoire/), 'Contrôle de pagination fictif');
-    await user.click(within(accessDialog).getByRole('button', { name: 'Ouvrir la conversation' }));
-
     await screen.findByText(recentMessage.content);
-    await waitForElementToBeRemoved(accessDialog);
+    expect(screen.queryByRole('dialog', { name: 'Justifier l’accès à la conversation' })).not.toBeInTheDocument();
     expectDocumentOrder([middleMessage.content, recentMessage.content]);
     await user.click(screen.getByRole('button', { name: 'Charger les messages précédents' }));
     await screen.findByText(oldestMessage.content);
@@ -104,8 +98,8 @@ describe('administrative match and message pagination', () => {
     expect(screen.getAllByText(middleMessage.content)).toHaveLength(1);
     expect(screen.queryByRole('button', { name: 'Charger les messages précédents' })).not.toBeInTheDocument();
     await waitFor(() => expect(messageQueries).toEqual([
-      { cursor: null, reason: 'Contrôle de pagination fictif' },
-      { cursor: 'message-page-2', reason: 'Contrôle de pagination fictif' },
+      { cursor: null, reason: null },
+      { cursor: 'message-page-2', reason: null },
     ]));
   });
 });

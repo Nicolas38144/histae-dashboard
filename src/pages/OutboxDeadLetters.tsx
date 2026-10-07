@@ -1,8 +1,9 @@
 import { Alert, Box, Button, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { discardOutboxEvent, getOutboxDeadLetters, retryOutboxEvent } from '../api/admin';
 import { errorMessage } from '../api/client';
-import type { OutboxDeadLetter } from '../api/types';
+import type { AdminSession, OutboxDeadLetter } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
@@ -15,6 +16,7 @@ type Action = { event: OutboxDeadLetter; kind: 'retry' | 'discard' };
 const eventKey = (event: OutboxDeadLetter) => event.event_id;
 
 export default function OutboxDeadLetters() {
+  const session = useOutletContext<AdminSession>();
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getOutboxDeadLetters(cursor, signal);
     return { items: page.events, nextCursor: page.next_cursor };
@@ -29,7 +31,7 @@ export default function OutboxDeadLetters() {
   const resolve = async () => {
     if (!action) return;
     const trimmed = reason.trim();
-    if (trimmed.length < 3 || trimmed.length > 500) {
+    if (session.role !== 'superadmin' && (trimmed.length < 3 || trimmed.length > 500)) {
       showNotification('Le motif doit contenir entre 3 et 500 caractères.', 'error');
       return;
     }
@@ -82,8 +84,8 @@ export default function OutboxDeadLetters() {
       danger={action?.kind === 'discard'}
       value={reason}
       onValueChange={setReason}
-      valueLabel="Motif opérationnel (3 à 500 caractères)"
-      requireValue
+      valueLabel={session.role === 'superadmin' ? undefined : 'Motif opérationnel (3 à 500 caractères)'}
+      requireValue={session.role !== 'superadmin'}
       minValueLength={3}
       maxValueLength={500}
       loading={saving}

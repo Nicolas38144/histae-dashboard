@@ -14,10 +14,12 @@ import {
   TableRow,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 
 import { getBillingReconciliation, retryOutboxEvent } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type {
+  AdminSession,
   BillingReconciliationItem,
   BillingReconciliationKind,
   BillingReconciliationKindFilter,
@@ -51,6 +53,7 @@ const errorLabels: Record<string, string> = {
 const eventKey = (event: BillingReconciliationItem) => event.event_id;
 
 export default function BillingReconciliation() {
+  const session = useOutletContext<AdminSession>();
   const [kind, setKind] = useState<BillingReconciliationKindFilter>('all');
   const [selected, setSelected] = useState<BillingReconciliationItem | null>(null);
   const [reason, setReason] = useState('');
@@ -114,12 +117,12 @@ export default function BillingReconciliation() {
       <ConfirmActionDialog
         open={Boolean(selected)}
         title="Revérifier cette anomalie Stripe ?"
-        description="L’API relira l’état chez Stripe puis appliquera uniquement une projection plus récente. Une authentification WebAuthn récente, ce motif et l’identité de l’opérateur seront contrôlés et audités."
+        description="L’API relira l’état chez Stripe puis appliquera uniquement une projection plus récente. Une authentification WebAuthn récente et l’identité de l’opérateur seront contrôlées et auditées."
         confirmLabel="Remettre en file"
         value={reason}
         onValueChange={setReason}
-        valueLabel="Motif opérationnel"
-        requireValue
+        valueLabel={session.role === 'superadmin' ? undefined : 'Motif opérationnel'}
+        requireValue={session.role !== 'superadmin'}
         minValueLength={3}
         maxValueLength={500}
         loading={saving}

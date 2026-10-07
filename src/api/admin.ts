@@ -61,28 +61,28 @@ export async function getModerationCases(
   })).data;
 }
 
-export async function getModerationDetail(caseId: string, reason: string): Promise<ModerationDetail> {
+export async function getModerationDetail(caseId: string, reason?: string): Promise<ModerationDetail> {
   return (await api.get<ModerationDetail>(`/admin/content-moderation/${caseId}`, {
-    params: { reason },
+    params: { reason: reason || undefined },
   })).data;
 }
 
 export async function reviewModerationCase(
   moderation: ModerationDetail,
   decision: 'approved' | 'rejected',
-  reason: string,
+  reason?: string,
   photoChecks?: PhotoReviewChecks,
 ): Promise<void> {
   await api.patch(`/admin/content-moderation/${moderation.case_id}`, {
     version: moderation.version,
     decision,
-    reason,
+    ...(reason ? { reason } : {}),
     ...(photoChecks ? { photo_checks: photoChecks } : {}),
   });
 }
 
-export async function retryPhotoReconciliation(photoId: string, reason: string): Promise<void> {
-  await api.post(`/admin/photo-reconciliation/${photoId}/retry`, { reason });
+export async function retryPhotoReconciliation(photoId: string, reason?: string): Promise<void> {
+  await api.post(`/admin/photo-reconciliation/${photoId}/retry`, reason ? { reason } : {});
 }
 
 export async function getUsers(filters: {
@@ -97,40 +97,46 @@ export async function getUsers(filters: {
   })).data;
 }
 
-export async function getUser(userId: string, reason: string): Promise<AdminUserDetail> {
+export async function getUserNames(ids: string[]): Promise<Array<{ user_id: string; firstname: string | null }>> {
+  return (await api.get<{ users: Array<{ user_id: string; firstname: string | null }> }>('/admin/user-names', {
+    params: { ids: ids.join(',') },
+  })).data.users;
+}
+
+export async function getUser(userId: string, reason?: string): Promise<AdminUserDetail> {
   return (await api.get<AdminUserDetail>(`/admin/users/${userId}`, {
-    params: { reason },
+    params: { reason: reason || undefined },
   })).data;
 }
 
 export async function setUserBanned(userId: string, isBanned: boolean, reason?: string): Promise<void> {
-  await api.patch(`/admin/users/${userId}/status`, { is_banned: isBanned, reason: reason || null });
+  await api.patch(`/admin/users/${userId}/status`, { is_banned: isBanned, ...(reason?.trim() ? { reason: reason.trim() } : {}) });
 }
 
-export async function setUserRole(userId: string, role: 'user' | 'admin', reason: string): Promise<void> {
-  await api.patch(`/admin/users/${userId}/role`, { role, reason: reason.trim() });
+export async function setUserRole(userId: string, role: 'user' | 'admin', reason?: string): Promise<void> {
+  await api.patch(`/admin/users/${userId}/role`, { role, ...(reason?.trim() ? { reason: reason.trim() } : {}) });
 }
 
 export async function getUserMatches(
   userId: string,
-  reason: string,
+  reason: string | undefined,
   cursor?: string,
   signal?: AbortSignal,
 ): Promise<CursorResponse<Match, 'matches'>> {
   return (await api.get<CursorResponse<Match, 'matches'>>(`/matches/${userId}`, {
-    params: { limit: 100, cursor, reason },
+    params: { limit: 100, cursor, reason: reason || undefined },
     signal,
   })).data;
 }
 
 export async function getMatchMessages(
   matchId: string,
-  reason: string,
+  reason: string | undefined,
   cursor?: string,
   signal?: AbortSignal,
 ): Promise<CursorResponse<ChatMessage, 'messages'>> {
   return (await api.get<CursorResponse<ChatMessage, 'messages'>>(`/admin/matches/${matchId}/messages`, {
-    params: { limit: 100, cursor, reason },
+    params: { limit: 100, cursor, reason: reason || undefined },
     signal,
   })).data;
 }
@@ -199,7 +205,7 @@ export async function getDataRequests(
   })).data;
 }
 
-export async function retryErasure(eventId: string, reason: string): Promise<void> {
+export async function retryErasure(eventId: string, reason?: string): Promise<void> {
   await retryOutboxEvent(eventId, reason);
 }
 
@@ -213,8 +219,8 @@ export async function getBillingReconciliation(
   })).data;
 }
 
-export async function retryOutboxEvent(eventId: string, reason: string): Promise<void> {
-  await api.post(`/admin/outbox/${eventId}/retry`, { reason: reason.trim() });
+export async function retryOutboxEvent(eventId: string, reason?: string): Promise<void> {
+  await api.post(`/admin/outbox/${eventId}/retry`, reason?.trim() ? { reason: reason.trim() } : {});
 }
 
 export async function getOutboxDeadLetters(
@@ -226,8 +232,8 @@ export async function getOutboxDeadLetters(
   })).data;
 }
 
-export async function discardOutboxEvent(eventId: string, reason: string): Promise<void> {
-  await api.post(`/admin/outbox/${eventId}/discard`, { reason: reason.trim() });
+export async function discardOutboxEvent(eventId: string, reason?: string): Promise<void> {
+  await api.post(`/admin/outbox/${eventId}/discard`, reason?.trim() ? { reason: reason.trim() } : {});
 }
 
 export async function updateDataRequest(id: string, status: Exclude<DataRequestStatus, 'pending'>, notes?: string): Promise<void> {

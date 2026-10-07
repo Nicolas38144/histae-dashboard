@@ -5,6 +5,7 @@ import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
 import type { AdminSession } from '../../src/api/types';
 import { NotifierProvider } from '../../src/components/Notifier';
 import { getTheme } from '../../src/theme';
+import { adminSession } from '../fixtures';
 
 type DashboardRenderOptions = Omit<RenderOptions, 'wrapper'> & {
   route?: string;
@@ -13,13 +14,13 @@ type DashboardRenderOptions = Omit<RenderOptions, 'wrapper'> & {
 };
 
 export function renderDashboard(ui: ReactElement, options: DashboardRenderOptions = {}) {
-  const { route = '/', routePath, session, ...renderOptions } = options;
+  const { route = '/', routePath, session = adminSession, ...renderOptions } = options;
   return render(
     <ThemeProvider theme={getTheme('light')}>
       <CssBaseline />
       <NotifierProvider>
         <MemoryRouter initialEntries={[route]}>
-          {routePath ? <Routes><Route element={<Outlet context={session} />}><Route path={routePath} element={ui} /></Route></Routes> : ui}
+          <Routes><Route element={<Outlet context={session} />}><Route path={routePath ?? route} element={ui} /></Route></Routes>
         </MemoryRouter>
       </NotifierProvider>
     </ThemeProvider>,

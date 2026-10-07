@@ -25,9 +25,11 @@ import {
   Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { getModerationCases, getModerationDetail, reviewModerationCase } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type {
+  AdminSession,
   ModerationCase,
   ModerationContentType,
   ModerationDetail,
@@ -71,6 +73,7 @@ const initialChecks: PhotoReviewChecks = {
 const moderationKey = (item: ModerationCase) => item.case_id;
 
 export default function ContentModeration() {
+  const session = useOutletContext<AdminSession>();
   const [statusFilter, setStatusFilter] = useState<'' | ModerationStatus>('pending');
   const [typeFilter, setTypeFilter] = useState<'' | ModerationContentType>('');
   const [selected, setSelected] = useState<ModerationCase | null>(null);
@@ -94,15 +97,18 @@ export default function ContentModeration() {
   const pagination = useCursorPagination(loadPage, moderationKey);
 
   const requestDetail = (item: ModerationCase) => {
+    if (session.role === 'superadmin') {
+      void openDetail(item, '');
+      return;
+    }
     setSelected(item);
     setAccessReason('');
   };
 
-  const openDetail = async () => {
-    if (!selected) return;
+  const openDetail = async (item: ModerationCase, accessReason: string) => {
     setDetailLoading(true);
     try {
-      const loaded = await getModerationDetail(selected.case_id, accessReason.trim());
+      const loaded = await getModerationDetail(item.case_id, accessReason.trim());
       setDetail(loaded);
       setChecks(loaded.content_type === 'photo' ? {
         face_detectable: loaded.face_detectable ?? false,
@@ -149,7 +155,7 @@ export default function ContentModeration() {
         <TableBody>
           {pagination.items.map((item) => <TableRow key={item.case_id} hover>
             <TableCell>{formatDate(item.updated_at)}</TableCell>
-            <TableCell><UserLink id={item.user_id} />{item.firstname && <Typography variant="caption" display="block">{item.firstname}</Typography>}</TableCell>
+            <TableCell><UserLink id={item.user_id} label={item.firstname} /></TableCell>
             <TableCell>{contentLabels[item.content_type]}</TableCell>
             <TableCell><ReasonChips reasons={item.reason_codes} /></TableCell>
             <TableCell><StatusChip value={item.status} /></TableCell>
@@ -158,19 +164,20 @@ export default function ContentModeration() {
           {!pagination.items.length && <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5 }}>Aucun contenu dans cette file.</TableCell></TableRow>}
         </TableBody>
       </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></TableContainer>}
-      <AccessReasonDialog
+      {session.role !== 'superadmin' && <AccessReasonDialog
         item={selected}
         reason={accessReason}
         loading={detailLoading}
         onReasonChange={setAccessReason}
         onClose={() => setSelected(null)}
-        onConfirm={() => void openDetail()}
-      />
+        onConfirm={() => { if (selected) void openDetail(selected, accessReason); }}
+      />}
       <ReviewDialog
         detail={detail}
         reason={reason}
         checks={checks}
         saving={saving}
+        superadmin={session.role === 'superadmin'}
         onReasonChange={setReason}
         onChecksChange={setChecks}
         onClose={() => setDetail(null)}
@@ -212,11 +219,12 @@ function AccessReasonDialog({ item, reason, loading, onReasonChange, onClose, on
   </Dialog>;
 }
 
-function ReviewDialog({ detail, reason, checks, saving, onReasonChange, onChecksChange, onClose, onReview }: {
+function ReviewDialog({ detail, reason, checks, saving, superadmin, onReasonChange, onChecksChange, onClose, onReview }: {
   detail: ModerationDetail | null;
   reason: string;
   checks: PhotoReviewChecks;
   saving: boolean;
+  superadmin: boolean;
   onReasonChange: (value: string) => void;
   onChecksChange: (value: PhotoReviewChecks) => void;
   onClose: () => void;
@@ -241,12 +249,12 @@ function ReviewDialog({ detail, reason, checks, saving, onReasonChange, onChecks
         </Stack>
       </>}
       {detail.status !== 'pending' && <Alert severity="info">Cette décision sera remplacée avec contrôle de version et restera auditée.</Alert>}
-      <TextField label="Motif de la décision" value={reason} onChange={(event) => onReasonChange(event.target.value)} multiline minRows={2} inputProps={{ maxLength: 500 }} required />
+      {!superadmin && <TextField label="Motif de la décision" value={reason} onChange={(event) => onReasonChange(event.target.value)} multiline minRows={2} inputProps={{ maxLength: 500 }} required />}
     </Stack></DialogContent>
     <DialogActions>
       <Button onClick={onClose} disabled={saving}>Annuler</Button>
-      <Button color="error" onClick={() => onReview('rejected')} disabled={saving || reason.trim().length < 3 || (photo && allChecks)}>Refuser</Button>
-      <Button variant="contained" onClick={() => onReview('approved')} disabled={saving || reason.trim().length < 3 || (photo && !allChecks)}>Approuver</Button>
+      <Button color="error" onClick={() => onReview('rejected')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && allChecks)}>Refuser</Button>
+      <Button variant="contained" onClick={() => onReview('approved')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && !allChecks)}>Approuver</Button>
     </DialogActions>
   </Dialog>;
 }
