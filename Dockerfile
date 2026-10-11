@@ -2,7 +2,9 @@ FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN if command -v corepack >/dev/null 2>&1; then corepack disable pnpm; fi \
+    && npm install --global "$(node -p "require('./package.json').packageManager")" \
+    && pnpm install --frozen-lockfile
 
 COPY . ./
 # Les fichiers .env locaux sont exclus du contexte Docker. Ces valeurs publiques

@@ -39,13 +39,18 @@ export NVM_DIR="$HOME/.nvm"
 nvm install 22
 nvm alias default 22
 
-corepack enable
-corepack prepare pnpm@11.22.0 --activate
+corepack disable pnpm
+npm install --global pnpm@12.11.2
 node --version
 pnpm --version
 ```
 
-Le résultat doit indiquer Node.js 22 ou plus récent et pnpm 11.22.0.
+Le résultat doit indiquer Node.js 22.13 ou plus récent et pnpm 12.11.2.
+pnpm 12 utilise un exécutable natif ; l'installation ci-dessus remplace le shim
+Corepack de pnpm lorsqu'il est présent.
+Sous Windows, si pnpm est installé dans `C:\Program Files\nodejs`, exécuter
+`corepack disable pnpm` puis `npm install --global pnpm@12.11.2` dans un terminal
+administrateur pour remplacer cette installation système.
 
 ## 2. Cloner et installer le dashboard
 
