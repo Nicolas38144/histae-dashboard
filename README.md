@@ -112,18 +112,20 @@ jamais le secret de session et ne le stocke ni dans `localStorage` ni dans `sess
 
 ## 5. Enregistrer la première passkey
 
-Après avoir attribué le rôle `admin` ou `superadmin` à un compte, exécuter depuis le dépôt `histae-api-rust`. Avec la
-pile Docker recommandée :
+Le compte doit déjà porter le rôle `admin` ou `superadmin`, être actif et non banni. Le
+[guide d’administration de l’API](../histae-api-rust/docs/administration.md) décrit l’initialisation du
+premier superadmin et la gestion des rôles. Depuis la racine de `histae-api-rust`, générer le jeton
+d’enrôlement avec le binaire Rust `admin-bootstrap`. Avec la pile Docker locale recommandée :
 
 ```bash
-docker compose --env-file .env -f compose.yaml -f compose.dev.yaml \
-  exec api pnpm run admin:webauthn:bootstrap -- <uuid-du-compte-admin>
+sudo docker compose --env-file .env -f compose.yaml -f compose.dev.yaml \
+  exec api /app/bin/admin-bootstrap <uuid-du-compte-admin>
 ```
 
 Si l’API tourne directement sur l’hôte :
 
 ```bash
-pnpm run admin:webauthn:bootstrap -- <uuid-du-compte-admin>
+cargo run --locked --bin admin-bootstrap -- <uuid-du-compte-admin>
 ```
 
 Saisir le jeton obtenu dans l’écran « Enregistrer la première passkey ». Ce jeton est un secret à usage unique :
