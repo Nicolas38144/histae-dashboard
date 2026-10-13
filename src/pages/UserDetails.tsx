@@ -1,3 +1,4 @@
+import { ContinuationCredits } from '../components/ContinuationCredits';
 import { ArrowBack, BlockOutlined, CheckCircleOutline } from '@mui/icons-material';
 import { Avatar, Box, Button, Chip, Divider, Paper, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
@@ -177,7 +178,8 @@ function UserProfile({ user }: { user: AdminUserDetail }) {
         </Box>
         <Divider sx={{ my: 2 }} />
         <Field label="Rôle" value={user.role} />
-        <Field label="Plan" value={user.plan} />
+        <Field label="Plan effectif" value={user.continuation_quota?.plan ?? user.plan} />
+        {user.continuation_quota && user.continuation_quota.plan !== user.plan && <Field label="Plan enregistré" value={user.plan} />}
         <Field label="Naissance" value={formatDateOnly(user.birthdate)} />
         <Field label="Sexe" value={user.sex || '—'} />
         <Field label="Création" value={formatDate(user.created_at)} />
@@ -192,6 +194,7 @@ function UserProfile({ user }: { user: AdminUserDetail }) {
         )}
       </Paper>
       <Box sx={{ display: 'grid', gap: 2 }}>
+        {user.continuation_quota && <ContinuationCredits quota={user.continuation_quota} />}
         <Paper variant="outlined" sx={{ p: 3 }}>
           <Typography variant="h6" fontWeight={750}>Préférences</Typography>
           {user.preferences ? (

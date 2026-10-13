@@ -1,7 +1,7 @@
 # Histae Dashboard
 
 Console React d’administration, de modération et d’exploitation de Histae. Le dashboard consomme le contrat HTTP
-de `histae-api` v3 ; l’API reste l’unique autorité pour les rôles, les autorisations, les transactions et l’audit.
+de `histae-api-rust` ; l’API reste l’unique autorité pour les rôles, les autorisations, les transactions et l’audit.
 
 Ce guide part d’une machine Debian neuve. Il couvre le développement local avec Vite et explique la construction de
 l’artefact statique. Il ne constitue pas à lui seul une procédure de mise en production : le domaine HTTPS, le
@@ -16,7 +16,7 @@ Avant de lancer le dashboard, disposer de :
 - un navigateur récent compatible WebAuthn ;
 - un navigateur ouvert sur exactement `http://localhost:5173` en développement.
 
-Le [README de l’API](../histae-api/README.md) décrit son installation complète sur Debian.
+Le [README de l’API](../histae-api-rust/README.md) décrit son installation complète sur Debian.
 
 ## 1. Préparer Debian
 
@@ -112,7 +112,7 @@ jamais le secret de session et ne le stocke ni dans `localStorage` ni dans `sess
 
 ## 5. Enregistrer la première passkey
 
-Après avoir attribué le rôle `admin` ou `superadmin` à un compte, exécuter depuis le dépôt `histae-api`. Avec la
+Après avoir attribué le rôle `admin` ou `superadmin` à un compte, exécuter depuis le dépôt `histae-api-rust`. Avec la
 pile Docker recommandée :
 
 ```bash
@@ -228,7 +228,22 @@ validation fait partie de [roadmap.md](roadmap.md).
 | [test.md](test.md) | stratégie, commandes et isolation des tests |
 | [SECURITY.md](SECURITY.md) | modèle de confiance et checklist de déploiement |
 | [roadmap.md](roadmap.md) | travaux encore ouverts |
-| [`histae-api/routes.md`](../histae-api/routes.md) | contrat HTTP de référence |
+| [Contrat HTTP Rust](../histae-api-rust/docs/http-contract.md) | contrat HTTP de référence |
 
 Sources d’installation : [nvm](https://github.com/nvm-sh/nvm), [pnpm](https://pnpm.io/installation) et
 [Playwright sur Linux](https://playwright.dev/docs/browsers#install-system-dependencies).
+
+## Continuations et crédits
+
+La fiche auditée d’un compte affiche le solde transmis dans `continuation_quota` : crédits gratuits disponibles, stock publicitaire, réservations et continuations confirmées de la semaine. Le catalogue distingue les trois crédits gratuits du plafond de six continuations. Premium reste illimité, sans publicité ni débit. Pendant `awaiting_continuation`, la discussion est en pause ; les décisions individuelles ne sont pas révélées à l’autre participant. Les règles et le webhook AdMob sont documentés dans le guide API `docs/continuation-and-rewards.md`.
+
+## Conventions React et TypeScript
+
+Les pages coordonnent le chargement et les mutations ; les composants typés présentent les réponses de l’API.
+`PlanCard` et `ContinuationCredits` utilisent les prix, plafonds et soldes reçus, sans recréer les règles métier.
+Les états asynchrones passent par les hooks partagés. Le client HTTP centralise les erreurs et conserve les
+contrôles de session, les cookies et l’absence de retry automatique des mutations.
+
+Avant de livrer : `pnpm run check` puis `pnpm run test:unit`. Les tests découverts par Vitest sont les fichiers
+`*.spec.ts` et `*.spec.tsx` de `tests/unit` et `tests/components`. `pnpm run test:e2e` utilise Chromium et une API
+simulée ; les scénarios `@real` nécessitent une pile de test dédiée.

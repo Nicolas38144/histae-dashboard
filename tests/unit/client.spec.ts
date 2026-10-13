@@ -26,6 +26,16 @@ describe('HTTP client', () => {
     expect(errorMessage(offline)).toBe('Le serveur est momentanément inaccessible.');
   });
 
+  it('keeps unknown API codes separate from object prototypes', async () => {
+    for (const code of ['constructor', 'toString', '__proto__']) {
+      server.use(http.get(`${apiUrl}/unknown-code`, () => HttpResponse.json({
+        error: { code, message: 'Unknown error.' },
+      }, { status: 400 })));
+      const error = await api.get('/unknown-code').catch((reason: unknown) => reason);
+      expect(errorMessage(error)).toBe(`La requête a échoué (${code}).`);
+    }
+  });
+
   it('expires the local view on a private 401 but not on public authentication routes', async () => {
     const expired = vi.fn();
     window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, expired);

@@ -3,7 +3,7 @@ import { Chip } from '@mui/material';
 const labels: Record<string, string> = {
   active: 'Actif', banned: 'Banni', pending: 'En attente', reviewed: 'Traité', dismissed: 'Rejeté',
   in_progress: 'En cours', completed: 'Terminé', rejected: 'Refusé', confirmed: 'Confirmé',
-  awaiting_continuation: 'Décision attendue', expired: 'Expiré', ended: 'Terminé', processing: 'Traitement',
+  awaiting_continuation: 'Discussion en pause', expired: 'Expiré', ended: 'Terminé', processing: 'Traitement',
   deleting: 'Suppression', ready: 'Prête', dead_letter: 'Échec définitif', approved: 'Approuvé',
   running: 'En cours', succeeded: 'Réussie', failed: 'Échouée', skipped: 'Non exécutée',
 };

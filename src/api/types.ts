@@ -139,7 +139,21 @@ export type AdminUser = {
   matches_count: number;
 };
 
+export type ContinuationQuota = {
+  plan: string;
+  used: number;
+  weekly_limit?: number;
+  remaining?: number;
+  weekly_credits: number;
+  free_remaining: number;
+  advertising_balance: number;
+  advertising_remaining: number;
+  reserved: number;
+  advertising_stock_limit: number;
+};
+
 export type AdminUserDetail = AdminUser & {
+  continuation_quota: ContinuationQuota | null;
   banned_reason: string | null;
   preferences: { min_age: number; max_age: number; max_distance_km: number; looking_for: string } | null;
   traits: Array<{ id: string; name: string }>;
@@ -236,6 +250,10 @@ export type Plan = {
   currency: string;
   trial_days: number;
   weekly_continuation_limit?: number;
+  weekly_included_credits?: number;
+  advertising_credit_stock_limit: number;
+  ads_removed: boolean;
+  rewarded_advertising_enabled: boolean;
   features: Array<{ code: string; display_name: string | null; description: string | null; feature_value: unknown }>;
 };
 
