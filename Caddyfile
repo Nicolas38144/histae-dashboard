@@ -18,6 +18,8 @@
 import caddy-common.caddy
 :80 {
 	import histae_access
+	# Let Caddy derive X-Forwarded-Host from Host, ignoring incoming values.
+	request_header -X-Forwarded-Host
 	root * /srv
 	encode gzip {
 		minimum_length 256
@@ -58,7 +60,6 @@ import caddy-common.caddy
 			header_up X-Real-IP {client_ip}
 			header_up X-Forwarded-For "{client_ip}, {remote_host}"
 			header_up X-Forwarded-Proto {histae_forwarded_proto}
-			header_up X-Forwarded-Host {hostport}
 			header_down -Cache-Control
 			header_down -Expires
 			transport http {
