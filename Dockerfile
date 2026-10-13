@@ -11,21 +11,13 @@ COPY . ./
 # sont intégrées par Vite au build, indépendamment de la configuration locale.
 RUN VITE_ENV=production VITE_API_URL=/api pnpm run build
 
-FROM nginx:1.28-alpine AS production
-
-# Autorités de certification pour vérifier une API distante appelée en HTTPS.
-RUN apk add --no-cache ca-certificates
-
-# L'entrypoint officiel génère default.conf au démarrage. Le filtre préserve
-# les variables Nginx ($uri, $host, etc.) lors de la substitution.
-ENV HISTAE_API_UPSTREAM=http://api:8080 \
-    NGINX_ENVSUBST_FILTER=^HISTAE_API_UPSTREAM$
-
-COPY nginx-logging.conf /etc/nginx/conf.d/00-logging.conf
-COPY nginx.conf /etc/nginx/templates/default.conf.template
-COPY --from=build /app/dist /usr/share/nginx/html
+FROM caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f AS production
+ENV XDG_CONFIG_HOME=/tmp/caddy-config XDG_DATA_HOME=/tmp/caddy-data
+USER 1000:1000
+ENV HISTAE_API_UPSTREAM=http://api:8080
+COPY Caddyfile caddy-common.caddy /etc/caddy/
+COPY --from=build /app/dist /srv
 
 EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -q -O /dev/null http://127.0.0.1/healthz || exit 1
-CMD ["nginx", "-g", "daemon off;"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget -q -T 2 -O /dev/null http://127.0.0.1/healthz || exit 1
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

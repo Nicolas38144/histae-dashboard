@@ -1,0 +1,47 @@
+# Kept identical in the three independent Docker build contexts.
+(histae_access) {
+	log {
+		output stdout
+		format filter {
+			request delete
+			resp_headers delete
+			user_id delete
+			error delete
+			err_trace delete
+			wrap json
+		}
+	}
+	map {method} {histae_method} {
+		GET GET
+		HEAD HEAD
+		POST POST
+		PUT PUT
+		PATCH PATCH
+		DELETE DELETE
+		OPTIONS OPTIONS
+		default other
+	}
+	map {path} {histae_route} {
+		/api/auth/admob/webhook admob-webhook
+		/api/auth/sweego/webhook sweego-webhook
+		/api/billing/stripe/webhook stripe-webhook
+		~^/api(?:/|$) api
+		~^/health(?:/|$) health
+		~^/(?:assets|_next)(?:/|$) asset
+		default page
+	}
+	# Maps are lazy: evaluate the API response header after the response is written.
+	map {http.response.header.X-Request-Id} {histae_request_id} {
+		~(?i)^([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$ "${1}"
+		default ""
+	}
+	log_append <method {histae_method}
+	log_append <route {histae_route}
+	log_append request_id {histae_request_id}
+	log_skip /healthz
+	# Preserve the previous Nginx default request limit on the public HTTP layer.
+	request_body {
+		max_size 1048576
+	}
+	header -Server
+}
