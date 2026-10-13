@@ -269,3 +269,24 @@ Le dashboard approuve uniquement le proxy edge `172.30.0.4` pour les IP et HTTPS
 `Origin`, cookies, corps JSON et préfixe `/api`, force `Cache-Control: no-store` et garde les erreurs API
 hors du repli React. Les fichiers absents, sources, fichiers cachés et source maps renvoient 404.
 L’HSTS est ajouté seulement pour une requête HTTPS annoncée par ce proxy approuvé.
+
+## Supervision du développement Docker
+
+La page **Supervision** est visible uniquement pour le superadmin. Elle ouvre Grafana, Prometheus et
+Alertmanager dans un nouvel onglet, sous `/monitoring/grafana/`, `/monitoring/prometheus/` et
+`/monitoring/alertmanager/`, sur la même origine que le dashboard. Aucun secret ni URL de backend n’est
+intégré au JavaScript et aucun second mot de passe n’est demandé.
+
+L’accès nécessite la pile Caddy `reverse-proxy` et l’API dev avec `compose.proxy.yaml`. Caddy fait vérifier
+chaque requête par l’API avec la session WebAuthn existante : seuls les superadmins actifs sont acceptés.
+Un admin ne peut pas contourner la restriction avec une URL directe. Les mutations exigent l’origine exacte.
+Vite seul ne fournit pas les routes des outils ; cette page ne démarre pas une supervision en production.
+
+Depuis `../reverse-proxy`, après configuration des `.env` et du tunnel :
+
+```bash
+sudo bash reset-docker-compose.sh
+```
+
+Le [guide de supervision API](../histae-api-rust/docs/observability.md) couvre la collecte, les secrets,
+les règles d’alerte et la validation. Aucun nouvel ingress Cloudflare n’est nécessaire.

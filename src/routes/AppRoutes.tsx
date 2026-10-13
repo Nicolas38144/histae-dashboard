@@ -20,6 +20,7 @@ const Reports = lazy(() => import('../pages/Reports'));
 const Security = lazy(() => import('../pages/Security'));
 const Traits = lazy(() => import('../pages/Traits'));
 const UserDetails = lazy(() => import('../pages/UserDetails'));
+const Monitoring = lazy(() => import('../pages/Monitoring'));
 const Users = lazy(() => import('../pages/Users'));
 
 function RequireSession() {
@@ -70,6 +71,7 @@ export default function AppRoutes({ mode, toggleMode }: { mode: 'light' | 'dark'
               <Route path="/outbox-dead-letters" element={<OutboxDeadLetters />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/security" element={<Security />} />
+              <Route path="/monitoring" element={<Monitoring />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/overview" replace />} />

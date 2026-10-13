@@ -16,6 +16,7 @@ import {
   AdminPanelSettingsOutlined,
   CreditScoreOutlined,
   MarkunreadMailboxOutlined,
+  MonitorHeartOutlined,
 } from '@mui/icons-material';
 import {
   AppBar, Box, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Tooltip, Typography,
@@ -51,6 +52,9 @@ export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleM
   const location = useLocation();
   const navigate = useNavigate();
   const { showNotification } = useNotification();
+  const navigationEntries = session.role === 'superadmin'
+    ? [...entries, { path: '/monitoring', label: 'Supervision', icon: <MonitorHeartOutlined /> }]
+    : entries;
 
   const signOut = async () => {
     try {
@@ -70,7 +74,7 @@ export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleM
       </Toolbar>
       <Divider />
       <List sx={{ px: 1.25, py: 2, flexGrow: 1 }}>
-        {entries.map((entry) => {
+        {navigationEntries.map((entry) => {
           const selected = location.pathname === entry.path || (entry.path === '/users' && location.pathname.startsWith('/users/'));
           return (
             <ListItemButton key={entry.path} selected={selected} onClick={() => { navigate(entry.path); setMobileOpen(false); }} sx={{ borderRadius: 2, mb: 0.5 }}>
