@@ -247,3 +247,11 @@ contrôles de session, les cookies et l’absence de retry automatique des mutat
 Avant de livrer : `pnpm run check` puis `pnpm run test:unit`. Les tests découverts par Vitest sont les fichiers
 `*.spec.ts` et `*.spec.tsx` de `tests/unit` et `tests/components`. `pnpm run test:e2e` utilise Chromium et une API
 simulée ; les scénarios `@real` nécessitent une pile de test dédiée.
+
+## Journaux du serveur Nginx
+
+L’image copie `nginx-logging.conf` dans `/etc/nginx/conf.d/00-logging.conf`. Chaque serveur utilise le format `histae_safe` : heure, méthode normalisée, catégorie de route, statut, durée et UUID de requête validé.
+Les URL complètes, paramètres, identifiants de comptes dans les chemins, IP, cookies, Authorization, Referer et User-Agent sont exclus des logs d’accès. Les erreurs Nginx ordinaires sont filtrées ; seuls les diagnostics critiques sont conservés. La pile `reverse-proxy` borne les logs Docker à cinq fichiers de 10 Mo par conteneur.
+
+Lors d’une copie manuelle sur le serveur, copier aussi **`nginx-logging.conf`**, puis reconstruire l’image.
+La vérification reproductible est décrite dans `../histae-api-rust/docs/security-hardening.md`.

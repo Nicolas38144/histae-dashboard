@@ -21,6 +21,7 @@ RUN apk add --no-cache ca-certificates
 ENV HISTAE_API_UPSTREAM=http://api:8080 \
     NGINX_ENVSUBST_FILTER=^HISTAE_API_UPSTREAM$
 
+COPY nginx-logging.conf /etc/nginx/conf.d/00-logging.conf
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
