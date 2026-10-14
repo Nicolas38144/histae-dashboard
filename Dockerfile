@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN if command -v corepack >/dev/null 2>&1; then corepack disable pnpm; fi \
-    && npm install --global "$(node -p "require('./package.json').packageManager")" \
+    && npm install --global "$(node -p "require('./package.json').packageManager.split('+')[0]")" \
     && pnpm install --frozen-lockfile
 
 COPY . ./

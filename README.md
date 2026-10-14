@@ -279,15 +279,18 @@ Alertmanager dans un nouvel onglet, sous `/monitoring/grafana/`, `/monitoring/pr
 `/monitoring/alertmanager/`, sur la même origine que le dashboard. Aucun secret ni URL de backend n’est
 intégré au JavaScript et aucun second mot de passe n’est demandé.
 
-L’accès nécessite la pile Caddy `reverse-proxy` et l’API dev avec `compose.proxy.yaml`. Caddy fait vérifier
+L’accès nécessite la pile Caddy `reverse-proxy` et l’API avec `compose.proxy.yaml` en dev,
+ou `compose.production-observability.yaml` en production. Caddy fait vérifier
 chaque requête par l’API avec la session WebAuthn existante : seuls les superadmins actifs sont acceptés.
 Un admin ne peut pas contourner la restriction avec une URL directe. Les mutations exigent l’origine exacte.
-Vite seul ne fournit pas les routes des outils ; cette page ne démarre pas une supervision en production.
+Vite seul ne fournit pas les routes des outils ; les services de supervision doivent être démarrés.
 
-Depuis `../reverse-proxy`, après configuration des `.env` et du tunnel :
+Depuis `../histae-scripts`, après configuration des `.env` et du tunnel :
 
 ```bash
-sudo bash reset-docker-compose.sh
+bash reset-docker-compose.sh --dev
+# Pour la production, avec secrets et certificats préparés :
+bash reset-docker-compose.sh --production
 ```
 
 Le [guide de supervision API](../histae-api-rust/docs/observability.md) couvre la collecte, les secrets,
