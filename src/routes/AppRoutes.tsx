@@ -5,6 +5,7 @@ import { ADMIN_SESSION_EXPIRED_EVENT, clearLegacySessions } from '../auth/sessio
 import { getAdminSession } from '../api/auth';
 import type { AdminSession } from '../api/types';
 import { AppShell } from '../components/AppShell';
+import { clearUserNames } from '../utils/userNames';
 
 const AuditLogs = lazy(() => import('../pages/AuditLogs'));
 const Login = lazy(() => import('../pages/Login'));
@@ -27,11 +28,17 @@ function RequireSession() {
   const [session, setSession] = useState<AdminSession | null | undefined>();
   useEffect(() => {
     let active = true;
+    let invalidated = false;
     clearLegacySessions();
-    getAdminSession().then((value) => { if (active) setSession(value); }).catch(() => {
+    clearUserNames();
+    getAdminSession().then((value) => { if (active && !invalidated) setSession(value); }).catch(() => {
       if (active) setSession(null);
     });
-    const expire = () => setSession(null);
+    const expire = () => {
+      invalidated = true;
+      clearUserNames();
+      setSession(null);
+    };
     window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, expire);
     return () => {
       active = false;

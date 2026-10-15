@@ -3,7 +3,7 @@
 ## Modèle de confiance
 
 Le dashboard manipule des fonctions administratives et doit être moins exposé que l’application publique. L’API
-reste l’autorité : `AdminSessionGuard`, les DTO, les transactions et l’audit serveur doivent refuser une action même
+reste l’autorité : les extracteurs de session Rust, les DTO, les transactions et l’audit serveur doivent refuser une action même
 si le navigateur est compromis ou modifié.
 
 Une restriction réseau, un tunnel ou Cloudflare réduit l’exposition, mais ne remplace jamais l’authentification et
@@ -14,7 +14,7 @@ l’autorisation applicatives.
 - WebAuthn natif avec credential découvrable et vérification utilisateur obligatoire ;
 - origine et RP ID exacts, sans mot de passe de secours ni SSO ;
 - session opaque hashée côté API et cookie `HttpOnly; SameSite=Strict` ;
-- cookie `Secure` préfixé `__Host-` en production ;
+- cookie `Secure` préfixé `__Host-` dès que l’origine WebAuthn est en HTTPS, y compris en dev ;
 - relecture serveur du rôle, du bannissement, des expirations et de la passkey active ;
 - vérification exacte de `Origin` pour les mutations ;
 - authentification récente pour la gestion des passkeys et les opérations sensibles ;
@@ -33,11 +33,14 @@ Ne jamais exposer au dashboard :
 - payload, Customer ID ou moyen de paiement Stripe ;
 - token/hash de session, clé publique complète ou secret WebAuthn.
 
-Les consultations de profils, matchs, conversations et contenus sont motivées et auditées par l’API. La liste de
-modération reste sans contenu ; une URL photo signée courte n’est produite qu’après ouverture justifiée du détail.
-Les décisions utilisent un motif et une version optimiste.
+Les consultations de profils, matchs, conversations et contenus sont auditées par l’API. Le motif est
+obligatoire pour un admin et facultatif pour le superadmin, avec un libellé serveur par défaut. La liste de
+modération reste sans contenu ; les photos signées de courte durée sont accessibles uniquement dans les détails autorisés et audités.
+Les décisions utilisent une version optimiste et les mêmes règles de motif selon le rôle.
 
-Le navigateur ne conserve que la préférence `histae_theme`. Les tests empêchent la réintroduction d’un token dans
+Seule la préférence `histae_theme` est persistée dans le navigateur. Le cache de prénoms en mémoire est vidé
+au chargement d’une nouvelle session et lors de son invalidation. Une vérification antérieure ne peut pas
+réactiver une session invalidée dans la même séquence de réponses. Les tests empêchent la réintroduction d’un token dans
 `localStorage` ou `sessionStorage` et l’usage de `console.*` dans les sources applicatives.
 
 ## En-têtes de production

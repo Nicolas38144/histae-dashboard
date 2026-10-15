@@ -1,112 +1,71 @@
 # Histae Dashboard — état du projet
 
-Mise à jour : 7 septembre 2026.
+Ce document décrit les capacités livrées. Le [README](README.md) couvre le démarrage, [test.md](test.md)
+les vérifications, [SECURITY.md](SECURITY.md) la sécurité et [roadmap.md](roadmap.md) les travaux ouverts.
 
-Ce document résume ce qui est livré. Il ne duplique ni le démarrage du [README](README.md), ni les procédures de
-[test](test.md), ni les exigences de [sécurité](SECURITY.md), ni le travail restant de la [roadmap](roadmap.md).
+## Architecture
 
-## Rôle et architecture
+React 19, TypeScript strict, Vite 7, Material UI et Axios. Les pages sont chargées à la demande.
+Le client appelle `/api` sur la même origine ; l’image finale Caddy sert le build statique et relaie l’API.
+Les règles métier, permissions, transactions et traces d’audit restent dans l’API Rust.
 
-Le dashboard est une application React 19, TypeScript strict, Vite 7 et Material UI. Axios appelle l’API sous
-`/api`; React Router sépare la connexion des routes protégées. Le code est organisé ainsi :
+| Dossier | Fonction |
+| --- | --- |
+| `api/`, `auth/` | Types et appels HTTP, WebAuthn et cycle de vie de la session |
+| `pages/`, `routes/` | Écrans métier et accès protégés |
+| `components/` | Présentation et interactions partagées |
+| `hooks/`, `utils/` | Chargements, pagination, formatage et résolution des prénoms |
 
-```text
-src/
-  api/          client HTTP, WebAuthn, fonctions de contrat et types
-  auth/         cycle de vie local de la session
-  components/   composants et retours d’état partagés
-  hooks/        chargements asynchrones
-  pages/        écrans métier
-  routes/       routes publiques et protégées
-  utils/        formatage sans règle métier
-```
+## Identité et rôles
 
-Le dashboard n’est jamais une frontière de sécurité. Un bouton masqué ou désactivé améliore l’interface, mais toute
-autorisation, relecture de rôle, authentification récente, validation et écriture d’audit reste imposée par l’API.
+WebAuthn utilise des passkeys découvrables avec vérification utilisateur. Le bootstrap à usage unique
+est émis sur le serveur. La session opaque reste dans un cookie `HttpOnly; SameSite=Strict`, avec `Secure`
+et préfixe `__Host-` en HTTPS. Les anciens tokens navigateur sont supprimés ; seul le thème est persisté.
 
-## Identité administrateur
-
-- WebAuthn natif Histae, sans OTP mobile, mot de passe, SSO ou fournisseur d’identité ;
-- passkeys découvrables avec vérification locale de l’utilisateur ;
-- bootstrap initial par jeton hors bande court et à usage unique ;
-- session opaque dans un cookie API `HttpOnly; SameSite=Strict` ;
-- vérification serveur de la session au chargement des routes protégées ;
-- redirection vers `/login` après un `401` privé ;
-- aucune session, clé ou passkey persistée dans le stockage JavaScript ;
-- ajout/révocation de passkeys et fermeture des autres sessions depuis l’écran Sécurité.
-
-Les anciennes clés de tokens sont supprimées de `localStorage` et `sessionStorage` au chargement. Seule la préférence
-non sensible `histae_theme` peut être conservée localement.
+Une invalidation ferme l’interface et vide le cache de prénoms. Une ancienne réponse de vérification de
+session ne peut pas rétablir l’accès local. L’API continue de vérifier le rôle et la session à chaque appel.
+Un admin justifie les accès sensibles ; le superadmin peut omettre le motif et reste audité.
 
 ## Écrans livrés
 
-| Écran | Capacités principales |
+| Écran | Capacités |
 | --- | --- |
-| Vue d’ensemble | métriques métier, revenu estimé, état et progression des maintenances bornées |
-| Utilisateurs | recherche et filtres, profil minimisé, bannissement, matchs et conversations justifiés |
-| Signalements | filtrage et transitions `pending`, `reviewed`, `dismissed` |
-| Modération | file sans contenu, détail motivé, checklist photo, décision versionnée et auditée |
-| Traits | création, renommage et suppression confirmée |
-| Questions de profil | catalogue, ordre, catégorie et suppression avec nombre de réponses impactées |
-| Demandes RGPD | transitions, effacement asynchrone, progression et reprise de dead letter |
-| Photos | métriques techniques et reprise auditée des anomalies actionnables |
-| Stripe | dead letters minimisées et nouvelle lecture fournisseur, sans action de paiement |
-| Plans | catalogue commercial en lecture seule |
-| Journal d’accès | recherche par utilisateur et historique paginé |
-| Sécurité | passkeys et révocation des autres sessions |
+| Vue d’ensemble | Comptes, matchs, modération, revenus bruts des factures payées et maintenance |
+| Utilisateurs | Recherche/filtres, prénoms avec UUID au survol, fiche auditée, bannissement, promotion/retrait admin par le superadmin |
+| Matchs et conversations | Liste paginée par compte, historique audité et messages en ordre chronologique |
+| Signalements | Filtres et transitions `pending`, `reviewed`, `dismissed` |
+| Modération | File minimisée, détail audité, checklist photo et décision versionnée |
+| Traits et questions | Création, modification, ordre/catégorie et suppression confirmée |
+| Demandes RGPD | Transitions, progression d’effacement asynchrone et reprise d’échec |
+| Photos et Stripe | Diagnostics minimisés et reprise auditée des opérations actionnables |
+| Outbox | Dead letters, reprise et abandon lorsque l’API l’autorise |
+| Plans et crédits | Catalogue en lecture seule et quotas transmis par l’API dans les fiches |
+| Journal d’accès | Recherche UUID, liste des admins, ouverture/fermeture du journal et export CSV |
+| Sécurité | Passkeys, renommage/révocation, sessions et historique de sécurité |
+| Supervision | Accès superadmin à Grafana, Prometheus et Alertmanager via Caddy |
 
-Toutes les collections administratives non catalogues utilisent les curseurs opaques renvoyés par l’API. Les pages
-suivantes sont dédupliquées par identifiant et une erreur de curseur conserve les données déjà affichées tout en
-proposant un rechargement depuis le début.
+L’effacement suit Stripe, photos, swipes puis anonymisation PostgreSQL. Une reprise ne réactive jamais
+le compte et ne permet pas de modifier un checkpoint depuis le navigateur.
 
-## Données et actions sensibles
+## Données et robustesse
 
-Le navigateur ne reçoit jamais le téléphone, son empreinte ou son chiffrement, les coordonnées géographiques
-précises, une clé objet photo, un payload Stripe ou un moyen de paiement. Les listes de modération ne contiennent ni
-texte ni image ; le détail exige un motif et une trace serveur.
+Les listes évitent contenu de modération, coordonnées précises, téléphone, secrets et données Stripe brutes.
+Les détails sensibles sont autorisés et audités. Les photos sont des URL signées courtes.
+Les prénoms sont regroupés en lots ; les UUID restent disponibles au survol.
 
-Les actions suivantes demandent confirmation et/ou motif selon leur contrat : bannissement, consultation de
-conversation, suppression de question, revue de contenu, réconciliation photo ou Stripe et reprise d’effacement.
-Une décision de modération transporte sa version afin qu’un second reviewer ne puisse pas écraser silencieusement la
-première décision.
+Les pages utilisent les curseurs opaques de l’API, dédupliquent les identifiants et ignorent les réponses
+obsolètes. Les conversations sont isolées par identifiant de match lors d’un changement de sélection.
+Le timeout HTTP est de 15 secondes ; aucune mutation n’est automatiquement rejouée.
 
-L’effacement RGPD est présenté comme asynchrone : son acceptation désactive le compte, puis l’API poursuit Stripe,
-photos, Scylla et PostgreSQL. Une reprise ne réactive jamais le compte et le dashboard ne peut pas modifier un
-checkpoint directement.
+Free dispose de 3 crédits inclus par semaine, d’un stock publicitaire maximal de 3 et d’un plafond de
+6 continuations confirmées. Les deux participants Free paient seulement après deux accords.
+Premium reste illimité et sans publicité. Le dashboard lit ces valeurs et l’état effectif dans l’API.
 
-## Robustesse de l’interface
+## Vérification et limites
 
-- timeout HTTP de 15 secondes et aucune reprise automatique de mutation ;
-- erreurs API affichées depuis l’enveloppe `{ error: { code, message } }` ;
-- requêtes annulables et protection contre les réponses obsolètes après changement de filtre ou de profil ;
-- pagination par curseur avec filtres préservés et déduplication entre pages ;
-- matchs sans plafond implicite et messages plus anciens ajoutés avant les messages récents, en ordre chronologique ;
-- chargement différé des pages ;
-- états de chargement, erreur, absence de résultat et notifications accessibles ;
-- thème clair/sombre et mise en page responsive.
-- CSP de développement limitée aux deux origines loopback du stockage photo, dont
-  `storage.histae.localhost` partagé avec l’API conteneurisée.
+`pnpm run check`, `pnpm run test:unit` et `pnpm run test:e2e` vérifient typage, lint, build, contrats simulés,
+pagination, sessions et cérémonies WebAuthn Chromium virtuelles. Les résultats courants sont dans la
+[revue fonctionnelle](../histae-api-rust/docs/feature-audit.md).
 
-## Tests livrés — D05
-
-Vitest, Testing Library et MSW vérifient le client HTTP, les erreurs, l’expiration de session, l’absence de retry,
-WebAuthn, les contrats de mutations critiques, les dialogues, notifications, filtres, curseurs et réponses
-concurrentes. D01 couvre également les pages vide, intermédiaire et finale, les recouvrements d’identifiants, le
-refus d’un curseur, un ancien filtre retardé et l’ordre global des messages. Les tests de sécurité contrôlent
-l’absence de token persistant, de journal navigateur et de secret ayant une forme de production dans les fixtures.
-
-Playwright couvre la redirection d’une session expirée et une cérémonie complète d’enrôlement puis de connexion avec
-un authenticator Chromium virtuel. Un smoke test facultatif vérifie en lecture seule `/health/ready` et la frontière
-administrative d’une API locale. Voir [test.md](test.md).
-
-Dernière validation le 7 septembre 2026 : typecheck, lint, build de production, 37 tests Vitest et 2 parcours
-Playwright autonomes. Le bundle partagé de 505 kB reste à mesurer et découper sur l’hébergement cible dans D06.
-
-## Limites connues
-
-- la récupération WebAuthn après perte de tous les authenticators reste à formaliser ;
-- le workflow de recours de modération n’est pas défini ;
-- sécurité, accessibilité et en-têtes doivent encore être validés sur l’hébergement réel ;
-- la supervision d’infrastructure appartient à l’outillage d’exploitation, pas au dashboard.
-
-Le détail et les critères de fin sont centralisés dans [roadmap.md](roadmap.md).
+La validation du domaine réel, des authenticators matériels, de l’accessibilité et des procédures de reprise
+reste nécessaire sur le serveur. Les recours de modération n’ont pas de parcours produit livré.

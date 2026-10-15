@@ -75,7 +75,7 @@ Le parcours Playwright crée un authenticator CTAP2 Chromium avec :
 
 Il enregistre une première passkey, réutilise cette passkey pour une connexion et vérifie qu’aucun token n’apparaît
 dans `localStorage` ou `sessionStorage`. Cela valide l’intégration navigateur ; la cryptographie et les règles serveur
-restent testées dans `histae-api`.
+restent testées dans `histae-api-rust`.
 
 ## Règles d’isolation
 
@@ -88,3 +88,9 @@ restent testées dans `histae-api`.
 
 Un échec E2E doit être diagnostiqué depuis la trace avant d’augmenter un timeout. Une validation verte ne remplace ni
 un test sur l’hébergement final, ni un pentest, ni une revue d’accessibilité manuelle.
+
+## Résultats actuels
+
+La [revue fonctionnelle de la livraison](../histae-api-rust/docs/feature-audit.md) centralise les résultats
+API/dashboard/site et leurs limites. Le navigateur virtuel vérifie la cérémonie WebAuthn, sans valider
+le matériel de secours ni le tunnel de production.

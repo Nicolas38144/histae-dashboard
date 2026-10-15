@@ -4,8 +4,9 @@ Console React d’administration, de modération et d’exploitation de Histae. 
 de `histae-api-rust` ; l’API reste l’unique autorité pour les rôles, les autorisations, les transactions et l’audit.
 
 Ce guide part d’une machine Debian neuve. Il couvre le développement local avec Vite et explique la construction de
-l’artefact statique. Il ne constitue pas à lui seul une procédure de mise en production : le domaine HTTPS, le
-reverse proxy et les contrôles de l’hébergement final doivent encore être choisis et validés.
+l’artefact statique. La pile de production utilise Caddy derrière Cloudflare Tunnel sur `https://dashboard.histae.com`, avec
+`/api` sous la même origine. Les commandes de déploiement et contrôles de la cible sont dans le
+[guide API](../histae-api-rust/docs/container-deployment.md#production).
 
 ## Prérequis fonctionnels
 
@@ -54,11 +55,10 @@ administrateur pour remplacer cette installation système.
 
 ## 2. Cloner et installer le dashboard
 
-Le dépôt Git porte encore le nom historique `viboa-dashboard`. Le second argument de `git clone` crée directement
-un dossier local cohérent :
+Cloner le dépôt du dashboard :
 
 ```bash
-git clone https://github.com/Nicolas38144/viboa-dashboard.git histae-dashboard
+git clone https://github.com/Nicolas38144/histae-dashboard.git
 cd histae-dashboard
 pnpm install --frozen-lockfile
 cp .env.example .env.development
@@ -208,8 +208,9 @@ En production, le serveur frontal doit :
 - appliquer les CSP, HSTS, règles de cache, permissions et protections anti-framing de [SECURITY.md](SECURITY.md) ;
 - restreindre l’accès au réseau d’administration retenu et prévoir un retour arrière testé.
 
-Le reverse proxy, le certificat et le domaine définitifs ne sont volontairement pas inventés dans ce dépôt. Leur
-validation fait partie de [roadmap.md](roadmap.md).
+Le [dépôt reverse proxy](../histae-reverse-proxy/README.md) décrit le routage Caddy, le tunnel et les réseaux
+partagés. Le certificat TLS public est géré par Cloudflare. Les validations à effectuer sur le serveur restent
+dans [roadmap.md](roadmap.md).
 
 ## Commandes courantes
 
@@ -272,7 +273,7 @@ Le dashboard approuve uniquement le proxy edge `172.30.0.4` pour les IP et HTTPS
 hors du repli React. Les fichiers absents, sources, fichiers cachés et source maps renvoient 404.
 L’HSTS est ajouté seulement pour une requête HTTPS annoncée par ce proxy approuvé.
 
-## Supervision du développement Docker
+## Supervision Docker
 
 La page **Supervision** est visible uniquement pour le superadmin. Elle ouvre Grafana, Prometheus et
 Alertmanager dans un nouvel onglet, sous `/monitoring/grafana/`, `/monitoring/prometheus/` et

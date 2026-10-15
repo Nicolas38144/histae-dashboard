@@ -117,6 +117,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
       </Paper>
       {activeConversation && (
         <MatchConversation
+          key={activeConversation.match.id}
           match={activeConversation.match}
           accessReason={activeConversation.accessReason}
           onClose={closeConversation}

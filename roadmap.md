@@ -1,10 +1,10 @@
 # Histae Dashboard — feuille de route
 
-État au 7 septembre 2026.
+Travaux ouverts après la revue du 15 octobre 2026.
 
 Ce document contient uniquement les travaux ouverts. Les capacités livrées sont dans [resume.md](resume.md), la
 validation dans [test.md](test.md), la sécurité dans [SECURITY.md](SECURITY.md) et le contrat dans
-[`histae-api/routes.md`](../histae-api/routes.md).
+[contrat HTTP Rust](../histae-api-rust/docs/http-contract.md).
 
 L’API reste la frontière d’autorisation. Aucun lot du dashboard ne doit déplacer une règle de rôle, de concurrence,
 de réauthentification ou d’audit dans React.
@@ -33,7 +33,7 @@ de réauthentification ou d’audit dans React.
 
 - [ ] avertir tant qu’un administrateur possède moins de deux passkeys actives ;
 - [ ] accompagner l’obligation serveur d’un moyen de secours distinct ;
-- [ ] définir le workflow hors bande de récupération sans mot de passe ou question secrète ;
+- [ ] répéter la récupération hors bande par `admin-bootstrap`, documentée dans le guide d’administration API ;
 - [ ] couvrir perte d’appareil, départ, compromission, compteur invalide et rôle révoqué ;
 - [ ] vérifier sur HTTPS l’origine, le RP ID, le cookie `__Host-` et le proxy `/api`.
 
@@ -66,13 +66,13 @@ la concurrence.
 
 ### Travail
 
-- [ ] choisir l’URL définitive et servir le dashboard avec `/api` sous la même origine HTTPS ;
+- [ ] vérifier sur le serveur le domaine `dashboard.histae.com` et le routage `/api` de même origine derrière Caddy et le tunnel ;
 - [ ] vérifier CSP, HSTS, cache, permissions, anti-framing et type MIME sur les réponses réellement hébergées ;
 - [ ] confirmer l’absence de source map, secret, URL interne et fichier de développement dans l’artefact ;
 - [ ] définir un budget de chargement et mesurer le découpage du bundle partagé sur l’hébergement cible ;
 - [ ] tester clavier, focus, dialogues, contrastes, zoom à 200 % et lecteur d’écran ;
 - [ ] définir et tester les navigateurs représentatifs ;
-- [ ] superviser disponibilité, erreurs de chargement et certificat sans suivi individuel ;
+- [ ] vérifier la réception des alertes, la disponibilité et les certificats sur la supervision déjà intégrée ;
 - [ ] répéter déploiement, retour arrière et révocation urgente.
 
 ### Critère de fin
