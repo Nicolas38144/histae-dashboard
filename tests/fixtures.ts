@@ -178,10 +178,11 @@ export const adminMetrics: AdminMetrics = {
     period_start: '2026-08-07T08:00:00.000Z',
     period_end: now,
     premium_subscriptions: 0,
-    price_per_subscription_cents: 500,
+    paid_invoices: 0,
     estimated_revenue_cents: 0,
     currency: 'EUR',
-    basis: 'premium_monthly_price',
+    excluded_currency_invoices: 0,
+    basis: 'stripe_paid_invoices',
   },
   operations: {
     runtime: { runtime: 'rust', uptime_seconds: 10, memory_rss_bytes: 1_000 },

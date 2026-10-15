@@ -295,3 +295,18 @@ bash reset-docker-compose.sh --production
 
 Le [guide de supervision API](../histae-api-rust/docs/observability.md) couvre la collecte, les secrets,
 les règles d’alerte et la validation. Aucun nouvel ingress Cloudflare n’est nécessaire.
+
+## Revenus dans la vue d’ensemble
+
+Le dashboard affiche les **revenus bruts estimés** renvoyés par l’API (`basis: stripe_paid_invoices`).
+Le total additionne les montants des factures d’abonnement Stripe payées enregistrées, selon leur date
+`paid_at`, dans la devise du catalogue. Un achat annuel est compté pour son montant payé, sans division
+par douze ; les renouvellements et remises sont donc pris en compte. Ce montant n’est pas un MRR.
+
+Les cartes indiquent aussi le nombre de factures et d’abonnements distincts avec paiement sur la période.
+Les essais à zéro et factures impayées sont exclus. Une annulation ultérieure ou l’effacement du compte
+ne retire pas une facture historique. Les factures dans une autre devise sont exclues et signalées.
+
+Les taxes facturées sont incluses ; frais et remboursements ne sont pas déduits. Les webhooks non reçus
+peuvent laisser des factures absentes : il ne s’agit ni d’un bénéfice, ni d’un relevé des versements Stripe.
+Déployer ce dashboard avec la version de l’API portant le même contrat de revenus.

@@ -80,7 +80,8 @@ describe('administrative match and message pagination', () => {
     );
     renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
 
-    expect(await screen.findByText(compactId(recentMatch.id))).toBeVisible();
+    // The profile and then its matches are loaded by two successive requests.
+    expect(await screen.findByText(compactId(recentMatch.id), {}, { timeout: 5_000 })).toBeVisible();
     expect(screen.queryByText(compactId(olderMatch.id))).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Charger la suite' }));
     expect(await screen.findByText(compactId(olderMatch.id))).toBeVisible();

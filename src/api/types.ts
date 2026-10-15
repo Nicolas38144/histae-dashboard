@@ -43,10 +43,11 @@ export type AdminRevenue = {
   period_start: string | null;
   period_end: string;
   premium_subscriptions: number;
-  price_per_subscription_cents: number;
+  paid_invoices: number;
   estimated_revenue_cents: number;
   currency: string;
-  basis: 'premium_monthly_price';
+  excluded_currency_invoices: number;
+  basis: 'stripe_paid_invoices';
 };
 
 export type MaintenanceJob = {
