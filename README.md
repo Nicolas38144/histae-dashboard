@@ -10,6 +10,12 @@ l’artefact statique. La pile de production utilise Caddy derrière Cloudflare 
 
 ## Prérequis fonctionnels
 
+La page **Plans** affiche trois cartes issues de `GET /api/plans` : Free (0 EUR), Premium Mensuel
+(5 EUR/mois) et Premium Annuel (48 EUR/an), selon le catalogue initial. Chaque carte utilise le prix,
+la devise et l'essai de `offers`, puis les fonctionnalités et quotas du plan référencé par `plan_code`.
+Les deux offres Premium partagent les mêmes droits. Le dashboard ne crée aucun abonnement depuis
+cette page et n'embarque aucun tarif de secours. Déployer l'API avec le champ `offers` avant ce dashboard.
+
 Avant de lancer le dashboard, disposer de :
 
 - Histae API démarrée et prête sur `http://localhost:8080` ;

@@ -13,7 +13,7 @@ import type {
   Match,
   PhotoReconciliationFilter,
   PhotoReconciliationItem,
-  Plan,
+  PlanCatalog,
   Report,
   ReportStatus,
   RevenuePeriod,
@@ -250,6 +250,11 @@ export async function getAccessLogs(
   })).data;
 }
 
-export async function getPlans(): Promise<Plan[]> {
-  return (await api.get<{ plans: Plan[] }>('/plans')).data.plans;
+export async function getPlanCatalog(): Promise<PlanCatalog> {
+  const { data } = await api.get<PlanCatalog>('/plans');
+  if (!Array.isArray(data.plans) || !Array.isArray(data.offers)
+    || data.offers.some((offer) => !data.plans.some((plan) => plan.code === offer.plan_code))) {
+    throw new Error('Le catalogue des offres est incomplet.');
+  }
+  return data;
 }

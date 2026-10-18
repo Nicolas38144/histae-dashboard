@@ -2,6 +2,9 @@
 
 ## Niveaux de validation
 
+`tests/components/plans.spec.tsx` vérifie les trois cartes commerciales, leurs prix et périodicités,
+la prise en compte d'un prix API modifié et le refus d'une offre sans plan de droits correspondant.
+
 | Niveau | Outil | Infrastructure |
 | --- | --- | --- |
 | Unitaire et composant | Vitest, Testing Library, jsdom | aucune |

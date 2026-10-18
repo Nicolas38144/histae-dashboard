@@ -258,6 +258,18 @@ export type Plan = {
   features: Array<{ code: string; display_name: string | null; description: string | null; feature_value: unknown }>;
 };
 
+export type PlanOffer = {
+  code: string;
+  plan_code: 'free' | 'premium';
+  display_name: string;
+  billing_period: 'monthly' | 'annual' | null;
+  price_cents: number;
+  currency: string;
+  trial_days: number;
+};
+
+export type PlanCatalog = { plans: Plan[]; offers: PlanOffer[] };
+
 export type Match = {
   id: string;
   user1_id: string;

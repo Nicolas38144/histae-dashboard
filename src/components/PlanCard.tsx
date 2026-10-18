@@ -1,11 +1,11 @@
 import { CheckCircleOutline } from '@mui/icons-material';
 import { Box, Chip, Paper, Typography } from '@mui/material';
-import type { Plan } from '../api/types';
+import type { Plan, PlanOffer } from '../api/types';
 import { formatMoney } from '../utils/format';
 
-type PlanCardProps = { plan: Plan };
+type PlanCardProps = { plan: Plan; offer: PlanOffer };
 
-export function PlanCard({ plan }: PlanCardProps) {
+export function PlanCard({ plan, offer }: PlanCardProps) {
   const continuationLimit = plan.weekly_continuation_limit === undefined
     ? 'illimitées'
     : `${plan.weekly_continuation_limit} maximum par semaine`;
@@ -15,16 +15,21 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   return (
     <Paper variant="outlined" sx={{ p: 3, borderTop: 4, borderTopColor: plan.code === 'premium' ? 'primary.main' : 'divider' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h5" fontWeight={800}>{plan.display_name}</Typography>
-          <Typography color="text.secondary">Code : {plan.code}</Typography>
+          <Typography variant="h5" fontWeight={800}>{offer.display_name}</Typography>
+          <Typography color="text.secondary">Offre : {offer.code}</Typography>
         </Box>
-        {plan.trial_days > 0 && <Chip color="primary" label={`${plan.trial_days} jours d’essai`} />}
+        {offer.trial_days > 0 && <Chip color="primary" label={`${offer.trial_days} jours d’essai selon éligibilité`} />}
       </Box>
-      <Box sx={{ display: 'flex', gap: 3, my: 3 }}>
-        <PlanPrice cents={plan.monthly_price_cents} currency={plan.currency} period="par mois" />
-        <PlanPrice cents={plan.annual_price_cents} currency={plan.currency} period="par an" />
+      <Box sx={{ my: 3 }}>
+        <PlanPrice cents={offer.price_cents} currency={offer.currency} period={offer.billing_period === 'annual' ? 'par an' : offer.billing_period === 'monthly' ? 'par mois' : 'sans abonnement payant'} />
+        {offer.billing_period === 'annual' && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Équivalent à environ {formatMoney(Math.round(offer.price_cents / 12), offer.currency)} par mois. Facturé en une fois chaque année.
+        </Typography>}
+        {offer.billing_period !== null && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Renouvellement automatique {offer.billing_period === 'annual' ? 'annuel' : 'mensuel'}. Résiliation depuis le portail client.
+        </Typography>}
       </Box>
       <Typography fontWeight={700} sx={{ mb: 1 }}>Continuations : {continuationLimit}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
