@@ -173,6 +173,12 @@ export const adminMetrics: AdminMetrics = {
     deletion_without_active_event: 0,
   },
   subscriptions: [{ plan: 'free', users: 2 }],
+  subscription_offers: [
+    { offer: 'free', users: 2 },
+    { offer: 'premium_monthly', users: 0 },
+    { offer: 'premium_annual', users: 0 },
+    { offer: 'premium_unspecified', users: 0 },
+  ],
   revenue: {
     period: 'last_30_days',
     period_start: '2026-08-07T08:00:00.000Z',

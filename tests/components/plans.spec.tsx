@@ -2,19 +2,20 @@ import { http, HttpResponse } from 'msw';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { PlanCatalog } from '../../src/api/types';
+import { parsePlanCatalog } from '../../src/api/plan-catalog';
 import Plans from '../../src/pages/Plans';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
 
 const catalog: PlanCatalog = {
   plans: [
-    { code: 'free', display_name: 'Free', monthly_price_cents: 0, annual_price_cents: 0, currency: 'EUR', trial_days: 0, weekly_continuation_limit: 6, weekly_included_credits: 3, advertising_credit_stock_limit: 3, ads_removed: false, rewarded_advertising_enabled: false, features: [] },
-    { code: 'premium', display_name: 'Premium', monthly_price_cents: 500, annual_price_cents: 4800, currency: 'EUR', trial_days: 30, advertising_credit_stock_limit: 3, ads_removed: true, rewarded_advertising_enabled: false, features: [] },
+    { code: 'free', display_name: 'Free', monthly_price_cents: 0, annual_price_cents: 0, currency: 'EUR', weekly_continuation_limit: 6, weekly_included_credits: 3, advertising_credit_stock_limit: 3, ads_removed: false, rewarded_advertising_enabled: false, features: [] },
+    { code: 'premium', display_name: 'Premium', monthly_price_cents: 500, annual_price_cents: 4800, currency: 'EUR', advertising_credit_stock_limit: 3, ads_removed: true, rewarded_advertising_enabled: false, features: [] },
   ],
   offers: [
-    { code: 'free', plan_code: 'free', display_name: 'Free', billing_period: null, price_cents: 0, currency: 'EUR', trial_days: 0 },
-    { code: 'premium_monthly', plan_code: 'premium', display_name: 'Premium Mensuel', billing_period: 'monthly', price_cents: 500, currency: 'EUR', trial_days: 30 },
-    { code: 'premium_annual', plan_code: 'premium', display_name: 'Premium Annuel', billing_period: 'annual', price_cents: 4800, currency: 'EUR', trial_days: 30 },
+    { code: 'free', plan_code: 'free', display_name: 'Free', billing_period: null, price_cents: 0, currency: 'EUR' },
+    { code: 'premium_monthly', plan_code: 'premium', display_name: 'Premium Mensuel', billing_period: 'monthly', price_cents: 500, currency: 'EUR' },
+    { code: 'premium_annual', plan_code: 'premium', display_name: 'Premium Annuel', billing_period: 'annual', price_cents: 4800, currency: 'EUR' },
   ],
 };
 
@@ -46,5 +47,31 @@ describe('commercial offers', () => {
     renderDashboard(<Plans />);
     expect(await screen.findByRole('alert')).toBeVisible();
     expect(screen.queryByRole('heading', { name: 'Premium Annuel' })).not.toBeInTheDocument();
+  });
+
+  it('rejects a plans-only API response instead of reconstructing offers', async () => {
+    server.use(http.get('http://localhost/api/plans', () => HttpResponse.json({ plans: catalog.plans })));
+    renderDashboard(<Plans />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Le catalogue des offres est incomplet.');
+    expect(screen.queryByRole('heading', { name: 'Premium Mensuel' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Premium Annuel' })).not.toBeInTheDocument();
+  });
+
+  it('respects explicitly empty offers without reconstructing them', () => {
+    expect(parsePlanCatalog({ ...catalog, offers: [] }).offers).toEqual([]);
+    expect(parsePlanCatalog({ plans: [catalog.plans[0]], offers: [] }).offers).toEqual([]);
+    expect(parsePlanCatalog({ plans: [], offers: [] }).offers).toEqual([]);
+  });
+
+  for (const offers of [null, {}, [{ ...catalog.offers[2], billing_period: 'monthly' }], [catalog.offers[0], catalog.offers[0]]]) {
+    it(`rejects malformed present offers without falling back: ${JSON.stringify(offers)}`, () => {
+      expect(() => parsePlanCatalog({ ...catalog, offers })).toThrow();
+    });
+  }
+
+  it('rejects malformed plan prices', () => {
+    const plans = structuredClone(catalog.plans);
+    plans[1].annual_price_cents = -1;
+    expect(() => parsePlanCatalog({ ...catalog, plans })).toThrow();
   });
 });

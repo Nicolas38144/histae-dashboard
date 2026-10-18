@@ -82,6 +82,7 @@ export type AdminMetrics = {
   messages: { total: number };
   photos: PhotoMetrics;
   subscriptions: Array<{ plan: string; users: number }>;
+  subscription_offers: Array<{ offer: 'free' | 'premium_monthly' | 'premium_annual' | 'premium_unspecified'; users: number }>;
   revenue: AdminRevenue;
   operations: AdminOperations;
 };
@@ -249,7 +250,6 @@ export type Plan = {
   monthly_price_cents: number;
   annual_price_cents: number;
   currency: string;
-  trial_days: number;
   weekly_continuation_limit?: number;
   weekly_included_credits?: number;
   advertising_credit_stock_limit: number;
@@ -265,7 +265,6 @@ export type PlanOffer = {
   billing_period: 'monthly' | 'annual' | null;
   price_cents: number;
   currency: string;
-  trial_days: number;
 };
 
 export type PlanCatalog = { plans: Plan[]; offers: PlanOffer[] };

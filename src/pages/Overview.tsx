@@ -16,6 +16,7 @@ import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
 import { RevenuePanel } from '../components/RevenuePanel';
 import { StatusChip } from '../components/StatusChip';
+import { SubscriptionDistribution } from '../components/SubscriptionDistribution';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { formatDate } from '../utils/format';
 
@@ -51,10 +52,7 @@ export default function Overview() {
                 {Object.entries(data.matches).map(([status, count]) => <Box key={status} sx={{ minWidth: 140 }}><StatusChip value={status} /><Typography variant="h5" fontWeight={800} sx={{ mt: 1 }}>{count}</Typography></Box>)}
               </Box>
             </Paper>
-            <Paper variant="outlined" sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight={700} gutterBottom>Répartition des abonnements</Typography>
-              {data.subscriptions.map((subscription) => <Box key={subscription.plan} sx={{ display: 'flex', justifyContent: 'space-between', py: 1.25, borderBottom: 1, borderColor: 'divider' }}><Typography textTransform="capitalize">{subscription.plan}</Typography><Typography fontWeight={800}>{subscription.users}</Typography></Box>)}
-            </Paper>
+            <SubscriptionDistribution subscription_offers={data.subscription_offers} />
           </Box>
 
           <Paper variant="outlined" sx={{ mt: 3, overflowX: 'auto' }}>

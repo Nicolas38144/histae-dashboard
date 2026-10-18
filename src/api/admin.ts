@@ -1,4 +1,5 @@
 import { api } from './client';
+import { parsePlanCatalog } from './plan-catalog';
 import type {
   AdminMetrics,
   AdminProfileQuestion,
@@ -30,9 +31,18 @@ import type {
   OutboxDeadLetter,
 } from './types';
 
-export const getMetrics = async (): Promise<AdminMetrics> => (
-  await api.get<AdminMetrics>('/admin/metrics')
-).data;
+export async function getMetrics(): Promise<AdminMetrics> {
+  const { data } = await api.get<AdminMetrics>('/admin/metrics');
+  const offers = data.subscription_offers;
+  if (!Array.isArray(offers) || offers.length !== 4
+    || offers.some((entry) => !entry
+      || !['free', 'premium_monthly', 'premium_annual', 'premium_unspecified'].includes(entry.offer)
+      || !Number.isSafeInteger(entry.users) || entry.users < 0)
+    || new Set(offers.map((entry) => entry.offer)).size !== 4) {
+    throw new Error('La répartition des abonnements renvoyée par l’API est incomplète.');
+  }
+  return data;
+}
 
 export const getRevenue = async (revenuePeriod: RevenuePeriod, signal?: AbortSignal): Promise<AdminRevenue> => (
   await api.get<AdminRevenue>('/admin/revenue', { params: { revenue_period: revenuePeriod }, signal })
@@ -251,10 +261,6 @@ export async function getAccessLogs(
 }
 
 export async function getPlanCatalog(): Promise<PlanCatalog> {
-  const { data } = await api.get<PlanCatalog>('/plans');
-  if (!Array.isArray(data.plans) || !Array.isArray(data.offers)
-    || data.offers.some((offer) => !data.plans.some((plan) => plan.code === offer.plan_code))) {
-    throw new Error('Le catalogue des offres est incomplet.');
-  }
-  return data;
+  const { data } = await api.get<unknown>('/plans');
+  return parsePlanCatalog(data);
 }

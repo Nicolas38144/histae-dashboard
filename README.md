@@ -12,9 +12,25 @@ l’artefact statique. La pile de production utilise Caddy derrière Cloudflare 
 
 La page **Plans** affiche trois cartes issues de `GET /api/plans` : Free (0 EUR), Premium Mensuel
 (5 EUR/mois) et Premium Annuel (48 EUR/an), selon le catalogue initial. Chaque carte utilise le prix,
-la devise et l'essai de `offers`, puis les fonctionnalités et quotas du plan référencé par `plan_code`.
+la devise de `offers`, puis les fonctionnalités et quotas du plan référencé par `plan_code`.
 Les deux offres Premium partagent les mêmes droits. Le dashboard ne crée aucun abonnement depuis
-cette page et n'embarque aucun tarif de secours. Déployer l'API avec le champ `offers` avant ce dashboard.
+cette page et n'embarque aucun tarif de secours. Le contrat exige `plans` et `offers` : une réponse
+sans `offers` est rejetée. Une liste explicitement vide reste vide et les données malformées sont refusées.
+
+Aucune carte ne propose d'essai. Le champ `trial_days` a été retiré du catalogue HTTP et des modèles
+clients ; les nouvelles créations Checkout sont sans essai.
+
+La **Vue d'ensemble** exige `subscription_offers` de `/api/admin/metrics` pour compter Free,
+Premium Mensuel et Premium Annuel selon les droits effectifs. Les accès Premium sans périodicité
+sont signalés séparément. Des compteurs absents, incomplets ou invalides provoquent une erreur
+de chargement ; aucune ventilation n'est calculée depuis l'ancien total Premium.
+Déployer ensemble l'API et le dashboard correspondant au contrat courant.
+
+Après transfert des sources à jour sur le serveur, reconstruire/recréer séparément l'API et le
+dashboard avec `reset-api.sh --production --full` puis `reset-dashboard.sh --production --full`
+depuis `histae-scripts`. Vérifier que `HISTAE_ROOT` cible les dossiers réellement mis à jour.
+Ces commandes conservent la base ; supprimer les volumes n'ajouterait pas le champ `offers` à une
+ancienne image de l'API. Recharger ensuite le navigateur.
 
 Avant de lancer le dashboard, disposer de :
 

@@ -20,7 +20,6 @@ export function PlanCard({ plan, offer }: PlanCardProps) {
           <Typography variant="h5" fontWeight={800}>{offer.display_name}</Typography>
           <Typography color="text.secondary">Offre : {offer.code}</Typography>
         </Box>
-        {offer.trial_days > 0 && <Chip color="primary" label={`${offer.trial_days} jours d’essai selon éligibilité`} />}
       </Box>
       <Box sx={{ my: 3 }}>
         <PlanPrice cents={offer.price_cents} currency={offer.currency} period={offer.billing_period === 'annual' ? 'par an' : offer.billing_period === 'monthly' ? 'par mois' : 'sans abonnement payant'} />
