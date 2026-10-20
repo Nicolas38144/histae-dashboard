@@ -1,3 +1,5 @@
+import { translationForm, translationPatch } from '../components/catalog-translations';
+import { CatalogTranslationFields, CatalogTranslationCoverage } from '../components/CatalogTranslations';
 import { AddOutlined, DeleteOutline, EditOutlined } from '@mui/icons-material';
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton,
@@ -18,19 +20,21 @@ export default function Traits() {
   const [editing, setEditing] = useState<Trait | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Trait | null>(null);
   const [name, setName] = useState('');
+  const [translations, setTranslations] = useState(() => translationForm());
   const [saving, setSaving] = useState(false);
   const { showNotification } = useNotification();
 
   const openEditor = (trait: Trait | 'new') => {
     setEditing(trait);
-    setName(trait === 'new' ? '' : trait.name);
+    setName(trait === 'new' ? '' : (trait.translations?.fr ?? trait.name));
+    setTranslations(translationForm(trait === 'new' ? undefined : trait.translations));
   };
 
   const save = async () => {
     setSaving(true);
     try {
-      if (editing === 'new') await createTrait(name);
-      else if (editing) await updateTrait(editing.id, name);
+      if (editing === 'new') await createTrait(name, translationPatch(translations));
+      else if (editing) await updateTrait(editing.id, name, translationPatch(translations));
       showNotification(editing === 'new' ? 'Trait créé.' : 'Trait renommé.', 'success');
       setEditing(null);
       setName('');
@@ -82,7 +86,7 @@ export default function Traits() {
             <TableBody>
               {data.map((trait) => (
                 <TableRow key={trait.id}>
-                  <TableCell>{trait.name}</TableCell>
+                  <TableCell>{trait.translations?.fr ?? trait.name}<CatalogTranslationCoverage translations={trait.translations} /></TableCell>
                   <TableCell>{trait.id}</TableCell>
                   <TableCell align="right">
                     <IconButton aria-label={`Renommer ${trait.name}`} onClick={() => openEditor(trait)}>
@@ -106,7 +110,8 @@ export default function Traits() {
       <Dialog open={Boolean(editing)} onClose={saving ? undefined : () => setEditing(null)} fullWidth maxWidth="sm">
         <DialogTitle>{editing === 'new' ? 'Nouveau trait' : 'Renommer le trait'}</DialogTitle>
         <DialogContent>
-          <TextField autoFocus fullWidth label="Nom" value={name} onChange={(event) => setName(event.target.value)} sx={{ mt: 1 }} />
+          <TextField autoFocus fullWidth label="Nom (français)" value={name} onChange={(event) => setName(event.target.value)} sx={{ mt: 1 }} slotProps={{ htmlInput: { maxLength: 100 } }} />
+          <CatalogTranslationFields value={translations} onChange={setTranslations} maxLength={100} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditing(null)}>Annuler</Button>

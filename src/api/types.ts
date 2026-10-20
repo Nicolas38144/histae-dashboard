@@ -190,13 +190,17 @@ export type Report = {
   created_at: string;
 };
 
-export type Trait = { id: string; name: string };
+export type Language = 'fr' | 'en' | 'es' | 'it';
+export type Translations = Partial<Record<Language, string>>;
+export type TranslationPatch = Partial<Record<Language, string | null>>;
+export type Trait = { id: string; name: string; translations?: Translations };
 
 export type ProfileQuestionCategory = 'daily_life' | 'personality' | 'interests' | 'relationships' | 'conversation';
 export type AdminProfileQuestion = {
   id: string;
   code: string;
   prompt: string;
+  translations?: Translations;
   category: ProfileQuestionCategory;
   display_order: number;
   answer_count: number;

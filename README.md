@@ -333,3 +333,10 @@ ne retire pas une facture historique. Les factures dans une autre devise sont ex
 Les taxes facturées sont incluses ; frais et remboursements ne sont pas déduits. Les webhooks non reçus
 peuvent laisser des factures absentes : il ne s’agit ni d’un bénéfice, ni d’un relevé des versements Stripe.
 Déployer ce dashboard avec la version de l’API portant le même contrat de revenus.
+
+## Traductions du catalogue
+
+Les écrans Traits et Questions de profil éditent le français, l’anglais, l’espagnol et l’italien.
+Le français reste canonique. Les indicateurs EN/ES/IT montrent la couverture ; vider un champ traduit
+supprime sa traduction et rétablit le repli français. L’interface d’administration reste française et envoie
+`Accept-Language: fr`. La préparation des formulaires est séparée des composants et du client HTTP.

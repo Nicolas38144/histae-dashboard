@@ -1,3 +1,4 @@
+import type { TranslationPatch } from './types';
 import { api } from './client';
 import { parsePlanCatalog } from './plan-catalog';
 import type {
@@ -170,12 +171,12 @@ export async function getTraits(): Promise<Trait[]> {
   return (await api.get<{ traits: Trait[] }>('/admin/traits')).data.traits;
 }
 
-export async function createTrait(name: string): Promise<Trait> {
-  return (await api.post<Trait>('/admin/traits', { name })).data;
+export async function createTrait(name: string, translations?: TranslationPatch): Promise<Trait> {
+  return (await api.post<Trait>('/admin/traits', { name, translations })).data;
 }
 
-export async function updateTrait(id: string, name: string): Promise<void> {
-  await api.patch(`/admin/traits/${id}`, { name });
+export async function updateTrait(id: string, name: string, translations?: TranslationPatch): Promise<void> {
+  await api.patch(`/admin/traits/${id}`, { name, translations });
 }
 
 export async function deleteTrait(id: string): Promise<void> {
@@ -188,6 +189,7 @@ export async function getProfileQuestions(): Promise<AdminProfileQuestion[]> {
 
 export async function createProfileQuestion(input: {
   prompt: string;
+  translations?: TranslationPatch;
   category: ProfileQuestionCategory;
   display_order: number;
 }): Promise<AdminProfileQuestion> {
@@ -196,7 +198,7 @@ export async function createProfileQuestion(input: {
 
 export async function updateProfileQuestion(
   id: string,
-  input: { prompt: string; category: ProfileQuestionCategory; display_order: number },
+  input: { prompt: string; translations?: TranslationPatch; category: ProfileQuestionCategory; display_order: number },
 ): Promise<AdminProfileQuestion> {
   return (await api.patch<AdminProfileQuestion>(`/admin/profile-questions/${id}`, input)).data;
 }

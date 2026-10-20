@@ -1,3 +1,5 @@
+import { translationForm, translationPatch } from '../components/catalog-translations';
+import { CatalogTranslationFields, CatalogTranslationCoverage } from '../components/CatalogTranslations';
 import { AddOutlined, DeleteOutline, EditOutlined } from '@mui/icons-material';
 import {
   Button,
@@ -59,17 +61,20 @@ export default function ProfileQuestions() {
   const [editing, setEditing] = useState<AdminProfileQuestion | 'new' | null>(null);
   const [deleting, setDeleting] = useState<AdminProfileQuestion | null>(null);
   const [form, setForm] = useState<QuestionForm>(emptyForm);
+  const [translations, setTranslations] = useState(() => translationForm());
   const [saving, setSaving] = useState(false);
   const { showNotification } = useNotification();
 
   const openCreate = () => {
     setForm(emptyForm);
+    setTranslations(translationForm());
     setEditing('new');
   };
 
   const openEdit = (question: AdminProfileQuestion) => {
+    setTranslations(translationForm(question.translations));
     setForm({
-      prompt: question.prompt,
+      prompt: question.translations?.fr ?? question.prompt,
       category: question.category,
       displayOrder: question.display_order,
     });
@@ -80,6 +85,7 @@ export default function ProfileQuestions() {
     setSaving(true);
     const input = {
       prompt: form.prompt,
+      translations: translationPatch(translations),
       category: form.category,
       display_order: form.displayOrder,
     };
@@ -136,7 +142,8 @@ export default function ProfileQuestions() {
                 <TableRow key={question.id} hover>
                   <TableCell>{question.display_order}</TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={600}>{question.prompt}</Typography>
+                    <Typography variant="body2" fontWeight={600}>{question.translations?.fr ?? question.prompt}</Typography>
+                    <CatalogTranslationCoverage translations={question.translations} />
                     <Typography variant="caption" color="text.secondary">{question.code}</Typography>
                   </TableCell>
                   <TableCell><Chip size="small" label={categoryLabels[question.category]} /></TableCell>
@@ -168,12 +175,13 @@ export default function ProfileQuestions() {
               multiline
               minRows={2}
               fullWidth
-              label="Question"
+              label="Question (français)"
               value={form.prompt}
               slotProps={{ htmlInput: { maxLength: 200 } }}
               helperText={`${form.prompt.length}/200 caractères`}
               onChange={(event) => setForm((current) => ({ ...current, prompt: event.target.value }))}
             />
+            <CatalogTranslationFields value={translations} onChange={setTranslations} maxLength={200} multiline />
             <FormControl fullWidth>
               <InputLabel id="profile-question-category-label">Catégorie</InputLabel>
               <Select
