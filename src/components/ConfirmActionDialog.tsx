@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
 
 export function ConfirmActionDialog({
@@ -7,6 +9,7 @@ export function ConfirmActionDialog({
   valueLabel?: string; requireValue?: boolean; minValueLength?: number; maxValueLength?: number;
   danger?: boolean; loading?: boolean; onCancel: () => void; onConfirm: () => void;
 }) {
+  useLocale();
   const valueLength = value?.trim().length ?? 0;
   return (
     <Dialog open={open} onClose={loading ? undefined : onCancel} fullWidth maxWidth="sm">
@@ -16,7 +19,7 @@ export function ConfirmActionDialog({
         {valueLabel && <TextField autoFocus fullWidth multiline minRows={2} label={valueLabel} value={value ?? ''} onChange={(event) => onValueChange?.(event.target.value)} inputProps={{ maxLength: maxValueLength }} />}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel} disabled={loading}>Annuler</Button>
+        <Button onClick={onCancel} disabled={loading}>{t("common.cancel")}</Button>
         <Button onClick={onConfirm} variant="contained" color={danger ? 'error' : 'primary'} disabled={loading || (requireValue && valueLength < minValueLength) || (maxValueLength !== undefined && valueLength > maxValueLength)}>{confirmLabel}</Button>
       </DialogActions>
     </Dialog>

@@ -1,3 +1,4 @@
+import { LocalizedError } from '../i18n/core';
 import type { TranslationPatch } from './types';
 import { api } from './client';
 import { parsePlanCatalog } from './plan-catalog';
@@ -40,7 +41,7 @@ export async function getMetrics(): Promise<AdminMetrics> {
       || !['free', 'premium_monthly', 'premium_annual', 'premium_unspecified'].includes(entry.offer)
       || !Number.isSafeInteger(entry.users) || entry.users < 0)
     || new Set(offers.map((entry) => entry.offer)).size !== 4) {
-    throw new Error('La répartition des abonnements renvoyée par l’API est incomplète.');
+    throw new LocalizedError("admin.theSubscriptionBreakdownReturnedByTheApiIsIncomplete");
   }
   return data;
 }

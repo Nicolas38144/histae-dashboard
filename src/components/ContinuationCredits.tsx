@@ -1,34 +1,32 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { Box, Paper, Typography } from '@mui/material';
 import type { ContinuationQuota } from '../api/types';
 
 type ContinuationCreditsProps = { quota: ContinuationQuota };
 
 export function ContinuationCredits({ quota }: ContinuationCreditsProps) {
+  useLocale();
   const unlimited = quota.weekly_limit === undefined;
 
   return (
     <Paper variant="outlined" sx={{ p: 3 }}>
-      <Typography variant="h6" fontWeight={750}>Crédits de continuation</Typography>
+      <Typography variant="h6" fontWeight={750}>{t("continuationCredits.continuationCredits")}</Typography>
       {unlimited ? (
-        <Typography sx={{ mt: 2 }}>Continuations illimitées, sans débit de crédit ni publicité.</Typography>
+        <Typography sx={{ mt: 2 }}>{t("continuationCredits.unlimitedContinuationsWithoutCreditsOrAdvertising")}</Typography>
       ) : (
         <Box sx={{ mt: 2, display: 'grid', gap: 1 }}>
-          <Typography>Disponibles : {quota.remaining ?? 0}</Typography>
-          <Typography>Crédits gratuits disponibles : {quota.free_remaining} sur {quota.weekly_credits}</Typography>
-          <Typography>
-            Stock publicitaire : {quota.advertising_balance} sur {quota.advertising_stock_limit} · disponibles : {quota.advertising_remaining}
-          </Typography>
-          <Typography>Réservés : {quota.reserved}</Typography>
-          <Typography>Continuations confirmées cette semaine : {quota.used} sur {quota.weekly_limit}</Typography>
+          <Typography>{t("credits.available", { count: quota.remaining ?? 0 })}</Typography>
+          <Typography>{t("credits.free", { remaining: quota.free_remaining, included: quota.weekly_credits })}</Typography>
+          <Typography>{t("credits.advertising", { balance: quota.advertising_balance, limit: quota.advertising_stock_limit, remaining: quota.advertising_remaining })}</Typography>
+          <Typography>{t("credits.reserved", { count: quota.reserved })}</Typography>
+          <Typography>{t("credits.used", { count: quota.used, limit: quota.weekly_limit ?? 0 })}</Typography>
         </Box>
       )}
       <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-        Chaque personne Free réserve son propre crédit. Le débit intervient après les deux accords.
-        Un refus ou une expiration libère la réservation. Les crédits gratuits se renouvellent le lundi à 00:00 UTC ; le stock publicitaire reste acquis.
-      </Typography>
+        {t("continuationCredits.eachFreeParticipantReservesTheirOwnCreditCreditsAre")}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        Pendant les 24 heures de décision, l’envoi est suspendu et l’historique reste lisible. Les choix restent privés jusqu’à l’accord mutuel.
-      </Typography>
+        {t("continuationCredits.duringThe24HourDecisionPeriodSendingIsPaused")}</Typography>
     </Paper>
   );
 }

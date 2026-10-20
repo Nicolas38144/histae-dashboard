@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import {
   Box, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography,
@@ -19,6 +21,7 @@ const reportKey = (report: Report) => report.id;
 const reportStatuses = ['pending', 'reviewed', 'dismissed'] as const satisfies readonly ReportStatus[];
 
 export default function Reports() {
+  useLocale();
   const [filter, setFilter] = useState<'' | ReportStatus>('pending');
   const [savingId, setSavingId] = useState<string | null>(null);
   const { showNotification } = useNotification();
@@ -32,7 +35,7 @@ export default function Reports() {
     setSavingId(id);
     try {
       await updateReport(id, status);
-      showNotification('Statut du signalement mis à jour.', 'success');
+      showNotification(t("reports.reportStatusUpdated"), 'success');
       pagination.reload();
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
@@ -44,16 +47,16 @@ export default function Reports() {
   return (
     <>
       <PageHeader
-        title="Signalements"
-        description="Qualification des signalements d’utilisateurs et accès aux éléments de contexte."
+        title={t("common.reports")}
+        description={t("reports.reviewUserReportsAndAccessTheirContext")}
         actions={(
           <FormControl size="small" sx={{ minWidth: 190 }}>
-            <InputLabel>État</InputLabel>
-            <Select label="État" value={filter} onChange={(event) => setFilter(event.target.value as '' | ReportStatus)}>
-              <MenuItem value="">Tous</MenuItem>
-              <MenuItem value="pending">En attente</MenuItem>
-              <MenuItem value="reviewed">Traités</MenuItem>
-              <MenuItem value="dismissed">Rejetés</MenuItem>
+            <InputLabel>{t("common.status")}</InputLabel>
+            <Select label={t("common.status")} value={filter} onChange={(event) => setFilter(event.target.value as '' | ReportStatus)}>
+              <MenuItem value="">{t("common.all")}</MenuItem>
+              <MenuItem value="pending">{t("common.pending")}</MenuItem>
+              <MenuItem value="reviewed">{t("reports.reviewed")}</MenuItem>
+              <MenuItem value="dismissed">{t("reports.dismissed")}</MenuItem>
             </Select>
           </FormControl>
         )}
@@ -64,13 +67,13 @@ export default function Reports() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Émetteur</TableCell>
-                <TableCell>Compte signalé</TableCell>
-                <TableCell>Motif</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Match</TableCell>
-                <TableCell>État</TableCell>
+                <TableCell>{t("common.date")}</TableCell>
+                <TableCell>{t("common.reporter")}</TableCell>
+                <TableCell>{t("common.reportedAccount")}</TableCell>
+                <TableCell>{t("reports.reason")}</TableCell>
+                <TableCell>{t("common.description")}</TableCell>
+                <TableCell>{t("common.match")}</TableCell>
+                <TableCell>{t("common.status")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -82,10 +85,10 @@ export default function Reports() {
                   <TableCell>{report.reason}</TableCell>
                   <TableCell sx={{ maxWidth: 300 }}>
                     <Tooltip title={report.description || ''}>
-                      <Typography variant="body2" noWrap>{report.description || '—'}</Typography>
+                      <Typography variant="body2" noWrap>{report.description || t("common.missing")}</Typography>
                     </Tooltip>
                   </TableCell>
-                  <TableCell>{report.match_id ? compactId(report.match_id) : '—'}</TableCell>
+                  <TableCell>{report.match_id ? compactId(report.match_id) : t("common.missing")}</TableCell>
                   <TableCell>
                     <Select
                       size="small"
@@ -105,7 +108,7 @@ export default function Reports() {
               ))}
               {!pagination.items.length && (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>Aucun signalement dans cette file.</TableCell>
+                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>{t("reports.noReportsInThisQueue")}</TableCell>
                 </TableRow>
               )}
             </TableBody>

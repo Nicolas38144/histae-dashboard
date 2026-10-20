@@ -37,7 +37,7 @@ describe('RevenuePanel', () => {
 
   it('warns about currencies excluded from the total', () => {
     render(<RevenuePanel initialRevenue={{ ...adminMetrics.revenue, excluded_currency_invoices: 2 }} />);
-    expect(screen.getByRole('alert')).toHaveTextContent('2 facture(s) payée(s) dans une autre devise exclue(s) du total en EUR');
+    expect(screen.getByRole('alert')).toHaveTextContent('2 factures payées dans une autre devise exclues du total EUR');
     expect(screen.getByRole('alert')).toHaveTextContent('Aucune conversion');
   });
 });

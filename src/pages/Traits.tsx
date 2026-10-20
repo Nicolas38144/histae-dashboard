@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { translationForm, translationPatch } from '../components/catalog-translations';
 import { CatalogTranslationFields, CatalogTranslationCoverage } from '../components/CatalogTranslations';
 import { AddOutlined, DeleteOutline, EditOutlined } from '@mui/icons-material';
@@ -16,6 +18,7 @@ import { useNotification } from '../components/notification-context';
 import { useAsyncData } from '../hooks/useAsyncData';
 
 export default function Traits() {
+  useLocale();
   const { data, loading, error, reload } = useAsyncData(getTraits);
   const [editing, setEditing] = useState<Trait | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Trait | null>(null);
@@ -35,7 +38,7 @@ export default function Traits() {
     try {
       if (editing === 'new') await createTrait(name, translationPatch(translations));
       else if (editing) await updateTrait(editing.id, name, translationPatch(translations));
-      showNotification(editing === 'new' ? 'Trait créé.' : 'Trait renommé.', 'success');
+      showNotification(editing === 'new' ? t("common.traitCreated") : t("common.traitRenamed"), 'success');
       setEditing(null);
       setName('');
       reload();
@@ -51,7 +54,7 @@ export default function Traits() {
     setSaving(true);
     try {
       await deleteTrait(deleting.id);
-      showNotification('Trait supprimé.', 'success');
+      showNotification(t("common.traitDeleted"), 'success');
       setDeleting(null);
       reload();
     } catch (reason) {
@@ -64,12 +67,11 @@ export default function Traits() {
   return (
     <>
       <PageHeader
-        title="Traits"
-        description="Catalogue des traits proposés dans les profils."
+        title={t("common.traits")}
+        description={t("traits.catalogueOfTraitsAvailableOnProfiles")}
         actions={(
           <Button variant="contained" startIcon={<AddOutlined />} onClick={() => openEditor('new')}>
-            Ajouter un trait
-          </Button>
+            {t("common.addATrait")}</Button>
         )}
       />
       <AsyncState loading={loading} error={error} onRetry={reload} />
@@ -78,21 +80,21 @@ export default function Traits() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Nom</TableCell>
-                <TableCell>Identifiant</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t("common.name")}</TableCell>
+                <TableCell>{t("common.identifier")}</TableCell>
+                <TableCell align="right">{t("common.actions")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {data.map((trait) => (
                 <TableRow key={trait.id}>
-                  <TableCell>{trait.translations?.fr ?? trait.name}<CatalogTranslationCoverage translations={trait.translations} /></TableCell>
+                  <TableCell>{trait.name}<CatalogTranslationCoverage translations={trait.translations} /></TableCell>
                   <TableCell>{trait.id}</TableCell>
                   <TableCell align="right">
-                    <IconButton aria-label={`Renommer ${trait.name}`} onClick={() => openEditor(trait)}>
+                    <IconButton aria-label={t("common.renameValue", { value0: trait.name })} onClick={() => openEditor(trait)}>
                       <EditOutlined />
                     </IconButton>
-                    <IconButton color="error" aria-label={`Supprimer ${trait.name}`} onClick={() => setDeleting(trait)}>
+                    <IconButton color="error" aria-label={t("common.deleteValue", { value0: trait.name })} onClick={() => setDeleting(trait)}>
                       <DeleteOutline />
                     </IconButton>
                   </TableCell>
@@ -100,7 +102,7 @@ export default function Traits() {
               ))}
               {!data.length && (
                 <TableRow>
-                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>Aucun trait configuré.</TableCell>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>{t("traits.noTraitsConfigured")}</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -108,21 +110,21 @@ export default function Traits() {
         </Paper>
       )}
       <Dialog open={Boolean(editing)} onClose={saving ? undefined : () => setEditing(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{editing === 'new' ? 'Nouveau trait' : 'Renommer le trait'}</DialogTitle>
+        <DialogTitle>{editing === 'new' ? t("common.newTrait") : t("common.renameTrait")}</DialogTitle>
         <DialogContent>
-          <TextField autoFocus fullWidth label="Nom (français)" value={name} onChange={(event) => setName(event.target.value)} sx={{ mt: 1 }} slotProps={{ htmlInput: { maxLength: 100 } }} />
+          <TextField autoFocus fullWidth label={t("common.nameFrench")} value={name} onChange={(event) => setName(event.target.value)} sx={{ mt: 1 }} slotProps={{ htmlInput: { maxLength: 100 } }} />
           <CatalogTranslationFields value={translations} onChange={setTranslations} maxLength={100} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditing(null)}>Annuler</Button>
-          <Button variant="contained" disabled={saving || !name.trim()} onClick={() => void save()}>Enregistrer</Button>
+          <Button onClick={() => setEditing(null)}>{t("common.cancel")}</Button>
+          <Button variant="contained" disabled={saving || !name.trim()} onClick={() => void save()}>{t("common.save")}</Button>
         </DialogActions>
       </Dialog>
       <ConfirmActionDialog
         open={Boolean(deleting)}
-        title="Supprimer ce trait ?"
-        description="Le trait sera aussi retiré de tous les profils qui l’utilisent."
-        confirmLabel="Supprimer"
+        title={t("common.deleteThisTrait")}
+        description={t("traits.theTraitWillAlsoBeRemovedFromEveryProfile")}
+        confirmLabel={t("common.delete")}
         danger
         loading={saving}
         onCancel={() => setDeleting(null)}

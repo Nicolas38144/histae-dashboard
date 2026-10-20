@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { Alert, Box, Button } from '@mui/material';
 
 export function CursorPaginationControls({
@@ -6,7 +8,7 @@ export function CursorPaginationControls({
   error,
   onLoadMore,
   onReload,
-  loadLabel = 'Charger la suite',
+  loadLabel = t("common.loadMore"),
 }: {
   nextCursor: string | null;
   loading: boolean;
@@ -15,21 +17,22 @@ export function CursorPaginationControls({
   onReload: () => void;
   loadLabel?: string;
 }) {
+  useLocale();
   if (error) {
     return (
       <Alert
         severity="error"
-        action={<Button color="inherit" size="small" onClick={onReload}>Recharger depuis le début</Button>}
+        action={<Button color="inherit" size="small" onClick={onReload}>{t("cursorPaginationControls.reloadFromTheBeginning")}</Button>}
         sx={{ m: 2 }}
       >
-        La page suivante n’a pas pu être chargée : {error}
+        {t("cursorPaginationControls.theNextPageCouldNotBeLoaded")}{error}
       </Alert>
     );
   }
   if (!nextCursor) return null;
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-      <Button onClick={onLoadMore} disabled={loading}>{loading ? 'Chargement…' : loadLabel}</Button>
+      <Button onClick={onLoadMore} disabled={loading}>{loading ? t("common.loading") : loadLabel}</Button>
     </Box>
   );
 }

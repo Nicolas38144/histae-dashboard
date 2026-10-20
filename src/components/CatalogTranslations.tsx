@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { labels, translatedLanguages } from './catalog-translations';
 import type { TranslationForm } from './catalog-translations';
 import { Chip, Stack, TextField } from '@mui/material';
@@ -9,12 +11,13 @@ export function CatalogTranslationFields({ value, onChange, maxLength, multiline
   maxLength: number;
   multiline?: boolean;
 }) {
+  useLocale();
   return (
     <Stack spacing={2} sx={{ mt: 2 }}>
       {translatedLanguages.map((language) => (
-        <TextField key={language} fullWidth multiline={multiline} label={labels[language]}
+        <TextField key={language} fullWidth multiline={multiline} label={labels()[language]}
           value={value[language]} slotProps={{ htmlInput: { maxLength } }}
-          helperText="Facultatif : le français est affiché si cette traduction est absente."
+          helperText={t("catalogTranslations.optionalFrenchIsDisplayedIfThisTranslationIsMissing")}
           onChange={(event) => onChange({ ...value, [language]: event.target.value })} />
       ))}
     </Stack>
@@ -22,12 +25,13 @@ export function CatalogTranslationFields({ value, onChange, maxLength, multiline
 }
 
 export function CatalogTranslationCoverage({ translations }: { translations?: Translations }) {
+  useLocale();
   return (
     <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
       {translatedLanguages.map((language) => (
         <Chip key={language} size="small" variant="outlined" label={language.toUpperCase()}
           color={translations?.[language] ? 'success' : 'default'}
-          title={`${labels[language]} : ${translations?.[language] ? 'traduction disponible' : 'repli en français'}`} />
+          title={t(translations?.[language] ? "catalog.available" : "catalog.fallback", { language: labels()[language] })} />
       ))}
     </Stack>
   );

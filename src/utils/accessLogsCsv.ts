@@ -1,3 +1,4 @@
+import { t } from '../i18n/core';
 import type { DataAccessLog } from '../api/types';
 
 const columns = ['id', 'accessed_at', 'accessed_user_id', 'accessor_id', 'accessor_role', 'action', 'reason'];
@@ -26,7 +27,7 @@ export function downloadAccessLogsCsv(userId: string, logs: DataAccessLog[]): vo
   const url = URL.createObjectURL(file);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `histae-journal-acces-${userId}.csv`;
+  link.download = t("audit.csvFilename", { id: userId });
   document.body.append(link);
   link.click();
   link.remove();

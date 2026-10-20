@@ -1,6 +1,11 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
-export const getTheme = (mode: 'light' | 'dark') => createTheme({
+import { enUS, esES, frFR, itIT } from '@mui/material/locale';
+import { defaultLocale, type Locale } from './i18n/catalogs';
+
+const muiLocales = { fr: frFR, en: enUS, es: esES, it: itIT };
+
+export const getTheme = (mode: 'light' | 'dark', locale: Locale = defaultLocale) => createTheme({
   palette: {
     mode,
     primary: { main: mode === 'light' ? '#514fc4' : '#9694ff' },
@@ -15,4 +20,4 @@ export const getTheme = (mode: 'light' | 'dark') => createTheme({
     MuiTableHead: { styleOverrides: { root: ({ theme }) => ({ backgroundColor: alpha(theme.palette.primary.main, 0.06) }) } },
     MuiTableCell: { styleOverrides: { head: { fontWeight: 750, whiteSpace: 'nowrap' } } },
   },
-});
+}, muiLocales[locale]);

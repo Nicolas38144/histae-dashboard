@@ -1,3 +1,4 @@
+import { LocalizedError } from '../i18n/core';
 import {
   browserSupportsWebAuthn,
   startAuthentication,
@@ -110,7 +111,7 @@ async function withFriendlyWebAuthnErrors<T>(operation: () => Promise<T>): Promi
 
 function friendlyWebAuthnError(error: unknown): Error | unknown {
   if (error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'AbortError')) {
-    return new Error('La demande a été annulée ou aucune passkey compatible n’est disponible.');
+    return new LocalizedError("auth.theRequestWasCancelledOrNoCompatiblePasskeyIs");
   }
   return error;
 }

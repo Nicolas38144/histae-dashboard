@@ -47,7 +47,7 @@ describe('critical dashboard actions', () => {
     renderDashboard(<ProfileQuestions />);
 
     await user.click(await screen.findByRole('button', { name: `Supprimer ${profileQuestion.prompt}` }));
-    expect(screen.getByText(/ses 12 réponse\(s\) utilisateur seront supprimées définitivement/)).toBeVisible();
+    expect(screen.getByText(/ses 12 réponses utilisateurs seront définitivement supprimées/)).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Supprimer définitivement' }));
 
     await waitFor(() => expect(deleteCalls).toBe(1));

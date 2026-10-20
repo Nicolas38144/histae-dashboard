@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import {
   BrokenImageOutlined,
   DeleteSweepOutlined,
@@ -48,17 +50,17 @@ import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
 import { useAsyncData } from '../hooks/useAsyncData';
 import { useCursorPagination } from '../hooks/useCursorPagination';
-import { compactId, formatDate } from '../utils/format';
+import { compactId, formatDate, formatNumber } from '../utils/format';
 
-const issueLabels: Record<PhotoReconciliationIssue, string> = {
-  stale_processing: 'Traitement bloqué',
-  deletion_queued: 'Suppression en file',
-  deletion_processing: 'Suppression en cours',
-  deletion_retry_scheduled: 'Nouvel essai planifié',
-  deletion_dead_letter: 'Échec définitif',
-  deletion_event_missing: 'Événement absent',
-  deletion_event_completed: 'État incohérent',
-};
+const issueLabels = (): Record<PhotoReconciliationIssue, string> => ({
+  stale_processing: t("common.stalledProcessing"),
+  deletion_queued: t("common.deletionQueued"),
+  deletion_processing: t("common.deletionInProgress"),
+  deletion_retry_scheduled: t("photoReconciliation.retryScheduled"),
+  deletion_dead_letter: t("common.permanentFailure"),
+  deletion_event_missing: t("common.eventMissing"),
+  deletion_event_completed: t("common.inconsistentState"),
+});
 
 const retryableIssues = new Set<PhotoReconciliationIssue>([
   'stale_processing',
@@ -69,6 +71,7 @@ const retryableIssues = new Set<PhotoReconciliationIssue>([
 const photoKey = (photo: PhotoReconciliationItem) => photo.photo_id;
 
 export default function PhotoReconciliation() {
+  useLocale();
   const session = useOutletContext<AdminSession>();
   const [filter, setFilter] = useState<PhotoReconciliationFilter>('all');
   const [selected, setSelected] = useState<PhotoReconciliationItem | null>(null);
@@ -95,7 +98,7 @@ export default function PhotoReconciliation() {
     setSaving(true);
     try {
       await retryPhotoReconciliation(selected.photo_id, reason.trim());
-      showNotification('La réconciliation de la photo a été programmée.', 'success');
+      showNotification(t("photoReconciliation.photoReconciliationHasBeenScheduled"), 'success');
       setSelected(null);
       setReason('');
       reloadAll();
@@ -109,8 +112,8 @@ export default function PhotoReconciliation() {
   return (
     <>
       <PageHeader
-        title="Réconciliation des photos"
-        description="Surveillance du cycle de vie user_photo et relance auditée des opérations bloquées."
+        title={t("photoReconciliation.photoReconciliation")}
+        description={t("photoReconciliation.monitorTheUserPhotoLifecycleAndAuditRetriesOf")}
         actions={<PhotoFilter value={filter} onChange={setFilter} />}
       />
       {metrics.data && <PhotoMetricGrid metrics={metrics.data.photos} />}
@@ -118,7 +121,7 @@ export default function PhotoReconciliation() {
       {!initialLoading && !initialError && (
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">
-            <TableHead><TableRow><TableCell>Photo</TableCell><TableCell>Utilisateur</TableCell><TableCell>État</TableCell><TableCell>Diagnostic</TableCell><TableCell>Métadonnées</TableCell><TableCell>Tentatives</TableCell><TableCell>Dernière mise à jour</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
+            <TableHead><TableRow><TableCell>{t("common.photo")}</TableCell><TableCell>{t("common.user")}</TableCell><TableCell>{t("common.status")}</TableCell><TableCell>{t("common.diagnostic")}</TableCell><TableCell>{t("common.metadata")}</TableCell><TableCell>{t("common.attempts")}</TableCell><TableCell>{t("common.lastUpdate")}</TableCell><TableCell align="right">{t("common.action")}</TableCell></TableRow></TableHead>
             <TableBody>
               {pagination.items.map((photo) => (
                 <TableRow key={photo.photo_id} hover>
@@ -127,16 +130,16 @@ export default function PhotoReconciliation() {
                   <TableCell><StatusChip value={photo.status} /></TableCell>
                   <TableCell><IssueChip issue={photo.issue} /></TableCell>
                   <TableCell>{photoMetadata(photo)}</TableCell>
-                  <TableCell>{photo.outbox_attempts ?? '—'}</TableCell>
+                  <TableCell>{formatNumber(photo.outbox_attempts)}</TableCell>
                   <TableCell>{formatDate(photo.updated_at)}</TableCell>
                   <TableCell align="right">
                     {retryableIssues.has(photo.issue)
-                      ? <Button size="small" startIcon={<ReplayOutlined />} onClick={() => setSelected(photo)}>Réconcilier</Button>
-                      : <Typography variant="caption" color="text.secondary">Surveillance</Typography>}
+                      ? <Button size="small" startIcon={<ReplayOutlined />} onClick={() => setSelected(photo)}>{t("common.reconcile")}</Button>
+                      : <Typography variant="caption" color="text.secondary">{t("common.observation")}</Typography>}
                   </TableCell>
                 </TableRow>
               ))}
-              {!pagination.items.length && <TableRow><TableCell colSpan={8} align="center" sx={{ py: 5 }}>Aucune photo dans cette file.</TableCell></TableRow>}
+              {!pagination.items.length && <TableRow><TableCell colSpan={8} align="center" sx={{ py: 5 }}>{t("photoReconciliation.noPhotosInThisQueue")}</TableCell></TableRow>}
             </TableBody>
           </Table>
           <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
@@ -144,12 +147,12 @@ export default function PhotoReconciliation() {
       )}
       <ConfirmActionDialog
         open={Boolean(selected)}
-        title="Réconcilier cette photo ?"
-        description="L’API relancera le traitement adapté à l’état de cette photo. L’action sera journalisée."
-        confirmLabel="Remettre en file"
+        title={t("photoReconciliation.reconcileThisPhoto")}
+        description={t("photoReconciliation.theApiWillRestartProcessingAccordingToThisPhoto")}
+        confirmLabel={t("common.requeue")}
         value={reason}
         onValueChange={setReason}
-        valueLabel={session.role === 'superadmin' ? undefined : 'Motif opérationnel'}
+        valueLabel={session.role === 'superadmin' ? undefined : t("common.operationalReason")}
         requireValue={session.role !== 'superadmin'}
         minValueLength={3}
         maxValueLength={500}
@@ -168,42 +171,45 @@ function PhotoFilter({
   value: PhotoReconciliationFilter;
   onChange: (value: PhotoReconciliationFilter) => void;
 }) {
+  useLocale();
   return (
     <FormControl size="small" sx={{ minWidth: 210 }}>
-      <InputLabel>File</InputLabel>
-      <Select label="File" value={value} onChange={(event) => onChange(event.target.value as PhotoReconciliationFilter)}>
-        <MenuItem value="all">Toutes les opérations</MenuItem>
-        <MenuItem value="stale_processing">Traitements bloqués</MenuItem>
-        <MenuItem value="deleting">Suppressions</MenuItem>
-        <MenuItem value="dead_letter">Échecs définitifs</MenuItem>
+      <InputLabel>{t("common.queue")}</InputLabel>
+      <Select label={t("common.queue")} value={value} onChange={(event) => onChange(event.target.value as PhotoReconciliationFilter)}>
+        <MenuItem value="all">{t("photoReconciliation.allOperations")}</MenuItem>
+        <MenuItem value="stale_processing">{t("common.stalledOperations")}</MenuItem>
+        <MenuItem value="deleting">{t("common.deletions")}</MenuItem>
+        <MenuItem value="dead_letter">{t("common.permanentFailures")}</MenuItem>
       </Select>
     </FormControl>
   );
 }
 
 function PhotoMetricGrid({ metrics }: { metrics: AdminMetrics['photos'] }) {
+  useLocale();
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
-      <MetricCard label="Photos prêtes" value={metrics.ready} icon={<PhotoOutlined color="success" />} accent="success.main" />
-      <MetricCard label="Traitements actifs" value={metrics.pending + metrics.processing} icon={<HourglassTopOutlined color="info" />} accent="info.main" />
-      <MetricCard label="Traitements bloqués" value={metrics.stale_processing} icon={<ReportProblemOutlined color="warning" />} accent="warning.main" />
-      <MetricCard label="Suppressions en cours" value={metrics.deleting} icon={<DeleteSweepOutlined color="primary" />} />
-      <MetricCard label="Échecs définitifs" value={metrics.deletion_dead_letters} icon={<BrokenImageOutlined color="error" />} accent="error.main" />
-      <MetricCard label="Sans événement actif" value={metrics.deletion_without_active_event} icon={<ReportProblemOutlined color="error" />} accent="error.main" />
+      <MetricCard label={t("common.readyPhotos")} value={metrics.ready} icon={<PhotoOutlined color="success" />} accent="success.main" />
+      <MetricCard label={t("common.activeProcessing")} value={metrics.pending + metrics.processing} icon={<HourglassTopOutlined color="info" />} accent="info.main" />
+      <MetricCard label={t("common.stalledOperations")} value={metrics.stale_processing} icon={<ReportProblemOutlined color="warning" />} accent="warning.main" />
+      <MetricCard label={t("photoReconciliation.deletionsInProgress")} value={metrics.deleting} icon={<DeleteSweepOutlined color="primary" />} />
+      <MetricCard label={t("common.permanentFailures")} value={metrics.deletion_dead_letters} icon={<BrokenImageOutlined color="error" />} accent="error.main" />
+      <MetricCard label={t("common.withoutAnActiveEvent")} value={metrics.deletion_without_active_event} icon={<ReportProblemOutlined color="error" />} accent="error.main" />
     </Box>
   );
 }
 
 function IssueChip({ issue }: { issue: PhotoReconciliationIssue }) {
+  useLocale();
   const color = issue === 'deletion_dead_letter' || issue === 'deletion_event_missing' || issue === 'deletion_event_completed'
     ? 'error'
     : issue === 'stale_processing' || issue === 'deletion_retry_scheduled'
       ? 'warning'
       : 'info';
-  return <Chip size="small" label={issueLabels[issue]} color={color} variant="outlined" />;
+  return <Chip size="small" label={issueLabels()[issue]} color={color} variant="outlined" />;
 }
 
 function photoMetadata(photo: PhotoReconciliationItem): string {
-  if (photo.size_bytes === null || photo.width === null || photo.height === null) return '—';
-  return `${photo.width} × ${photo.height} · ${Math.ceil(photo.size_bytes / 1_000)} ko`;
+  if (photo.size_bytes === null || photo.width === null || photo.height === null) return t("common.missing");
+  return t("common.valueValueValueKb", { value0: photo.width, value1: photo.height, value2: Math.ceil(photo.size_bytes / 1_000) });
 }

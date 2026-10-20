@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { Alert, Box } from '@mui/material';
 import { getPlanCatalog } from '../api/admin';
 import { AsyncState } from '../components/AsyncState';
@@ -6,13 +8,14 @@ import { PlanCard } from '../components/PlanCard';
 import { useAsyncData } from '../hooks/useAsyncData';
 
 export default function Plans() {
+  useLocale();
   const { data, loading, error, reload } = useAsyncData(getPlanCatalog);
 
   return (
     <>
       <PageHeader
-        title="Plans"
-        description="Free, Premium Mensuel et Premium Annuel : tarifs et conditions du catalogue API. Les deux abonnements Premium offrent les mêmes fonctionnalités."
+        title={t("common.plans")}
+        description={t("plans.freePremiumMonthlyAndPremiumAnnualPricesAndConditions")}
       />
       <AsyncState loading={loading} error={error} onRetry={reload} />
       {data && !loading && !error && (
@@ -21,7 +24,7 @@ export default function Plans() {
             const plan = data.plans.find((candidate) => candidate.code === offer.plan_code)!;
             return <PlanCard key={offer.code} plan={plan} offer={offer} />;
           })}
-          {data.offers.length === 0 && <Alert severity="info">Aucune offre disponible.</Alert>}
+          {data.offers.length === 0 && <Alert severity="info">{t("plans.noOffersAvailable")}</Alert>}
         </Box>
       )}
     </>

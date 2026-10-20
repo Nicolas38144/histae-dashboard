@@ -1,7 +1,9 @@
+import { useLocale } from '../i18n/useLocale';
 import { Box, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
 
 export function PageHeader({ title, description, actions }: { title: ReactNode; description: string; actions?: ReactNode }) {
+  useLocale();
   return (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, gap: 2, mb: 3, flexDirection: { xs: 'column', md: 'row' } }}>
       <Box>

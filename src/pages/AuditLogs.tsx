@@ -1,3 +1,6 @@
+import { domainLabel } from '../i18n/domain';
+import { useLocale } from '../i18n/useLocale';
+import { LocalizedError, t } from '../i18n/core';
 import { DownloadOutlined, SearchOutlined, VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -36,6 +39,7 @@ const logKey = (log: DataAccessLog) => log.id;
 const adminKey = (admin: AdminUser) => admin.user_id;
 
 export default function AuditLogs() {
+  useLocale();
   const [userId, setUserId] = useState('');
   const [search, setSearch] = useState<AuditSearch | null>(null);
   const [exportingUserId, setExportingUserId] = useState<string | null>(null);
@@ -68,12 +72,12 @@ export default function AuditLogs() {
         const page = await getAccessLogs(adminId, cursor);
         logs.push(...page.logs);
         if (!page.next_cursor) break;
-        if (cursors.has(page.next_cursor)) throw new Error('La pagination du journal est incohérente. Réessayez.');
+        if (cursors.has(page.next_cursor)) throw new LocalizedError("auditLogs.theLogPaginationIsInconsistentTryAgain");
         cursors.add(page.next_cursor);
         cursor = page.next_cursor;
       }
       downloadAccessLogsCsv(adminId, logs);
-      showNotification(`${logs.length} entrée${logs.length === 1 ? '' : 's'} exportée${logs.length === 1 ? '' : 's'}.`, 'success');
+      showNotification(t("audit.entriesExported", { count: logs.length }), 'success');
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
     } finally {
@@ -84,8 +88,8 @@ export default function AuditLogs() {
   return (
     <>
       <PageHeader
-        title="Journal d’accès"
-        description="Traçabilité RGPD des consultations et actions administratives par utilisateur."
+        title={t("common.accessLog")}
+        description={t("auditLogs.gdprTraceabilityOfAdministratorViewsAndActionsByUser")}
       />
       <Paper
         component="form"
@@ -96,7 +100,7 @@ export default function AuditLogs() {
         <TextField
           fullWidth
           size="small"
-          label="UUID de l’utilisateur concerné"
+          label={t("auditLogs.uuidOfTheUserConcerned")}
           value={userId}
           onChange={(event) => setUserId(event.target.value)}
           slotProps={{
@@ -106,8 +110,7 @@ export default function AuditLogs() {
           }}
         />
         <Button type="submit" variant="contained" disabled={!userId.trim()}>
-          Rechercher
-        </Button>
+          {t("common.search")}</Button>
       </Paper>
       <AdministratorList role="superadmin" openUserId={search?.userId ?? null} exportingUserId={exportingUserId} onView={viewAdministrator} onExport={exportAdministrator} />
       <AdministratorList role="admin" openUserId={search?.userId ?? null} exportingUserId={exportingUserId} onView={viewAdministrator} onExport={exportAdministrator} />
@@ -123,6 +126,7 @@ function AdministratorList({ role, openUserId, exportingUserId, onView, onExport
   onView: (adminId: string) => void;
   onExport: (adminId: string) => void;
 }) {
+  useLocale();
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getUsers({ role, cursor }, signal);
     return { items: page.users, nextCursor: page.next_cursor };
@@ -130,25 +134,25 @@ function AdministratorList({ role, openUserId, exportingUserId, onView, onExport
   const pagination = useCursorPagination(loadPage, adminKey);
 
   return <Paper variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
-    <Box sx={{ p: 2 }}><Typography variant="h6">{role === 'superadmin' ? 'Superadmins' : 'Admins'}</Typography></Box>
+    <Box sx={{ p: 2 }}><Typography variant="h6">{role === 'superadmin' ? t("common.superadmins") : t("common.admins")}</Typography></Box>
     <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
     {!pagination.loading && !pagination.error && <>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Compte</TableCell><TableCell>État</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>{t("common.account")}</TableCell><TableCell>{t("common.status")}</TableCell><TableCell align="right">{t("common.actions")}</TableCell></TableRow></TableHead>
         <TableBody>{pagination.items.map((admin) => {
           const open = openUserId?.toLowerCase() === admin.user_id.toLowerCase();
           return (
             <TableRow key={admin.user_id}>
               <TableCell><UserLink id={admin.user_id} label={admin.firstname} /></TableCell>
-              <TableCell>{admin.is_banned ? 'Banni' : 'Actif'}</TableCell>
+              <TableCell>{admin.is_banned ? t("common.banned") : t("common.active")}</TableCell>
               <TableCell align="right">
-                <Tooltip title={open ? 'Fermer le journal de ce compte' : 'Voir les accès à ce compte'}>
-                  <IconButton aria-label={`${open ? 'Fermer' : 'Voir'} le journal de ${admin.firstname || admin.user_id}`} size="small" onClick={() => onView(admin.user_id)}>
+                <Tooltip title={open ? t("auditLogs.closeThisAccountSLog") : t("auditLogs.viewAccessToThisAccount")}>
+                  <IconButton aria-label={t(open ? "audit.closeLogFor" : "audit.viewLogFor", { name: admin.firstname || admin.user_id })} size="small" onClick={() => onView(admin.user_id)}>
                     {open ? <VisibilityOutlined fontSize="small" /> : <VisibilityOffOutlined fontSize="small" />}
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Exporter les accès à ce compte en CSV">
-                  <IconButton aria-label={`Exporter le journal de ${admin.firstname || admin.user_id} en CSV`} size="small" disabled={exportingUserId !== null} onClick={() => void onExport(admin.user_id)}>
+                <Tooltip title={t("auditLogs.exportAccessToThisAccountAsCsv")}>
+                  <IconButton aria-label={t("auditLogs.exportTheLogForValueAsCsv", { value0: admin.firstname || admin.user_id })} size="small" disabled={exportingUserId !== null} onClick={() => void onExport(admin.user_id)}>
                     <DownloadOutlined fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -156,7 +160,7 @@ function AdministratorList({ role, openUserId, exportingUserId, onView, onExport
             </TableRow>
           );
         })}
-          {!pagination.items.length && <TableRow><TableCell colSpan={3}>Aucun compte dans ce rôle.</TableCell></TableRow>}
+          {!pagination.items.length && <TableRow><TableCell colSpan={3}>{t("auditLogs.noAccountsWithThisRole")}</TableCell></TableRow>}
         </TableBody>
       </Table>
       <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
@@ -165,6 +169,7 @@ function AdministratorList({ role, openUserId, exportingUserId, onView, onExport
 }
 
 function AuditLogResults({ userId }: { userId: string }) {
+  useLocale();
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getAccessLogs(userId, cursor, signal);
     return { items: page.logs, nextCursor: page.next_cursor };
@@ -179,29 +184,28 @@ function AuditLogResults({ userId }: { userId: string }) {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Action</TableCell>
-                <TableCell>Administrateur</TableCell>
-                <TableCell>Rôle</TableCell>
-                <TableCell>Justification</TableCell>
+                <TableCell>{t("common.date")}</TableCell>
+                <TableCell>{t("common.action")}</TableCell>
+                <TableCell>{t("common.administrator")}</TableCell>
+                <TableCell>{t("common.role")}</TableCell>
+                <TableCell>{t("common.reason")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {pagination.items.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell>{formatDate(log.accessed_at)}</TableCell>
-                  <TableCell>{log.action}</TableCell>
-                  <TableCell>{log.accessor_id ? <UserLink id={log.accessor_id} /> : 'Système'}</TableCell>
-                  <TableCell>{log.accessor_role || '—'}</TableCell>
-                  <TableCell>{log.reason || '—'}</TableCell>
+                  <TableCell>{domainLabel(log.action)}</TableCell>
+                  <TableCell>{log.accessor_id ? <UserLink id={log.accessor_id} /> : t("common.system")}</TableCell>
+                  <TableCell>{domainLabel(log.accessor_role || t("common.missing"))}</TableCell>
+                  <TableCell>{log.reason || t("common.missing")}</TableCell>
                 </TableRow>
               ))}
               {!pagination.items.length && (
                 <TableRow>
                   <TableCell colSpan={5}>
                     <Typography textAlign="center" color="text.secondary" sx={{ py: 5 }}>
-                      Aucune entrée pour cet utilisateur.
-                    </Typography>
+                      {t("auditLogs.noEntriesForThisUser")}</Typography>
                   </TableCell>
                 </TableRow>
               )}

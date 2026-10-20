@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { AddOutlined, KeyOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -22,9 +24,11 @@ import { formatDate } from '../utils/format';
 import { AdminSecurityHistory } from '../components/AdminSecurityHistory';
 
 export default function Security() {
+  useLocale();
   const loader = useCallback(() => getAdminCredentials(), []);
   const { data, loading, error, reload } = useAsyncData(loader);
-  const [newName, setNewName] = useState('Clé de secours');
+  const [newName, setNewName] = useState<string | null>(null);
+  const passkeyName = newName ?? t("common.backupKey");
   const [adding, setAdding] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [revoking, setRevoking] = useState<AdminCredential | null>(null);
@@ -36,10 +40,10 @@ export default function Security() {
   const add = async () => {
     setAdding(true);
     try {
-      await addCredential(newName.trim());
+      await addCredential(passkeyName.trim());
       setAddOpen(false);
-      setNewName('Clé de secours');
-      showNotification('La nouvelle passkey a été enregistrée.', 'success');
+      setNewName(null);
+      showNotification(t("security.theNewPasskeyHasBeenRegistered"), 'success');
       reload();
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
@@ -54,7 +58,7 @@ export default function Security() {
     try {
       await revokeCredential(revoking.id);
       setRevoking(null);
-      showNotification('La passkey a été révoquée et les autres sessions ont été fermées.', 'success');
+      showNotification(t("security.thePasskeyHasBeenRevokedAndOtherSessionsHave"), 'success');
       reload();
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
@@ -69,7 +73,7 @@ export default function Security() {
     try {
       await renameCredential(renaming.id, renamedName);
       setRenaming(null);
-      showNotification('La passkey a été renommée.', 'success');
+      showNotification(t("security.thePasskeyHasBeenRenamed"), 'success');
       reload();
     } catch (reason) {
       showNotification(errorMessage(reason), 'error');
@@ -81,13 +85,12 @@ export default function Security() {
   return (
     <Box>
       <PageHeader
-        title="Sécurité du compte"
-        description="Gérez les passkeys de ce compte administrateur et ses sessions actives."
-        actions={<Button variant="contained" startIcon={<AddOutlined />} onClick={() => setAddOpen(true)}>Ajouter une passkey</Button>}
+        title={t("common.accountSecurity")}
+        description={t("security.manageThisAdministratorAccountSPasskeysAndActiveSessions")}
+        actions={<Button variant="contained" startIcon={<AddOutlined />} onClick={() => setAddOpen(true)}>{t("common.addAPasskey")}</Button>}
       />
       <Alert severity="info" sx={{ mb: 3 }}>
-        Conservez au moins deux moyens d’accès. Une clé de sécurité physique distincte constitue la meilleure clé de secours.
-      </Alert>
+        {t("security.keepAtLeastTwoWaysToSignInA")}</Alert>
       <AsyncState loading={loading} error={error} onRetry={reload} />
       {!loading && !error && (
         <Stack spacing={2}>
@@ -100,21 +103,21 @@ export default function Security() {
                     <Box>
                       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                         <Typography fontWeight={750}>{credential.name}</Typography>
-                        {credential.current && <Chip size="small" color="primary" label="Session actuelle" />}
-                        <Chip size="small" variant="outlined" label={credential.device_type === 'singleDevice' ? 'Liée à un appareil' : 'Synchronisable'} />
-                        {credential.backed_up && <Chip size="small" variant="outlined" label="Sauvegardée" />}
+                        {credential.current && <Chip size="small" color="primary" label={t("common.currentSession")} />}
+                        <Chip size="small" variant="outlined" label={credential.device_type === 'singleDevice' ? t("common.deviceBound") : t("common.syncable")} />
+                        {credential.backed_up && <Chip size="small" variant="outlined" label={t("common.backedUp")} />}
                       </Stack>
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Ajoutée le {formatDate(credential.created_at)} · Dernière utilisation {formatDate(credential.last_used_at)}
+                        {t("security.passkeyDates", { created: formatDate(credential.created_at), used: formatDate(credential.last_used_at) })}
                       </Typography>
                       {credential.transports.length > 0 && (
-                        <Typography variant="caption" color="text.secondary">Transports : {credential.transports.join(', ')}</Typography>
+                        <Typography variant="caption" color="text.secondary">{t("security.transports", { transports: credential.transports.join(', ') })}</Typography>
                       )}
                     </Box>
                   </Stack>
                   <Stack direction="row" spacing={1}>
-                    <Button onClick={() => { setRenaming(credential); setRenamedName(credential.name); }}>Renommer</Button>
-                    <Button color="error" disabled={credential.current || (data?.length ?? 0) <= 1} onClick={() => setRevoking(credential)}>Révoquer</Button>
+                    <Button onClick={() => { setRenaming(credential); setRenamedName(credential.name); }}>{t("common.rename")}</Button>
+                    <Button color="error" disabled={credential.current || (data?.length ?? 0) <= 1} onClick={() => setRevoking(credential)}>{t("common.revoke")}</Button>
                   </Stack>
                 </Stack>
               </CardContent>
@@ -127,12 +130,12 @@ export default function Security() {
 
       <ConfirmActionDialog
         open={addOpen}
-        title="Ajouter une passkey"
-        description="Votre navigateur vous demandera ensuite de choisir une passkey ou une clé de sécurité. Cette opération nécessite une connexion WebAuthn récente."
-        confirmLabel="Continuer"
-        value={newName}
+        title={t("common.addAPasskey")}
+        description={t("security.yourBrowserWillAskYouToChooseAPasskey")}
+        confirmLabel={t("common.continue")}
+        value={passkeyName}
         onValueChange={setNewName}
-        valueLabel="Nom de la passkey"
+        valueLabel={t("common.passkeyName")}
         requireValue
         maxValueLength={100}
         loading={adding}
@@ -141,12 +144,12 @@ export default function Security() {
       />
       <ConfirmActionDialog
         open={Boolean(renaming)}
-        title="Renommer cette passkey"
-        description="Le changement de nom sera audité et nécessite une authentification WebAuthn récente."
-        confirmLabel="Renommer"
+        title={t("security.renameThisPasskey")}
+        description={t("security.theNameChangeWillBeAuditedAndRequiresRecent")}
+        confirmLabel={t("common.rename")}
         value={renamedName}
         onValueChange={setRenamedName}
-        valueLabel="Nom de la passkey"
+        valueLabel={t("common.passkeyName")}
         requireValue
         maxValueLength={100}
         loading={actionLoading}
@@ -155,9 +158,9 @@ export default function Security() {
       />
       <ConfirmActionDialog
         open={Boolean(revoking)}
-        title="Révoquer cette passkey ?"
-        description={`La passkey « ${revoking?.name ?? ''} » ne pourra plus se connecter. Les autres sessions seront également fermées.`}
-        confirmLabel="Révoquer"
+        title={t("security.revokeThisPasskey")}
+        description={t("security.thePasskeyValueWillNoLongerBeAbleTo", { value0: revoking?.name ?? '' })}
+        confirmLabel={t("common.revoke")}
         danger
         loading={actionLoading}
         onCancel={() => setRevoking(null)}

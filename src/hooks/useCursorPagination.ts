@@ -1,3 +1,4 @@
+import { useLocale } from '../i18n/useLocale';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { errorMessage } from '../api/client';
 import { appendUniqueBy, uniqueBy } from '../utils/pagination';
@@ -18,12 +19,13 @@ export function useCursorPagination<T>(
   getKey: (item: T) => string,
   mergePage: MergeCursorPage<T> = appendUniqueBy,
 ) {
+  const locale = useLocale();
   const [items, setItems] = useState<T[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [loadMoreError, setLoadMoreError] = useState<unknown>(null);
   const [revision, setRevision] = useState(0);
   const requestSequence = useRef(0);
   const activeController = useRef<AbortController | null>(null);
@@ -54,8 +56,8 @@ export function useCursorPagination<T>(
       setNextCursor(page.nextCursor);
     } catch (reason) {
       if (controller.signal.aborted || requestId !== requestSequence.current) return;
-      if (append) setLoadMoreError(errorMessage(reason));
-      else setError(errorMessage(reason));
+      if (append) setLoadMoreError(reason);
+      else setError(reason);
     } finally {
       if (!controller.signal.aborted && requestId === requestSequence.current) {
         if (append) setLoadingMore(false);
@@ -70,7 +72,7 @@ export function useCursorPagination<T>(
       activeController.current?.abort();
       requestSequence.current += 1;
     };
-  }, [load, revision]);
+  }, [load, revision, locale]);
 
   const reload = useCallback(() => setRevision((value) => value + 1), []);
   const loadMore = useCallback(() => {
@@ -82,8 +84,8 @@ export function useCursorPagination<T>(
     nextCursor,
     loading,
     loadingMore,
-    error,
-    loadMoreError,
+    error: error === null ? null : errorMessage(error),
+    loadMoreError: loadMoreError === null ? null : errorMessage(loadMoreError),
     reload,
     loadMore,
   };

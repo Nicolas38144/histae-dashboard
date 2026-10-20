@@ -45,7 +45,7 @@ describe('useAsyncData', () => {
     });
     const { result } = renderHook(() => useAsyncData(loader));
 
-    await waitFor(() => expect(result.current.error).toBe('Échec contrôlé'));
+    await waitFor(() => expect(result.current.error).toBe('Une erreur inattendue est survenue.'));
     act(() => result.current.reload());
     await waitFor(() => expect(result.current).toMatchObject({ data: 'recovered', loading: false, error: null }));
     expect(loader).toHaveBeenCalledTimes(2);

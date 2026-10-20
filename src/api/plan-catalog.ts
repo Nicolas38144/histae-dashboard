@@ -1,3 +1,4 @@
+import { LocalizedError } from '../i18n/core';
 import type { Plan, PlanCatalog, PlanOffer } from './types';
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -28,7 +29,7 @@ function isOffer(value: unknown): value is PlanOffer {
 }
 
 export function parsePlanCatalog(value: unknown): PlanCatalog {
-  const invalid = () => new Error('Le catalogue des offres est incomplet.');
+  const invalid = () => new LocalizedError("plan-catalog.theOfferCatalogueIsIncomplete");
   if (!isObject(value) || !Array.isArray(value.plans) || !value.plans.every(isPlan)) throw invalid();
   const plans = value.plans;
   const codes = new Set(plans.map((plan) => plan.code));

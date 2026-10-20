@@ -56,7 +56,7 @@ describe('useCursorPagination', () => {
 
     await waitFor(() => expect(result.current.nextCursor).toBe('expired-cursor'));
     act(() => result.current.loadMore());
-    await waitFor(() => expect(result.current.loadMoreError).toBe('Curseur refusé'));
+    await waitFor(() => expect(result.current.loadMoreError).toBe('Une erreur inattendue est survenue.'));
     expect(result.current.items.map((item) => item.id)).toEqual(['one']);
 
     act(() => result.current.reload());

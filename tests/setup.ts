@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, vi } from 'vitest';
+import { setLocale } from '../src/i18n/core';
 import { server } from './mocks/server';
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
@@ -8,6 +9,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   cleanup();
   server.resetHandlers();
+  setLocale('fr', { persist: false });
   localStorage.clear();
   sessionStorage.clear();
   window.history.replaceState({}, '', '/');

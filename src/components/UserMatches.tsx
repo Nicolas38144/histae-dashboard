@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { ChatOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -32,6 +34,7 @@ const matchKey = (match: Match) => match.id;
 const messageKey = (message: ChatMessage) => message.id;
 
 export function UserMatches({ userId, profileReason }: { userId: string; profileReason: string }) {
+  useLocale();
   const session = useOutletContext<AdminSession>();
   const loadMatchPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getUserMatches(userId, profileReason, cursor, signal);
@@ -69,10 +72,9 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
     <>
       <Paper variant="outlined" sx={{ mt: 3, overflow: 'hidden' }}>
         <Box sx={{ p: 2.5 }}>
-          <Typography variant="h6" fontWeight={750}>Matchs</Typography>
+          <Typography variant="h6" fontWeight={750}>{t("common.matches")}</Typography>
           <Typography variant="body2" color="text.secondary">
-            La consultation est inscrite au journal d’accès.
-          </Typography>
+            {t("userMatches.viewingIsRecordedInTheAccessLog")}</Typography>
         </Box>
         <AsyncState loading={matches.loading} error={matches.error} onRetry={matches.reload} />
         {!matches.loading && !matches.error && (
@@ -80,11 +82,11 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Match</TableCell>
-                  <TableCell>Autre participant</TableCell>
-                  <TableCell>État</TableCell>
-                  <TableCell>Dernière activité</TableCell>
-                  <TableCell align="right">Conversation</TableCell>
+                  <TableCell>{t("common.match")}</TableCell>
+                  <TableCell>{t("common.otherParticipant")}</TableCell>
+                  <TableCell>{t("common.status")}</TableCell>
+                  <TableCell>{t("common.lastActivity")}</TableCell>
+                  <TableCell align="right">{t("common.conversation")}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -99,8 +101,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
                 {!matches.items.length && (
                   <TableRow>
                     <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                      Aucun match conservé.
-                    </TableCell>
+                      {t("userMatches.noRetainedMatches")}</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -125,12 +126,12 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
       )}
       {session.role !== 'superadmin' && <ConfirmActionDialog
         open={Boolean(pendingMatch)}
-        title="Justifier l’accès à la conversation"
-        description="Les deux participants verront cet accès représenté dans le journal de traçabilité."
-        confirmLabel="Ouvrir la conversation"
+        title={t("userMatches.justifyAccessToTheConversation")}
+        description={t("userMatches.bothParticipantsWillSeeThisAccessInTheTraceability")}
+        confirmLabel={t("userMatches.openConversation")}
         value={accessReason}
         onValueChange={setAccessReason}
-        valueLabel="Motif obligatoire (3 à 500 caractères)"
+        valueLabel={t("userMatches.requiredReason3To500Characters")}
         requireValue
         minValueLength={3}
         maxValueLength={500}
@@ -150,6 +151,7 @@ function MatchRow({
   userId: string;
   onOpen: () => void;
 }) {
+  useLocale();
   const otherParticipant = match.user1_id === userId ? match.user2_id : match.user1_id;
   return (
     <TableRow>
@@ -158,7 +160,7 @@ function MatchRow({
       <TableCell><StatusChip value={match.status} /></TableCell>
       <TableCell>{formatDate(match.last_message_at || match.created_at)}</TableCell>
       <TableCell align="right">
-        <Button size="small" startIcon={<ChatOutlined />} onClick={onOpen}>Consulter</Button>
+        <Button size="small" startIcon={<ChatOutlined />} onClick={onOpen}>{t("common.view")}</Button>
       </TableCell>
     </TableRow>
   );
@@ -169,6 +171,7 @@ function MatchConversation({
   accessReason,
   onClose,
 }: ActiveConversation & { onClose: () => void }) {
+  useLocale();
   const loadMessagePage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getMatchMessages(match.id, accessReason, cursor, signal);
     return { items: [...page.messages].reverse(), nextCursor: page.next_cursor };
@@ -179,10 +182,10 @@ function MatchConversation({
     <Paper variant="outlined" sx={{ mt: 2, p: 2.5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Box>
-          <Typography variant="h6">Conversation {compactId(match.id)}</Typography>
-          <Typography variant="caption" color="text.secondary">Accès journalisé</Typography>
+          <Typography variant="h6">{t("matches.conversation", { id: compactId(match.id) })}</Typography>
+          <Typography variant="caption" color="text.secondary">{t("common.accessLogged")}</Typography>
         </Box>
-        <Button onClick={onClose}>Fermer</Button>
+        <Button onClick={onClose}>{t("common.close")}</Button>
       </Box>
       <AsyncState loading={messages.loading} error={messages.error} onRetry={messages.reload} />
       {!messages.loading && !messages.error && (
@@ -193,7 +196,7 @@ function MatchConversation({
             error={messages.loadMoreError}
             onLoadMore={messages.loadMore}
             onReload={messages.reload}
-            loadLabel="Charger les messages précédents"
+            loadLabel={t("userMatches.loadEarlierMessages")}
           />
           <Box sx={{ maxHeight: 520, overflowY: 'auto', bgcolor: 'action.hover', borderRadius: 2, p: 2 }}>
             {messages.items.map((message) => (
@@ -207,7 +210,7 @@ function MatchConversation({
               >
                 <Paper sx={{ p: 1.5, maxWidth: '75%' }}>
                   <Typography variant="caption" color="text.secondary">
-                    <UserLink id={message.sender_id} /> · {formatDate(message.created_at)}
+                    <UserLink id={message.sender_id} /> {' '}{t("common.separator")}{' '}{formatDate(message.created_at)}
                   </Typography>
                   <Typography sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                     {message.content}
@@ -216,7 +219,7 @@ function MatchConversation({
               </Box>
             ))}
             {!messages.items.length && (
-              <Typography textAlign="center" color="text.secondary">Aucun message conservé.</Typography>
+              <Typography textAlign="center" color="text.secondary">{t("userMatches.noRetainedMessages")}</Typography>
             )}
           </Box>
         </>

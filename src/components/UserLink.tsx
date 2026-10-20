@@ -1,9 +1,12 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { Link, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { resolveUserName } from '../utils/userNames';
 
 export function UserLink({ id, label }: { id: string; label?: string | null }) {
+  useLocale();
   const [resolved, setResolved] = useState<{ id: string; name: string | null } | null>(null);
   useEffect(() => {
     if (label) return;
@@ -14,5 +17,5 @@ export function UserLink({ id, label }: { id: string; label?: string | null }) {
     return () => { active = false; };
   }, [id, label]);
   const name = label || (resolved?.id === id ? resolved.name : null);
-  return <Tooltip title={id} describeChild><Link component={RouterLink} to={`/users/${id}`}>{name || 'Prénom non renseigné'}</Link></Tooltip>;
+  return <Tooltip title={id} describeChild><Link component={RouterLink} to={`/users/${id}`}>{name || t("common.firstNameNotProvided")}</Link></Tooltip>;
 }

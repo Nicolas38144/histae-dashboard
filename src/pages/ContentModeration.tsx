@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import {
   Alert,
   Box,
@@ -44,26 +46,26 @@ import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
 import { useCursorPagination } from '../hooks/useCursorPagination';
-import { formatDate } from '../utils/format';
+import { formatDate, formatNumber } from '../utils/format';
 
-const contentLabels: Record<ModerationContentType, string> = {
-  photo: 'Photo',
-  bio: 'Bio',
-  profile_answer: 'Réponse de profil',
-};
+const contentLabels = (): Record<ModerationContentType, string> => ({
+  photo: t("common.photo"),
+  bio: t("common.bio"),
+  profile_answer: t("common.profileAnswer"),
+});
 
-const reasonLabels: Record<ModerationReasonCode, string> = {
-  spam: 'Spam',
-  insult: 'Insulte',
-  personal_contact: 'Coordonnées personnelles',
-  sexual_content: 'Contenu sexuel',
-  face_not_detected: 'Visage absent',
-  multiple_faces: 'Plusieurs visages',
-  blurry: 'Photo floue',
-  explicit_image: 'Image potentiellement explicite',
-  analysis_unavailable: 'Analyse indisponible',
-  legacy_unreviewed: 'Contenu antérieur non revu',
-};
+const reasonLabels = (): Record<ModerationReasonCode, string> => ({
+  spam: t("common.spam"),
+  insult: t("common.insult"),
+  personal_contact: t("contentModeration.personalContactDetails"),
+  sexual_content: t("common.sexualContent"),
+  face_not_detected: t("common.noFace"),
+  multiple_faces: t("common.multipleFaces"),
+  blurry: t("common.blurryPhoto"),
+  explicit_image: t("contentModeration.potentiallyExplicitImage"),
+  analysis_unavailable: t("common.analysisUnavailable"),
+  legacy_unreviewed: t("contentModeration.unreviewedLegacyContent"),
+});
 
 const initialChecks: PhotoReviewChecks = {
   face_detectable: false,
@@ -73,6 +75,7 @@ const initialChecks: PhotoReviewChecks = {
 const moderationKey = (item: ModerationCase) => item.case_id;
 
 export default function ContentModeration() {
+  useLocale();
   const session = useOutletContext<AdminSession>();
   const [statusFilter, setStatusFilter] = useState<'' | ModerationStatus>('pending');
   const [typeFilter, setTypeFilter] = useState<'' | ModerationContentType>('');
@@ -129,7 +132,7 @@ export default function ContentModeration() {
     setSaving(true);
     try {
       await reviewModerationCase(detail, decision, reason.trim(), detail.content_type === 'photo' ? checks : undefined);
-      showNotification(decision === 'approved' ? 'Contenu approuvé.' : 'Contenu refusé.', 'success');
+      showNotification(decision === 'approved' ? t("common.contentApproved") : t("common.contentRejected"), 'success');
       setDetail(null);
       pagination.reload();
     } catch (reviewError) {
@@ -142,26 +145,26 @@ export default function ContentModeration() {
   return (
     <>
       <PageHeader
-        title="Modération des contenus"
-        description="Revue auditée des photos, bios et réponses signalées par les contrôles automatiques."
+        title={t("contentModeration.contentModeration")}
+        description={t("contentModeration.auditedReviewOfPhotosBiosAndAnswersFlaggedBy")}
         actions={<Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-          <Filter label="État" value={statusFilter} onChange={(value) => setStatusFilter(value as '' | ModerationStatus)} items={[['', 'Tous'], ['pending', 'En attente'], ['approved', 'Approuvés'], ['rejected', 'Refusés']]} />
-          <Filter label="Contenu" value={typeFilter} onChange={(value) => setTypeFilter(value as '' | ModerationContentType)} items={[['', 'Tous'], ['photo', 'Photos'], ['bio', 'Bios'], ['profile_answer', 'Réponses']]} />
+          <Filter label={t("common.status")} value={statusFilter} onChange={(value) => setStatusFilter(value as '' | ModerationStatus)} items={[['', t("common.all")], ['pending', t("common.pending")], ['approved', t("contentModeration.approved")], ['rejected', t("contentModeration.rejected")]]} />
+          <Filter label={t("common.content")} value={typeFilter} onChange={(value) => setTypeFilter(value as '' | ModerationContentType)} items={[['', t("common.all")], ['photo', t("common.photos")], ['bio', t("common.bios")], ['profile_answer', t("common.answers")]]} />
         </Stack>}
       />
       <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
       {!pagination.loading && !pagination.error && <TableContainer component={Paper} variant="outlined"><Table size="small">
-        <TableHead><TableRow><TableCell>Mise à jour</TableCell><TableCell>Utilisateur</TableCell><TableCell>Type</TableCell><TableCell>Signaux</TableCell><TableCell>État</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>{t("common.updated")}</TableCell><TableCell>{t("common.user")}</TableCell><TableCell>{t("common.type")}</TableCell><TableCell>{t("common.signals")}</TableCell><TableCell>{t("common.status")}</TableCell><TableCell align="right">{t("common.action")}</TableCell></TableRow></TableHead>
         <TableBody>
           {pagination.items.map((item) => <TableRow key={item.case_id} hover>
             <TableCell>{formatDate(item.updated_at)}</TableCell>
             <TableCell><UserLink id={item.user_id} label={item.firstname} /></TableCell>
-            <TableCell>{contentLabels[item.content_type]}</TableCell>
+            <TableCell>{contentLabels()[item.content_type]}</TableCell>
             <TableCell><ReasonChips reasons={item.reason_codes} /></TableCell>
             <TableCell><StatusChip value={item.status} /></TableCell>
-            <TableCell align="right"><Button size="small" disabled={detailLoading} onClick={() => requestDetail(item)}>Examiner</Button></TableCell>
+            <TableCell align="right"><Button size="small" disabled={detailLoading} onClick={() => requestDetail(item)}>{t("common.review")}</Button></TableCell>
           </TableRow>)}
-          {!pagination.items.length && <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5 }}>Aucun contenu dans cette file.</TableCell></TableRow>}
+          {!pagination.items.length && <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5 }}>{t("contentModeration.noContentInThisQueue")}</TableCell></TableRow>}
         </TableBody>
       </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></TableContainer>}
       {session.role !== 'superadmin' && <AccessReasonDialog
@@ -195,13 +198,14 @@ function AccessReasonDialog({ item, reason, loading, onReasonChange, onClose, on
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  useLocale();
   return <Dialog open={Boolean(item)} maxWidth="xs" fullWidth onClose={loading ? undefined : onClose}>
-    <DialogTitle>Justifier l’accès au contenu</DialogTitle>
+    <DialogTitle>{t("contentModeration.justifyAccessToTheContent")}</DialogTitle>
     <DialogContent><Stack spacing={2} sx={{ pt: 1 }}>
-      <Alert severity="info">Cette consultation sera inscrite dans le journal d’accès.</Alert>
+      <Alert severity="info">{t("contentModeration.thisViewWillBeRecordedInTheAccessLog")}</Alert>
       <TextField
         autoFocus
-        label="Motif de consultation"
+        label={t("contentModeration.reasonForViewing")}
         value={reason}
         onChange={(event) => onReasonChange(event.target.value)}
         multiline
@@ -211,9 +215,9 @@ function AccessReasonDialog({ item, reason, loading, onReasonChange, onClose, on
       />
     </Stack></DialogContent>
     <DialogActions>
-      <Button onClick={onClose} disabled={loading}>Annuler</Button>
+      <Button onClick={onClose} disabled={loading}>{t("common.cancel")}</Button>
       <Button variant="contained" onClick={onConfirm} disabled={loading || reason.trim().length < 3}>
-        {loading ? 'Ouverture…' : 'Ouvrir le contenu'}
+        {loading ? t("common.opening") : t("common.openContent")}
       </Button>
     </DialogActions>
   </Dialog>;
@@ -230,44 +234,48 @@ function ReviewDialog({ detail, reason, checks, saving, superadmin, onReasonChan
   onClose: () => void;
   onReview: (decision: 'approved' | 'rejected') => void;
 }) {
+  useLocale();
   if (!detail) return null;
   const photo = detail.content_type === 'photo';
   const allChecks = Object.values(checks).every(Boolean);
   return <Dialog open maxWidth="sm" fullWidth onClose={saving ? undefined : onClose}>
-    <DialogTitle>Examiner : {contentLabels[detail.content_type]}</DialogTitle>
+    <DialogTitle>{t("moderation.review", { type: contentLabels()[detail.content_type] })}</DialogTitle>
     <DialogContent><Stack spacing={2} sx={{ pt: 1 }}>
       <Box><StatusChip value={detail.status} /> <ReasonChips reasons={detail.reason_codes} /></Box>
       {detail.question && <Typography variant="subtitle2">{detail.question}</Typography>}
       {detail.content && <Paper variant="outlined" sx={{ p: 2, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{detail.content}</Paper>}
-      {detail.photo && <Box component="img" src={detail.photo} alt="Contenu à modérer" sx={{ width: '100%', maxHeight: 480, objectFit: 'contain', bgcolor: 'black', borderRadius: 2 }} />}
+      {detail.photo && <Box component="img" src={detail.photo} alt={t("common.contentToReview")} sx={{ width: '100%', maxHeight: 480, objectFit: 'contain', bgcolor: 'black', borderRadius: 2 }} />}
       {photo && <>
-        <Typography variant="body2" color="text.secondary">Signaux : {detail.face_count ?? '—'} visage(s), netteté {detail.sharpness_score?.toFixed(1) ?? '—'}, score explicite {detail.nsfw_score?.toFixed(3) ?? '—'}.</Typography>
+        <Typography variant="body2" color="text.secondary">{t("moderation.signals", { faces: detail.face_count ?? t("common.missing"), sharpness: formatNumber(detail.sharpness_score, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), score: formatNumber(detail.nsfw_score, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) })}</Typography>
         <Stack>
-          <Check label="Un seul visage est clairement détectable" checked={checks.face_detectable} onChange={(value) => onChecksChange({ ...checks, face_detectable: value })} />
-          <Check label="La photo est suffisamment nette" checked={checks.sharp_enough} onChange={(value) => onChecksChange({ ...checks, sharp_enough: value })} />
-          <Check label="Le contenu est autorisé" checked={checks.content_allowed} onChange={(value) => onChecksChange({ ...checks, content_allowed: value })} />
+          <Check label={t("contentModeration.exactlyOneFaceIsClearlyDetectable")} checked={checks.face_detectable} onChange={(value) => onChecksChange({ ...checks, face_detectable: value })} />
+          <Check label={t("contentModeration.thePhotoIsSharpEnough")} checked={checks.sharp_enough} onChange={(value) => onChecksChange({ ...checks, sharp_enough: value })} />
+          <Check label={t("contentModeration.theContentIsAllowed")} checked={checks.content_allowed} onChange={(value) => onChecksChange({ ...checks, content_allowed: value })} />
         </Stack>
       </>}
-      {detail.status !== 'pending' && <Alert severity="info">Cette décision sera remplacée avec contrôle de version et restera auditée.</Alert>}
-      {!superadmin && <TextField label="Motif de la décision" value={reason} onChange={(event) => onReasonChange(event.target.value)} multiline minRows={2} inputProps={{ maxLength: 500 }} required />}
+      {detail.status !== 'pending' && <Alert severity="info">{t("contentModeration.thisDecisionWillBeReplacedWithAVersionCheck")}</Alert>}
+      {!superadmin && <TextField label={t("common.reasonForTheDecision")} value={reason} onChange={(event) => onReasonChange(event.target.value)} multiline minRows={2} inputProps={{ maxLength: 500 }} required />}
     </Stack></DialogContent>
     <DialogActions>
-      <Button onClick={onClose} disabled={saving}>Annuler</Button>
-      <Button color="error" onClick={() => onReview('rejected')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && allChecks)}>Refuser</Button>
-      <Button variant="contained" onClick={() => onReview('approved')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && !allChecks)}>Approuver</Button>
+      <Button onClick={onClose} disabled={saving}>{t("common.cancel")}</Button>
+      <Button color="error" onClick={() => onReview('rejected')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && allChecks)}>{t("common.reject")}</Button>
+      <Button variant="contained" onClick={() => onReview('approved')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && !allChecks)}>{t("common.approve")}</Button>
     </DialogActions>
   </Dialog>;
 }
 
 function ReasonChips({ reasons }: { reasons: ModerationReasonCode[] }) {
-  if (!reasons.length) return <Typography variant="caption" color="text.secondary">Aucun signal</Typography>;
-  return <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">{reasons.map((reason) => <Chip key={reason} size="small" variant="outlined" label={reasonLabels[reason]} />)}</Stack>;
+  useLocale();
+  if (!reasons.length) return <Typography variant="caption" color="text.secondary">{t("common.noSignals")}</Typography>;
+  return <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">{reasons.map((reason) => <Chip key={reason} size="small" variant="outlined" label={reasonLabels()[reason]} />)}</Stack>;
 }
 
 function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+  useLocale();
   return <FormControlLabel control={<Checkbox checked={checked} onChange={(event) => onChange(event.target.checked)} />} label={label} />;
 }
 
 function Filter({ label, value, onChange, items }: { label: string; value: string; onChange: (value: string) => void; items: Array<[string, string]> }) {
+  useLocale();
   return <FormControl size="small" sx={{ minWidth: 170 }}><InputLabel>{label}</InputLabel><Select label={label} value={value} onChange={(event) => onChange(event.target.value)}>{items.map(([itemValue, itemLabel]) => <MenuItem key={itemValue || 'all'} value={itemValue}>{itemLabel}</MenuItem>)}</Select></FormControl>;
 }

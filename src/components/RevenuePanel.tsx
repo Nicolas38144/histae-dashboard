@@ -1,25 +1,28 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { EuroOutlined, ReceiptLongOutlined, WorkspacePremiumOutlined } from '@mui/icons-material';
 import { Alert, Box, Button, Chip, CircularProgress, Paper, Typography } from '@mui/material';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { getRevenue } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type { AdminRevenue, RevenuePeriod } from '../api/types';
-import { formatDate, formatMoney } from '../utils/format';
+import { formatDate, formatMoney, formatNumber } from '../utils/format';
 
-const revenuePeriods: Array<{ value: RevenuePeriod; label: string }> = [
-  { value: 'last_7_days', label: '7 derniers jours' },
-  { value: 'last_30_days', label: '30 derniers jours' },
-  { value: 'month_to_date', label: 'Mois en cours' },
-  { value: 'previous_month', label: 'Mois dernier' },
-  { value: 'year_to_date', label: 'Année en cours' },
-  { value: 'all_time', label: 'Depuis le début' },
-];
+const revenuePeriods = (): Array<{ value: RevenuePeriod; label: string }> => ([
+  { value: 'last_7_days', label: t("common.last7Days") },
+  { value: 'last_30_days', label: t("common.last30Days") },
+  { value: 'month_to_date', label: t("common.currentMonth") },
+  { value: 'previous_month', label: t("common.previousMonth") },
+  { value: 'year_to_date', label: t("common.currentYear") },
+  { value: 'all_time', label: t("common.allTime") },
+]);
 
 export function RevenuePanel({ initialRevenue }: { initialRevenue: AdminRevenue }) {
+  useLocale();
   const [revenue, setRevenue] = useState(initialRevenue);
   const [selectedPeriod, setSelectedPeriod] = useState<RevenuePeriod>(initialRevenue.period);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
 
@@ -43,7 +46,7 @@ export function RevenuePanel({ initialRevenue }: { initialRevenue: AdminRevenue 
       const nextRevenue = await getRevenue(period, controller.signal);
       if (requestId === requestIdRef.current) setRevenue(nextRevenue);
     } catch (reason) {
-      if (!controller.signal.aborted && requestId === requestIdRef.current) setError(errorMessage(reason));
+      if (!controller.signal.aborted && requestId === requestIdRef.current) setError(reason);
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }
@@ -54,19 +57,18 @@ export function RevenuePanel({ initialRevenue }: { initialRevenue: AdminRevenue 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', lg: 'center' }, flexDirection: { xs: 'column', lg: 'row' }, gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-            <Typography variant="h6" fontWeight={700}>Revenus bruts estimés</Typography>
-            <Chip label="Estimation" color="warning" size="small" variant="outlined" />
+            <Typography variant="h6" fontWeight={700}>{t("revenuePanel.estimatedGrossRevenue")}</Typography>
+            <Chip label={t("common.estimate")} color="warning" size="small" variant="outlined" />
             <Box sx={{ width: 20, height: 20, display: 'grid', placeItems: 'center' }}>
-              {loading && <CircularProgress size={18} aria-label="Chargement du chiffre d’affaires" />}
+              {loading && <CircularProgress size={18} aria-label={t("revenuePanel.loadingRevenue")} />}
             </Box>
-            {loading && <Typography variant="caption" color="text.secondary">Mise à jour…</Typography>}
+            {loading && <Typography variant="caption" color="text.secondary">{t("common.updating")}</Typography>}
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Montants des factures d’abonnement Stripe payées sur la période, dans la devise du catalogue.
-          </Typography>
+            {t("revenuePanel.stripeSubscriptionInvoicesPaidDuringThePeriodInThe")}</Typography>
         </Box>
-        <Box role="group" aria-label="Période du chiffre d’affaires" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {revenuePeriods.map((period) => (
+        <Box role="group" aria-label={t("revenuePanel.revenuePeriod")} sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {revenuePeriods().map((period) => (
             <Button
               key={period.value}
               size="small"
@@ -81,53 +83,52 @@ export function RevenuePanel({ initialRevenue }: { initialRevenue: AdminRevenue 
         </Box>
       </Box>
 
-      {error && (
+      {error !== null && (
         <Alert
           severity="error"
           sx={{ mt: 2 }}
-          action={<Button color="inherit" onClick={() => { void selectPeriod(selectedPeriod); }}>Réessayer</Button>}
+          action={<Button color="inherit" onClick={() => { void selectPeriod(selectedPeriod); }}>{t("common.tryAgain")}</Button>}
         >
-          Impossible de mettre à jour les revenus estimés. {error}
+          {t("revenue.failure", { error: errorMessage(error) })}
         </Alert>
       )}
 
       <Box sx={{ opacity: loading ? 0.55 : 1, transition: 'opacity 150ms ease' }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mt: 3 }}>
           <RevenueValue
-            label="Montant brut enregistré"
+            label={t("revenuePanel.recordedGrossAmount")}
             value={formatMoney(revenue.estimated_revenue_cents, revenue.currency)}
             icon={<EuroOutlined color="success" />}
           />
           <RevenueValue
-            label="Abonnements avec paiement"
-            value={String(revenue.premium_subscriptions)}
+            label={t("revenuePanel.subscriptionsWithPayment")}
+            value={formatNumber(revenue.premium_subscriptions)}
             icon={<WorkspacePremiumOutlined color="primary" />}
           />
           <RevenueValue
-            label="Factures payées"
-            value={String(revenue.paid_invoices)}
+            label={t("common.paidInvoices")}
+            value={formatNumber(revenue.paid_invoices)}
             icon={<ReceiptLongOutlined color="secondary" />}
           />
         </Box>
 
         {revenue.excluded_currency_invoices > 0 && (
           <Alert severity="warning" sx={{ mt: 2 }}>
-            {revenue.excluded_currency_invoices} facture(s) payée(s) dans une autre devise exclue(s) du total en {revenue.currency}. Aucune conversion n’est appliquée.
-          </Alert>
+            {t("revenue.excluded", { count: revenue.excluded_currency_invoices, currency: revenue.currency })}</Alert>
         )}
 
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
           {revenue.period_start
-            ? `Période calculée du ${formatDate(revenue.period_start)} au ${formatDate(revenue.period_end)}.`
-            : `Calcul depuis le début des factures payées enregistrées jusqu’au ${formatDate(revenue.period_end)}.`}
-          {' '}Dates de paiement utilisées ; essais à 0 € et factures impayées exclus. Taxes incluses lorsqu’elles sont facturées. Frais Stripe et remboursements non déduits ; les paiements non reçus par webhook peuvent manquer. Ce total ne représente pas un bénéfice ni un versement bancaire.
-        </Typography>
+            ? t("revenuePanel.periodCalculatedFromValueToValue", { value0: formatDate(revenue.period_start), value1: formatDate(revenue.period_end) })
+            : t("revenuePanel.calculatedFromTheFirstRecordedPaidInvoiceUpTo", { value0: formatDate(revenue.period_end) })}
+          {' '}{t("revenuePanel.paymentDatesAreUsedZeroValueTrialsAndUnpaid")}</Typography>
       </Box>
     </Paper>
   );
 }
 
 function RevenueValue({ label, value, icon }: { label: string; value: string; icon: ReactNode }) {
+  useLocale();
   return (
     <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 2, minWidth: 0 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center' }}>

@@ -12,16 +12,18 @@ async function filesUnder(root: string): Promise<string[]> {
 }
 
 describe('browser data hygiene', () => {
-  it('removes legacy tokens while preserving the non-sensitive theme preference', () => {
+  it('removes legacy tokens while preserving non-sensitive theme and language preferences', () => {
     localStorage.setItem('auth_token', 'legacy-fixture');
     localStorage.setItem('user_id', 'legacy-user-fixture');
     localStorage.setItem('histae_theme', 'dark');
+    localStorage.setItem('histae_locale', 'es');
     sessionStorage.setItem('histae_admin_access_token', 'legacy-access-fixture');
     sessionStorage.setItem('histae_admin_refresh_token', 'legacy-refresh-fixture');
 
     clearLegacySessions();
 
     expect(localStorage.getItem('histae_theme')).toBe('dark');
+    expect(localStorage.getItem('histae_locale')).toBe('es');
     expect(localStorage.getItem('auth_token')).toBeNull();
     expect(localStorage.getItem('user_id')).toBeNull();
     expect(sessionStorage).toHaveLength(0);
@@ -30,7 +32,8 @@ describe('browser data hygiene', () => {
   it('keeps tokens, moderation content and personal data out of browser persistence and logs', async () => {
     const sourceFiles = (await filesUnder('src')).filter((path) => /\.(ts|tsx)$/.test(path));
     const source = (await Promise.all(sourceFiles.map((path) => readFile(path, 'utf8')))).join('\n')
-      .replace("localStorage.setItem('histae_theme', next)", '');
+      .replace("localStorage.setItem('histae_theme', next)", '')
+      .replace('localStorage.setItem(localeStorageKey, locale)', '');
 
     expect(source).not.toMatch(/(?:localStorage|sessionStorage)\.setItem\s*\(/);
     expect(source).not.toMatch(/console\.(?:log|info|warn|error|debug)\s*\(/);

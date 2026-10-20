@@ -1,3 +1,6 @@
+import { formatNumber } from '../utils/format';
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { translationForm, translationPatch } from '../components/catalog-translations';
 import { CatalogTranslationFields, CatalogTranslationCoverage } from '../components/CatalogTranslations';
 import { AddOutlined, DeleteOutline, EditOutlined } from '@mui/icons-material';
@@ -39,13 +42,13 @@ import { PageHeader } from '../components/PageHeader';
 import { useNotification } from '../components/notification-context';
 import { useAsyncData } from '../hooks/useAsyncData';
 
-const categoryLabels: Record<ProfileQuestionCategory, string> = {
-  daily_life: 'Vie quotidienne',
-  personality: 'Personnalité',
-  interests: 'Centres d’intérêt',
-  relationships: 'Relations',
-  conversation: 'Conversation',
-};
+const categoryLabels = (): Record<ProfileQuestionCategory, string> => ({
+  daily_life: t("common.dailyLife"),
+  personality: t("common.personality"),
+  interests: t("common.interests"),
+  relationships: t("common.relationships"),
+  conversation: t("common.conversation"),
+});
 
 type QuestionForm = {
   prompt: string;
@@ -56,6 +59,7 @@ type QuestionForm = {
 const emptyForm: QuestionForm = { prompt: '', category: 'conversation', displayOrder: 100 };
 
 export default function ProfileQuestions() {
+  useLocale();
   const load = useCallback(() => getProfileQuestions(), []);
   const { data, loading, error, reload } = useAsyncData(load);
   const [editing, setEditing] = useState<AdminProfileQuestion | 'new' | null>(null);
@@ -92,7 +96,7 @@ export default function ProfileQuestions() {
     try {
       if (editing === 'new') await createProfileQuestion(input);
       else if (editing) await updateProfileQuestion(editing.id, input);
-      showNotification(editing === 'new' ? 'Question créée.' : 'Question modifiée.', 'success');
+      showNotification(editing === 'new' ? t("common.questionCreated") : t("common.questionUpdated"), 'success');
       setEditing(null);
       reload();
     } catch (reason) {
@@ -107,7 +111,7 @@ export default function ProfileQuestions() {
     setSaving(true);
     try {
       await deleteProfileQuestion(deleting.id);
-      showNotification('Question et réponses associées supprimées.', 'success');
+      showNotification(t("profileQuestions.questionAndAssociatedAnswersDeleted"), 'success');
       setDeleting(null);
       reload();
     } catch (reason) {
@@ -120,9 +124,9 @@ export default function ProfileQuestions() {
   return (
     <>
       <PageHeader
-        title="Questions de profil"
-        description="Catalogue des questions auxquelles chaque utilisateur peut apporter jusqu’à trois réponses."
-        actions={<Button variant="contained" startIcon={<AddOutlined />} onClick={openCreate}>Ajouter une question</Button>}
+        title={t("common.profileQuestions")}
+        description={t("profileQuestions.catalogueOfQuestionsEachUserCanAnswerWithUp")}
+        actions={<Button variant="contained" startIcon={<AddOutlined />} onClick={openCreate}>{t("common.addAQuestion")}</Button>}
       />
       <AsyncState loading={loading} error={error} onRetry={reload} />
       {data && (
@@ -130,36 +134,36 @@ export default function ProfileQuestions() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Ordre</TableCell>
-                <TableCell>Question</TableCell>
-                <TableCell>Catégorie</TableCell>
-                <TableCell align="right">Réponses</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t("common.order")}</TableCell>
+                <TableCell>{t("common.question")}</TableCell>
+                <TableCell>{t("common.category")}</TableCell>
+                <TableCell align="right">{t("common.answers")}</TableCell>
+                <TableCell align="right">{t("common.actions")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {data.map((question) => (
                 <TableRow key={question.id} hover>
-                  <TableCell>{question.display_order}</TableCell>
+                  <TableCell>{formatNumber(question.display_order)}</TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontWeight={600}>{question.translations?.fr ?? question.prompt}</Typography>
+                    <Typography variant="body2" fontWeight={600}>{question.prompt}</Typography>
                     <CatalogTranslationCoverage translations={question.translations} />
                     <Typography variant="caption" color="text.secondary">{question.code}</Typography>
                   </TableCell>
-                  <TableCell><Chip size="small" label={categoryLabels[question.category]} /></TableCell>
-                  <TableCell align="right">{question.answer_count}</TableCell>
+                  <TableCell><Chip size="small" label={categoryLabels()[question.category]} /></TableCell>
+                  <TableCell align="right">{formatNumber(question.answer_count)}</TableCell>
                   <TableCell align="right">
-                    <IconButton aria-label={`Modifier ${question.prompt}`} onClick={() => openEdit(question)}>
+                    <IconButton aria-label={t("common.editValue", { value0: question.prompt })} onClick={() => openEdit(question)}>
                       <EditOutlined />
                     </IconButton>
-                    <IconButton color="error" aria-label={`Supprimer ${question.prompt}`} onClick={() => setDeleting(question)}>
+                    <IconButton color="error" aria-label={t("common.deleteValue", { value0: question.prompt })} onClick={() => setDeleting(question)}>
                       <DeleteOutline />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
               {!data.length && (
-                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 5 }}>Aucune question configurée.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 5 }}>{t("profileQuestions.noQuestionsConfigured")}</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -167,7 +171,7 @@ export default function ProfileQuestions() {
       )}
 
       <Dialog open={Boolean(editing)} onClose={saving ? undefined : () => setEditing(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{editing === 'new' ? 'Nouvelle question' : 'Modifier la question'}</DialogTitle>
+        <DialogTitle>{editing === 'new' ? t("common.newQuestion") : t("common.editQuestion")}</DialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
             <TextField
@@ -175,32 +179,32 @@ export default function ProfileQuestions() {
               multiline
               minRows={2}
               fullWidth
-              label="Question (français)"
+              label={t("common.questionFrench")}
               value={form.prompt}
               slotProps={{ htmlInput: { maxLength: 200 } }}
-              helperText={`${form.prompt.length}/200 caractères`}
+              helperText={t("common.value200Characters", { value0: form.prompt.length })}
               onChange={(event) => setForm((current) => ({ ...current, prompt: event.target.value }))}
             />
             <CatalogTranslationFields value={translations} onChange={setTranslations} maxLength={200} multiline />
             <FormControl fullWidth>
-              <InputLabel id="profile-question-category-label">Catégorie</InputLabel>
+              <InputLabel id="profile-question-category-label">{t("common.category")}</InputLabel>
               <Select
                 labelId="profile-question-category-label"
-                label="Catégorie"
+                label={t("common.category")}
                 value={form.category}
                 onChange={(event) => setForm((current) => ({
                   ...current,
                   category: event.target.value as ProfileQuestionCategory,
                 }))}
               >
-                {Object.entries(categoryLabels).map(([value, label]) => (
+                {Object.entries(categoryLabels()).map(([value, label]) => (
                   <MenuItem key={value} value={value}>{label}</MenuItem>
                 ))}
               </Select>
             </FormControl>
             <TextField
               type="number"
-              label="Ordre d’affichage"
+              label={t("common.displayOrder")}
               value={form.displayOrder}
               slotProps={{ htmlInput: { min: 0, max: 10000 } }}
               onChange={(event) => setForm((current) => ({
@@ -210,30 +214,28 @@ export default function ProfileQuestions() {
             />
             {editing !== 'new' && editing && editing.answer_count > 0 && (
               <Typography variant="body2" color="warning.main">
-                Toute modification sera immédiatement visible sur les {editing.answer_count} réponse(s) existante(s).
-              </Typography>
+                {t("questions.editWarning", { count: editing.answer_count })}</Typography>
             )}
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditing(null)}>Annuler</Button>
+          <Button onClick={() => setEditing(null)}>{t("common.cancel")}</Button>
           <Button
             variant="contained"
             disabled={saving || form.prompt.trim().length < 3 || form.displayOrder < 0 || form.displayOrder > 10000}
             onClick={() => void save()}
           >
-            Enregistrer
-          </Button>
+            {t("common.save")}</Button>
         </DialogActions>
       </Dialog>
 
       <ConfirmActionDialog
         open={Boolean(deleting)}
-        title="Supprimer cette question ?"
+        title={t("profileQuestions.deleteThisQuestion")}
         description={deleting
-          ? `La question et ses ${deleting.answer_count} réponse(s) utilisateur seront supprimées définitivement.`
+          ? t("questions.deleteWarning", { count: deleting.answer_count })
           : ''}
-        confirmLabel="Supprimer définitivement"
+        confirmLabel={t("profileQuestions.deletePermanently")}
         danger
         loading={saving}
         onCancel={() => setDeleting(null)}

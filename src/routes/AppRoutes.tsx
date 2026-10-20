@@ -1,3 +1,5 @@
+import { t } from '../i18n/core';
+import { useLocale } from '../i18n/useLocale';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
@@ -25,6 +27,7 @@ const Monitoring = lazy(() => import('../pages/Monitoring'));
 const Users = lazy(() => import('../pages/Users'));
 
 function RequireSession() {
+  useLocale();
   const [session, setSession] = useState<AdminSession | null | undefined>();
   useEffect(() => {
     let active = true;
@@ -45,14 +48,15 @@ function RequireSession() {
       window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, expire);
     };
   }, []);
-  if (session === undefined) return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>;
+  if (session === undefined) return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress aria-label={t("common.loading")} /></Box>;
   return session ? <Outlet context={session} /> : <Navigate to="/login" replace />;
 }
 
 export default function AppRoutes({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleMode: () => void }) {
+  useLocale();
   const loading = (
     <Box sx={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
-      <CircularProgress />
+      <CircularProgress aria-label={t("common.loading")} />
     </Box>
   );
 

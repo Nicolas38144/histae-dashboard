@@ -50,6 +50,19 @@ déduplication d’un élément recouvrant deux pages, le refus d’un curseur e
 filtre. Le parcours utilisateur charge plusieurs pages de matchs puis recompose les pages de messages, reçues de la
 plus récente à la plus ancienne, dans un ordre chronologique global.
 
+## Internationalisation
+
+- `tests/unit/i18n.spec.ts` : parité des quatre catalogues, paramètres, pluriels, formats, préférence
+  validée, stockage bloqué, synchronisation entre onglets, erreurs et en-tête HTTP dynamique ;
+- `tests/unit/ui-text.spec.ts` : analyse AST interdisant les textes d’interface dans les sources ;
+- `tests/components/language-selector.spec.tsx` : changement des quatre langues dès la connexion,
+  conservation des saisies et des éditions françaises canoniques, abandon des résultats périmés ;
+- `tests/e2e/languages.spec.ts` : parcours Chromium de la connexion à la console en anglais, espagnol
+  et italien, persistance après rechargement, retour au français et en-tête API.
+
+Les tests réinitialisent aussi la préférence de langue après chaque scénario. Les données personnelles
+restent dans leur langue d’origine. Les noms de colonnes CSV et codes techniques ne sont pas des traductions.
+
 ## Smoke test contre l’API locale
 
 ```powershell
@@ -93,6 +106,17 @@ Un échec E2E doit être diagnostiqué depuis la trace avant d’augmenter un ti
 un test sur l’hébergement final, ni un pentest, ni une revue d’accessibilité manuelle.
 
 ## Résultats actuels
+
+Validation locale de l’internationalisation le **20 octobre 2026** :
+
+- `pnpm run check` : typage, ESLint et build de production validés ;
+- suite Vitest complète : **90 tests réussis** dans 24 fichiers ;
+- après ajout du cas de stockage navigateur bloqué, **10 tests ciblés réussis** sur le sélecteur,
+  l’absence de textes en dur et la confidentialité du stockage (dont 9 déjà dans la suite complète,
+  soit **91 scénarios distincts validés**) ;
+- Playwright Chromium : **5 parcours réussis**, dont anglais, espagnol, italien et WebAuthn virtuel.
+
+Ces parcours utilisent une API simulée et ne valident pas le déploiement de production.
 
 La [revue fonctionnelle de la livraison](../histae-api-rust/docs/feature-audit.md) centralise les résultats
 API/dashboard/site et leurs limites. Le navigateur virtuel vérifie la cérémonie WebAuthn, sans valider

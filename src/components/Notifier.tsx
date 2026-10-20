@@ -1,10 +1,13 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useLocale } from '../i18n/useLocale';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 import { NotificationContext, type NotificationSeverity } from './notification-context';
 
 export const NotifierProvider = ({ children }: { children: ReactNode }) => {
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
+  useEffect(() => { setOpen(false); }, [locale]);
   const [severity, setSeverity] = useState<NotificationSeverity>('info');
 
   const showNotification = useCallback((msg: string, sev: NotificationSeverity = 'info') => {

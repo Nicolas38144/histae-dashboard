@@ -338,5 +338,45 @@ Déployer ce dashboard avec la version de l’API portant le même contrat de re
 
 Les écrans Traits et Questions de profil éditent le français, l’anglais, l’espagnol et l’italien.
 Le français reste canonique. Les indicateurs EN/ES/IT montrent la couverture ; vider un champ traduit
-supprime sa traduction et rétablit le repli français. L’interface d’administration reste française et envoie
-`Accept-Language: fr`. La préparation des formulaires est séparée des composants et du client HTTP.
+supprime sa traduction et rétablit le repli français. Les listes affichent la projection correspondant à la langue
+choisie ; les champs « Nom (français) » et « Question (français) » modifient toujours la source canonique française.
+La préparation des formulaires est séparée des composants et du client HTTP.
+
+## Langue de l’interface
+
+Le bouton de langue est disponible sur la connexion et dans l’en-tête de la console : **Français, English,
+Español, Italiano**. Le français est la langue initiale. Le choix est conservé dans `localStorage` sous
+`histae_locale`, validé sur ces quatre codes et synchronisé entre les onglets. Si le stockage est bloqué,
+le changement fonctionne pour l’onglet courant. Aucun jeton ni contenu personnel n’y est stocké.
+
+Le changement est immédiat : menus, formulaires, confirmations, notifications à venir, erreurs, libellés de
+rôles et consentements, titre de page, `html[lang]`, messages MUI, dates, nombres et devises. Une notification
+déjà affichée est fermée. Les appels Axios envoient la langue courante dans `Accept-Language`. Les données
+chargées par les hooks sont relues ; la pagination repart de sa première page et les anciennes réponses
+sont ignorées. Les saisies et les permissions restent conservées.
+
+Les noms, motifs, messages et autres contenus saisis par les utilisateurs ne sont pas traduits. Les UUID,
+routes, codes de diagnostic et colonnes CSV restent les identifiants techniques du contrat. Le nom du
+fichier CSV exporté suit la langue de l’interface.
+
+### Ajouter ou modifier un texte
+
+- Les textes d’interface se trouvent uniquement dans `src/i18n/messages/{fr,en,es,it}.json`.
+- Utiliser `t('section.message', { name: value })` et une clé descriptive ; ne pas concaténer des fragments de phrase.
+- Ajouter la même clé et les mêmes paramètres dans les quatre fichiers. Pour les pluriels, utiliser
+  `{ "one": "… {count} …", "other": "… {count} …" }` ; `Intl.PluralRules` sélectionne la forme.
+- Appeler `useLocale()` dans un composant qui lit `t()`, un libellé de domaine ou un formateur. Les collections
+  de libellés sont construites au rendu, pour ne pas figer une ancienne traduction.
+- Utiliser les fonctions de `src/utils/format.ts` pour les dates, nombres et montants ; conserver les
+  valeurs d’un champ éditable dans leur format technique attendu par le navigateur et l’API.
+- Les erreurs locales portent une clé via `LocalizedError`. Le client traduit les codes API connus et
+  affiche un message localisé avec le code technique pour les autres erreurs HTTP ; il ne reproduit pas
+  les messages bruts d’un fournisseur.
+
+`src/i18n/catalogs.ts` porte les types et les ressources ; `core.ts` gère la traduction et la préférence ;
+`useLocale.ts` adapte le store à React ; `domain.ts` présente les codes API sans modifier leurs valeurs.
+Aucune dépendance d’internationalisation supplémentaire n’est requise.
+
+Les tests vérifient les clés et paramètres, les pluriels, les formats, la persistance et les changements de
+langue pendant un chargement ou une saisie. `tests/unit/ui-text.spec.ts` analyse les sources TypeScript et
+refuse les textes visibles écrits directement dans le code (hors valeurs techniques explicitement permises).

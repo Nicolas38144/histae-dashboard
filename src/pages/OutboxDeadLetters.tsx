@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale';
+import { t } from '../i18n/core';
 import { Alert, Box, Button, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
@@ -10,12 +12,13 @@ import { CursorPaginationControls } from '../components/CursorPaginationControls
 import { PageHeader } from '../components/PageHeader';
 import { useNotification } from '../components/notification-context';
 import { useCursorPagination } from '../hooks/useCursorPagination';
-import { compactId, formatDate } from '../utils/format';
+import { compactId, formatDate, formatNumber } from '../utils/format';
 
 type Action = { event: OutboxDeadLetter; kind: 'retry' | 'discard' };
 const eventKey = (event: OutboxDeadLetter) => event.event_id;
 
 export default function OutboxDeadLetters() {
+  useLocale();
   const session = useOutletContext<AdminSession>();
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getOutboxDeadLetters(cursor, signal);
@@ -32,17 +35,17 @@ export default function OutboxDeadLetters() {
     if (!action) return;
     const trimmed = reason.trim();
     if (session.role !== 'superadmin' && (trimmed.length < 3 || trimmed.length > 500)) {
-      showNotification('Le motif doit contenir entre 3 et 500 caractères.', 'error');
+      showNotification(t("outboxDeadLetters.theReasonMustContainBetween3And500Characters"), 'error');
       return;
     }
     setSaving(true);
     try {
       if (action.kind === 'retry') {
         await retryOutboxEvent(action.event.event_id, trimmed);
-        showNotification('La reprise a été mise en file.', 'success');
+        showNotification(t("outboxDeadLetters.theRetryHasBeenQueued"), 'success');
       } else {
         await discardOutboxEvent(action.event.event_id, trimmed);
-        showNotification('L’événement a été abandonné.', 'success');
+        showNotification(t("outboxDeadLetters.theEventHasBeenDiscarded"), 'success');
       }
       close();
       pagination.reload();
@@ -54,37 +57,37 @@ export default function OutboxDeadLetters() {
   };
 
   return <>
-    <PageHeader title="Outbox — échecs définitifs" description="Événements nécessitant une décision opérationnelle auditée." />
-    <Alert severity="info" sx={{ mb: 2 }}>La reprise exige une authentification WebAuthn récente et ne garantit pas la réussite du prochain essai. L’abandon de certains types d’événements est interdit par l’API.</Alert>
+    <PageHeader title={t("outboxDeadLetters.outboxPermanentFailures")} description={t("outboxDeadLetters.eventsRequiringAnAuditedOperationalDecision")} />
+    <Alert severity="info" sx={{ mb: 2 }}>{t("outboxDeadLetters.retryingRequiresRecentWebauthnAuthenticationAndDoesNotGuarantee")}</Alert>
     <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
     {!pagination.loading && !pagination.error && <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
       <Table size="small">
-        <TableHead><TableRow><TableCell>Événement</TableCell><TableCell>Type</TableCell><TableCell>Tentatives</TableCell><TableCell>Diagnostic</TableCell><TableCell>Échec définitif</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
+        <TableHead><TableRow><TableCell>{t("common.event")}</TableCell><TableCell>{t("common.type")}</TableCell><TableCell>{t("common.attempts")}</TableCell><TableCell>{t("common.diagnostic")}</TableCell><TableCell>{t("common.permanentFailure")}</TableCell><TableCell align="right">{t("common.action")}</TableCell></TableRow></TableHead>
         <TableBody>{pagination.items.map((event) => <TableRow key={event.event_id}>
           <TableCell>{compactId(event.event_id)}</TableCell>
           <TableCell>{event.event_type}</TableCell>
-          <TableCell>{event.attempts}</TableCell>
-          <TableCell>{event.last_error_code || '—'}</TableCell>
+          <TableCell>{formatNumber(event.attempts)}</TableCell>
+          <TableCell>{event.last_error_code || t("common.missing")}</TableCell>
           <TableCell>{formatDate(event.dead_lettered_at)}</TableCell>
           <TableCell align="right"><Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            <Button size="small" disabled={saving} onClick={() => setAction({ event, kind: 'retry' })}>Reprendre</Button>
-            {(event.event_type === 'notification.push' || event.event_type === 'photo.delete') && <Button size="small" color="error" disabled={saving} onClick={() => setAction({ event, kind: 'discard' })}>Abandonner</Button>}
+            <Button size="small" disabled={saving} onClick={() => setAction({ event, kind: 'retry' })}>{t("common.retry")}</Button>
+            {(event.event_type === 'notification.push' || event.event_type === 'photo.delete') && <Button size="small" color="error" disabled={saving} onClick={() => setAction({ event, kind: 'discard' })}>{t("common.discard")}</Button>}
           </Box></TableCell>
         </TableRow>)}
-          {!pagination.items.length && <TableRow><TableCell colSpan={6}><Typography textAlign="center" sx={{ py: 4 }}>Aucun événement en échec définitif.</Typography></TableCell></TableRow>}
+          {!pagination.items.length && <TableRow><TableCell colSpan={6}><Typography textAlign="center" sx={{ py: 4 }}>{t("outboxDeadLetters.noPermanentlyFailedEvents")}</Typography></TableCell></TableRow>}
         </TableBody>
       </Table>
       <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
     </Paper>}
     <ConfirmActionDialog
       open={Boolean(action)}
-      title={action?.kind === 'discard' ? 'Abandonner cet événement ?' : 'Reprendre cet événement ?'}
-      description={action?.kind === 'discard' ? action.event.event_type === 'photo.delete' ? 'La suppression de photo ne peut être abandonnée que si la photo n’existe plus. L’API vérifiera cette condition.' : 'L’abandon supprime les essais futurs de cette notification.' : 'L’événement sera remis en file pour un nouvel essai.'}
-      confirmLabel={action?.kind === 'discard' ? 'Abandonner' : 'Reprendre'}
+      title={action?.kind === 'discard' ? t("outboxDeadLetters.discardThisEvent") : t("outboxDeadLetters.retryThisEvent")}
+      description={action?.kind === 'discard' ? action.event.event_type === 'photo.delete' ? t("outboxDeadLetters.photoDeletionCanOnlyBeDiscardedIfThePhoto") : t("outboxDeadLetters.discardingStopsFutureAttemptsToDeliverThisNotification") : t("outboxDeadLetters.theEventWillBeRequeuedForAnotherAttempt")}
+      confirmLabel={action?.kind === 'discard' ? t("common.discard") : t("common.retry")}
       danger={action?.kind === 'discard'}
       value={reason}
       onValueChange={setReason}
-      valueLabel={session.role === 'superadmin' ? undefined : 'Motif opérationnel (3 à 500 caractères)'}
+      valueLabel={session.role === 'superadmin' ? undefined : t("outboxDeadLetters.operationalReason3To500Characters")}
       requireValue={session.role !== 'superadmin'}
       minValueLength={3}
       maxValueLength={500}
