@@ -13,6 +13,7 @@ import {
   PriceChangeOutlined,
   QuestionAnswerOutlined,
   SecurityOutlined,
+  SmsOutlined,
   SyncProblemOutlined,
   FactCheckOutlined,
   AdminPanelSettingsOutlined,
@@ -46,6 +47,7 @@ const entries = () => ([
   { path: '/photo-reconciliation', label: t("common.photos"), icon: <SyncProblemOutlined /> },
   { path: '/billing-reconciliation', label: t("common.stripe"), icon: <CreditScoreOutlined /> },
   { path: '/outbox-dead-letters', label: t("common.outbox"), icon: <MarkunreadMailboxOutlined /> },
+  { path: '/sms-safety', label: t("common.smsSafety"), icon: <SmsOutlined /> },
   { path: '/audit-logs', label: t("common.accessLog"), icon: <SecurityOutlined /> },
   { path: '/security', label: t("common.security"), icon: <AdminPanelSettingsOutlined /> },
 ]);

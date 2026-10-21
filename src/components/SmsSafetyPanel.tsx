@@ -37,9 +37,7 @@ export function SmsSafetyPanel({ canManage }: { canManage: boolean }) {
     }
   };
   return (
-    <Paper variant="outlined" sx={{ p: 3, mt: 3 }}>
-      <Typography variant="h6" fontWeight={700}>{t('smsSafety.title')}</Typography>
-      <Typography color="text.secondary" sx={{ mb: 2 }}>{t('smsSafety.description')}</Typography>
+    <Paper variant="outlined" sx={{ p: 3 }}>
       <AsyncState loading={loading && !data} error={error} onRetry={reload} />
       {actionError !== null && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage(actionError)}</Alert>}
       {data && <>

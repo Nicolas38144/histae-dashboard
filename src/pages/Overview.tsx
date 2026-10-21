@@ -12,9 +12,6 @@ import {
 } from '@mui/icons-material';
 import { Alert, Box, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useCallback } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import type { AdminSession } from '../api/types';
-import { SmsSafetyPanel } from '../components/SmsSafetyPanel';
 import { getMetrics } from '../api/admin';
 import { AsyncState } from '../components/AsyncState';
 import { MetricCard } from '../components/MetricCard';
@@ -27,7 +24,6 @@ import { formatDate, formatNumber } from '../utils/format';
 
 export default function Overview() {
   useLocale();
-  const session = useOutletContext<AdminSession>();
   const load = useCallback(() => getMetrics(), []);
   const { data, loading, error, reload } = useAsyncData(load);
 
@@ -35,7 +31,6 @@ export default function Overview() {
     <>
       <PageHeader title={t("common.overview")} description={t("overview.platformOperationsAndModerationQueues")} />
       <AsyncState loading={loading} error={error} onRetry={reload} />
-      <SmsSafetyPanel canManage={session.role === 'superadmin'} />
       {data && (
         <>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' }, gap: 2 }}>

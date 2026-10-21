@@ -42,6 +42,7 @@
   "common.photos": "Fotos",
   "common.stripe": "Stripe",
   "common.outbox": "Outbox",
+  "common.smsSafety": "SMS Sweego",
   "common.accessLog": "Registro de acceso",
   "common.security": "Seguridad",
   "common.monitoring": "Supervisión",

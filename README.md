@@ -384,7 +384,7 @@ refuse les textes visibles écrits directement dans le code (hors valeurs techni
 
 ## Protection des envois SMS
 
-La vue d’ensemble affiche les limites OTP par numéro (5/heure et 10/24 h par défaut), les compteurs
+L’onglet **SMS Sweego** (`/sms-safety`) affiche les limites OTP par numéro (5/heure et 10/24 h par défaut), les compteurs
 agrégés et une alerte de pic. Le superadmin peut suspendre/reprendre globalement les SMS avec une
 session WebAuthn récente et une confirmation, sans motif obligatoire. Les administrateurs ordinaires
 ont uniquement la lecture. Le statut est actualisé toutes les 30 secondes.
