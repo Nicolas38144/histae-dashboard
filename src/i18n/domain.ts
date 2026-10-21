@@ -39,6 +39,8 @@ const labels: Readonly<Record<string, MessageKey>> = {
   "admin_unban": "domain.admin_unban",
   "admin_promote": "domain.admin_promote",
   "admin_demote": "domain.admin_demote",
+  "admin_suspend_sms": "domain.admin_suspend_sms",
+  "admin_resume_sms": "domain.admin_resume_sms",
   "admin_review_report": "domain.admin_review_report",
   "admin_review_dsr": "domain.admin_review_dsr",
   "admin_reconcile_photo": "domain.admin_reconcile_photo",

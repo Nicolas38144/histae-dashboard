@@ -4,6 +4,7 @@ import { api } from './client';
 import { parsePlanCatalog } from './plan-catalog';
 import type {
   AdminMetrics,
+  SmsSafety,
   AdminProfileQuestion,
   AdminRevenue,
   AdminUser,
@@ -266,4 +267,24 @@ export async function getAccessLogs(
 export async function getPlanCatalog(): Promise<PlanCatalog> {
   const { data } = await api.get<unknown>('/plans');
   return parsePlanCatalog(data);
+}
+
+export async function getSmsSafety(): Promise<SmsSafety> {
+  const { data } = await api.get<SmsSafety>('/admin/sms-safety');
+  const booleans = ['provider_enabled', 'suspended', 'manual_suspended', 'environment_suspended', 'traffic_spike'] as const;
+  const counts = ['version', 'sends_last_5_minutes', 'sends_last_hour', 'sends_last_24_hours'] as const;
+  const limits = ['hourly_limit_per_phone', 'daily_limit_per_phone', 'spike_threshold_5_minutes'] as const;
+  if (!data || typeof data !== 'object'
+    || booleans.some((key) => typeof data[key] !== 'boolean')
+    || counts.some((key) => !Number.isSafeInteger(data[key]) || data[key] < 0)
+    || limits.some((key) => !Number.isSafeInteger(data[key]) || data[key] < 1)
+    || data.suspended !== (data.manual_suspended || data.environment_suspended)
+    || (data.updated_at !== null && (typeof data.updated_at !== 'string' || Number.isNaN(Date.parse(data.updated_at))))) {
+    throw new LocalizedError('smsSafety.invalidState');
+  }
+  return data;
+}
+
+export async function setSmsSuspension(suspended: boolean, version: number): Promise<void> {
+  await api.patch('/admin/sms-safety', { suspended, version });
 }

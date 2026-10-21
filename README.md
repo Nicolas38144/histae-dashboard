@@ -380,3 +380,18 @@ Aucune dépendance d’internationalisation supplémentaire n’est requise.
 Les tests vérifient les clés et paramètres, les pluriels, les formats, la persistance et les changements de
 langue pendant un chargement ou une saisie. `tests/unit/ui-text.spec.ts` analyse les sources TypeScript et
 refuse les textes visibles écrits directement dans le code (hors valeurs techniques explicitement permises).
+
+
+## Protection des envois SMS
+
+La vue d’ensemble affiche les limites OTP par numéro (5/heure et 10/24 h par défaut), les compteurs
+agrégés et une alerte de pic. Le superadmin peut suspendre/reprendre globalement les SMS avec une
+session WebAuthn récente et une confirmation, sans motif obligatoire. Les administrateurs ordinaires
+ont uniquement la lecture. Le statut est actualisé toutes les 30 secondes.
+
+La version lue accompagne la mutation ; un état devenu obsolète est refusé. Une réponse perdue est
+résolue par lecture, sans rejeu automatique de la mutation. Un arrêt imposé par la configuration du
+serveur reste prioritaire. Les compteurs ne sont jamais remis à zéro lors d’une reprise.
+
+Le blocage est appliqué par l’API/PostgreSQL et reste actif si les outils de supervision sont arrêtés.
+Voir le [guide API](../histae-api-rust/docs/sms-safety.md) pour la configuration et le mode secours.

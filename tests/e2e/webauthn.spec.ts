@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { adminMetrics, adminSession } from '../fixtures';
+import { adminMetrics, adminSession, smsSafety } from '../fixtures';
 
 test('redirects an expired session and clears legacy browser tokens', async ({ page }) => {
   await page.route('**/api/admin/auth/session', (route) => route.fulfill({
@@ -77,6 +77,7 @@ test('registers and reuses a discoverable passkey with a virtual authenticator',
       verifications.push(route.request().postDataJSON());
       return route.fulfill({ json: adminSession });
     }
+    if (url.pathname.endsWith('/sms-safety')) return route.fulfill({ json: smsSafety });
     if (url.pathname.endsWith('/auth/session')) return route.fulfill({ json: adminSession });
     if (url.pathname.endsWith('/metrics')) return route.fulfill({ json: adminMetrics });
     return route.fulfill({ status: 404, json: { error: { code: 'fixture_missing', message: 'Fixture absente.' } } });

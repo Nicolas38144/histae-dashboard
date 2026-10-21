@@ -3,6 +3,7 @@ import type {
   AdminMetrics,
   AdminProfileQuestion,
   AdminSession,
+  SmsSafety,
   AdminUserDetail,
   BillingReconciliationItem,
   DataSubjectRequest,
@@ -195,4 +196,12 @@ export const adminMetrics: AdminMetrics = {
     postgres_pool: { total: 2, idle: 2, waiting: 0 },
     maintenance: [],
   },
+};
+
+export const smsSafety: SmsSafety = {
+  provider_enabled: true, suspended: false, manual_suspended: false,
+  environment_suspended: false, version: 0,
+  hourly_limit_per_phone: 5, daily_limit_per_phone: 10,
+  sends_last_5_minutes: 2, sends_last_hour: 3, sends_last_24_hours: 4,
+  spike_threshold_5_minutes: 20, traffic_spike: false, updated_at: null,
 };

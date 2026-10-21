@@ -121,3 +121,11 @@ Ces parcours utilisent une API simulée et ne valident pas le déploiement de pr
 La [revue fonctionnelle de la livraison](../histae-api-rust/docs/feature-audit.md) centralise les résultats
 API/dashboard/site et leurs limites. Le navigateur virtuel vérifie la cérémonie WebAuthn, sans valider
 le matériel de secours ni le tunnel de production.
+
+
+## Protection SMS
+
+`tests/components/sms-safety.spec.tsx` vérifie la lecture sans commandes pour un admin, la confirmation
+et la version de suspension, l’arrêt forcé par le serveur, le signalement des pics, le rejet d’un état
+API mal formé et la résolution d’une réponse perdue sans seconde mutation. Les traductions fr/en/es/it
+et les parcours navigateur de la vue d’ensemble sont conservés.

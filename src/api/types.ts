@@ -333,3 +333,19 @@ export type PhotoReviewChecks = {
   sharp_enough: boolean;
   content_allowed: boolean;
 };
+
+export type SmsSafety = {
+  provider_enabled: boolean;
+  suspended: boolean;
+  manual_suspended: boolean;
+  environment_suspended: boolean;
+  version: number;
+  hourly_limit_per_phone: number;
+  daily_limit_per_phone: number;
+  sends_last_5_minutes: number;
+  sends_last_hour: number;
+  sends_last_24_hours: number;
+  spike_threshold_5_minutes: number;
+  traffic_spike: boolean;
+  updated_at: string | null;
+};
