@@ -395,3 +395,20 @@ serveur reste prioritaire. Les compteurs ne sont jamais remis à zéro lors d’
 
 Le blocage est appliqué par l’API/PostgreSQL et reste actif si les outils de supervision sont arrêtés.
 Voir le [guide API](../histae-api-rust/docs/sms-safety.md) pour la configuration et le mode secours.
+
+## Achats Apple / Google Play
+
+L’onglet **Abonnements stores** affiche l’activation, les droits natifs, acquittements Google,
+notifications et derniers abonnements. Accès admin ; import financier réservé au superadmin avec
+authentification récente et confirmation explicite du fichier/fournisseur/rapport sélectionnés.
+Le CSV normalisé, son format et l’idempotence sont décrits dans le
+[guide serveur](../histae-api-rust/docs/store-billing.md#dashboard-et-rapports-financiers).
+Le modèle téléchargeable contient uniquement l’en-tête. Les rapports bruts fournisseurs doivent être
+normalisés avant import. Les devises sont séparées, les nets inconnus restent inconnus, Stripe reste
+affiché séparément sur factures payées. Aucun revenu natif n’est déduit du nombre de comptes Premium.
+
+
+Le module `src/features/store-billing/` sépare modèles, normalisation CSV, totaux par devise,
+panneaux de lecture et cycle d’import. `src/api/store-billing-codec.ts` contrôle les réponses
+inconnues avant affichage. Le hook conserve une copie des lignes à confirmer et ignore les lectures
+de fichier devenues obsolètes ou terminées après démontage. La page assemble ces responsabilités.

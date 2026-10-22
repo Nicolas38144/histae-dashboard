@@ -129,3 +129,26 @@ le matériel de secours ni le tunnel de production.
 et la version de suspension, l’arrêt forcé par le serveur, le signalement des pics, le rejet d’un état
 API mal formé et la résolution d’une réponse perdue sans seconde mutation. Les traductions fr/en/es/it
 et les parcours navigateur de la vue d’ensemble sont conservés.
+
+
+## Abonnements stores — 22 octobre 2026
+
+- `pnpm check` : typage, lint et build réussis.
+- Suite Vitest complète : **98 tests réussis**, dont le parseur CSV et les contraintes financières.
+- Après ajout du récapitulatif de confirmation : dix contrôles ciblés traduction/texte/CSV réussis.
+- `pnpm exec playwright test tests/e2e/store-billing.spec.ts` : deux parcours Chromium réussis.
+  L’import n’est envoyé qu’après confirmation du fournisseur/rapport/fichier ; un admin ordinaire
+  n’a pas accès à cette action. Les réponses API et montants sont fictifs.
+
+Le contrôle du rôle courant, l’idempotence et le rollback d’un rapport contradictoire sont également
+testés sur un PostgreSQL jetable dans l’API. Aucun rapport réel n’a été importé ni serveur déployé.
+Le chunk principal conserve son avertissement de taille connu ; le build réussit.
+Voir [le guide](../histae-api-rust/docs/store-billing.md#dashboard-et-rapports-financiers).
+
+### Refactoring du parcours stores
+
+Après séparation des modèles, de la lecture HTTP, de la normalisation CSV, des totaux, des panneaux
+et du hook d’import : `pnpm check` réussit, les **12 contrôles ciblés** (finance, DTO malformés,
+traductions et absence de texte en dur) passent, ainsi que les **deux parcours Chromium stores**.
+La lecture d’un fichier devenue obsolète ou terminée après démontage est ignorée ; la confirmation
+utilise son propre instantané. Les 98 tests complets précédents constituent la campagne initiale.

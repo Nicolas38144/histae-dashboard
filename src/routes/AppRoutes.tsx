@@ -21,6 +21,7 @@ const ProfileQuestions = lazy(() => import('../pages/ProfileQuestions'));
 const PrivacyRequests = lazy(() => import('../pages/PrivacyRequests'));
 const Reports = lazy(() => import('../pages/Reports'));
 const Security = lazy(() => import('../pages/Security'));
+const StoreBilling = lazy(() => import('../pages/StoreBilling'));
 const SmsSafety = lazy(() => import('../pages/SmsSafety'));
 const Traits = lazy(() => import('../pages/Traits'));
 const UserDetails = lazy(() => import('../pages/UserDetails'));
@@ -83,6 +84,7 @@ export default function AppRoutes({ mode, toggleMode }: { mode: 'light' | 'dark'
               <Route path="/outbox-dead-letters" element={<OutboxDeadLetters />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/security" element={<Security />} />
+              <Route path="/store-billing" element={<StoreBilling />} />
               <Route path="/sms-safety" element={<SmsSafety />} />
               <Route path="/monitoring" element={<Monitoring />} />
             </Route>

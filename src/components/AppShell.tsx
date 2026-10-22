@@ -45,6 +45,7 @@ const entries = () => ([
   { path: '/privacy-requests', label: t("common.gdprRequests"), icon: <PolicyOutlined /> },
   { path: '/plans', label: t("common.plans"), icon: <PriceChangeOutlined /> },
   { path: '/photo-reconciliation', label: t("common.photos"), icon: <SyncProblemOutlined /> },
+  { path: '/store-billing', label: t('storeBilling.title'), icon: <PriceChangeOutlined /> },
   { path: '/billing-reconciliation', label: t("common.stripe"), icon: <CreditScoreOutlined /> },
   { path: '/outbox-dead-letters', label: t("common.outbox"), icon: <MarkunreadMailboxOutlined /> },
   { path: '/sms-safety', label: t("common.smsSafety"), icon: <SmsOutlined /> },
