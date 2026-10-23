@@ -50,6 +50,12 @@ déduplication d’un élément recouvrant deux pages, le refus d’un curseur e
 filtre. Le parcours utilisateur charge plusieurs pages de matchs puis recompose les pages de messages, reçues de la
 plus récente à la plus ancienne, dans un ordre chronologique global.
 
+Les tests de sécurité couvrent aussi la revalidation périodique des sessions, l’inactivité, les retours sur
+l’onglet et la restauration de page, les réponses tardives après révocation, ainsi que la disparition des données
+avant la réponse de déconnexion et le message d’échec de révocation serveur. Les tests d’export vérifient les
+limites de lignes, de pages et d’octets UTF-8, le délai maximal et l’annulation au démontage. Le refus du stockage
+navigateur ne doit pas empêcher le chargement de la connexion.
+
 ## Internationalisation
 
 - `tests/unit/i18n.spec.ts` : parité des quatre catalogues, paramètres, pluriels, formats, préférence

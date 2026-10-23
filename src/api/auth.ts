@@ -6,7 +6,7 @@ import {
   type PublicKeyCredentialCreationOptionsJSON,
   type PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser';
-import { notifyAdminSessionExpired } from '../auth/session';
+import { notifyAdminSessionExpired, setAdminLogoutStatus, unlockAdminSession } from '../auth/session';
 import { api } from './client';
 import type { AdminAuthEvent, AdminCredential, AdminSession, AdminSessionSummary, CursorResponse } from './types';
 
@@ -28,10 +28,12 @@ export async function loginWithPasskey(): Promise<AdminSession> {
   return withFriendlyWebAuthnErrors(async () => {
     const { data } = await api.post<AuthenticationOptions>('/admin/auth/login/options');
     const credential = await startAuthentication({ optionsJSON: data.options });
-    return (await api.post<AdminSession>('/admin/auth/login/verify', {
+    const session = (await api.post<AdminSession>('/admin/auth/login/verify', {
       challenge_id: data.challenge_id,
       credential,
     })).data;
+    unlockAdminSession();
+    return session;
   });
 }
 
@@ -41,12 +43,14 @@ export async function registerWithBootstrap(token: string, name: string): Promis
       bootstrap_token: token,
     });
     const credential = await startRegistration({ optionsJSON: data.options });
-    return (await api.post<AdminSession>('/admin/auth/bootstrap/verify', {
+    const session = (await api.post<AdminSession>('/admin/auth/bootstrap/verify', {
       bootstrap_token: token,
       challenge_id: data.challenge_id,
       credential,
       name,
     })).data;
+    unlockAdminSession();
+    return session;
   });
 }
 
@@ -62,8 +66,8 @@ export async function addCredential(name: string): Promise<void> {
   });
 }
 
-export async function getAdminSession(): Promise<AdminSession> {
-  return (await api.get<AdminSession>('/admin/auth/session')).data;
+export async function getAdminSession(signal?: AbortSignal): Promise<AdminSession> {
+  return (await api.get<AdminSession>('/admin/auth/session', { signal })).data;
 }
 
 export async function getAdminCredentials(): Promise<AdminCredential[]> {
@@ -97,8 +101,15 @@ export async function revokeOtherSessions(): Promise<number> {
 }
 
 export async function logout(): Promise<void> {
-  await api.post('/admin/auth/logout');
+  setAdminLogoutStatus('pending');
   notifyAdminSessionExpired();
+  try {
+    await api.post('/admin/auth/logout');
+    setAdminLogoutStatus('idle');
+  } catch (reason) {
+    setAdminLogoutStatus('failed');
+    throw reason;
+  }
 }
 
 async function withFriendlyWebAuthnErrors<T>(operation: () => Promise<T>): Promise<T> {

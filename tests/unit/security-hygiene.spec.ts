@@ -39,6 +39,24 @@ describe('browser data hygiene', () => {
     expect(source).not.toMatch(/console\.(?:log|info|warn|error|debug)\s*\(/);
   });
 
+  it('continues cleaning local storage when session storage access is denied', () => {
+    localStorage.setItem('auth_token', 'legacy-fixture');
+    const blocked = vi.spyOn(window, 'sessionStorage', 'get').mockImplementation(() => { throw new DOMException('', 'SecurityError'); });
+
+    try {
+      expect(clearLegacySessions).not.toThrow();
+      expect(localStorage.getItem('auth_token')).toBeNull();
+    } finally {
+      blocked.mockRestore();
+    }
+  });
+
+  it('tolerates failures removing items from either browser storage', () => {
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new DOMException('', 'SecurityError'); });
+
+    expect(clearLegacySessions).not.toThrow();
+  });
+
   it('contains no production-shaped secret in versioned test fixtures', async () => {
     const testFiles = (await filesUnder('tests')).filter((path) => /\.(ts|tsx)$/.test(path));
     const tests = (await Promise.all(testFiles.map((path) => readFile(path, 'utf8')))).join('\n');

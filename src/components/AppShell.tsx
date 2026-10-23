@@ -26,11 +26,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
-import { logout } from '../api/auth';
-import { errorMessage } from '../api/client';
+import { useSignOut } from '../auth/useSignOut';
 import type { AdminSession } from '../api/types';
-import { useNotification } from './notification-context';
-import { clearUserNames } from '../utils/userNames';
 
 import { LanguageSelector } from './LanguageSelector';
 
@@ -59,20 +56,10 @@ export function AppShell({ mode, toggleMode }: { mode: 'light' | 'dark'; toggleM
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { showNotification } = useNotification();
+  const signOut = useSignOut();
   const navigationEntries = session.role === 'superadmin'
     ? [...entries(), { path: '/monitoring', label: t("common.monitoring"), icon: <MonitorHeartOutlined /> }]
     : entries();
-
-  const signOut = async () => {
-    try {
-      await logout();
-      clearUserNames();
-      navigate('/login', { replace: true });
-    } catch (reason) {
-      showNotification(errorMessage(reason), 'error');
-    }
-  };
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

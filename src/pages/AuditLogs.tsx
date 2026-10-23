@@ -17,7 +17,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { getAccessLogs, getUsers } from '../api/admin';
 import { errorMessage } from '../api/client';
 import type { AdminUser, DataAccessLog, UserRole } from '../api/types';
@@ -28,6 +28,8 @@ import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
 import { useCursorPagination } from '../hooks/useCursorPagination';
 import { downloadAccessLogsCsv } from '../utils/accessLogsCsv';
+import { ACCESS_LOG_EXPORT_MAX_ROWS, ACCESS_LOG_EXPORT_TIMEOUT_MS, collectAccessLogsForExport } from '../utils/accessLogsExport';
+import { ADMIN_SESSION_EXPIRED_EVENT } from '../auth/session';
 import { formatDate } from '../utils/format';
 
 type AuditSearch = {
@@ -43,7 +45,18 @@ export default function AuditLogs() {
   const [userId, setUserId] = useState('');
   const [search, setSearch] = useState<AuditSearch | null>(null);
   const [exportingUserId, setExportingUserId] = useState<string | null>(null);
+  const exportController = useRef<AbortController | null>(null);
   const { showNotification } = useNotification();
+
+  useEffect(() => {
+    const cancel = () => exportController.current?.abort();
+    window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, cancel);
+    return () => {
+      cancel();
+      exportController.current = null;
+      window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, cancel);
+    };
+  }, []);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -62,26 +75,30 @@ export default function AuditLogs() {
   };
 
   const exportAdministrator = async (adminId: string) => {
-    if (exportingUserId) return;
+    if (exportController.current) return;
+    const controller = new AbortController();
+    exportController.current = controller;
     setExportingUserId(adminId);
+    let timedOut = false;
+    const timer = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, ACCESS_LOG_EXPORT_TIMEOUT_MS);
     try {
-      const logs: DataAccessLog[] = [];
-      const cursors = new Set<string>();
-      let cursor: string | undefined;
-      while (true) {
-        const page = await getAccessLogs(adminId, cursor);
-        logs.push(...page.logs);
-        if (!page.next_cursor) break;
-        if (cursors.has(page.next_cursor)) throw new LocalizedError("auditLogs.theLogPaginationIsInconsistentTryAgain");
-        cursors.add(page.next_cursor);
-        cursor = page.next_cursor;
-      }
+      const logs = await collectAccessLogsForExport(adminId, controller.signal);
+      if (controller.signal.aborted || exportController.current !== controller) return;
       downloadAccessLogsCsv(adminId, logs);
       showNotification(t("audit.entriesExported", { count: logs.length }), 'success');
     } catch (reason) {
-      showNotification(errorMessage(reason), 'error');
+      if (exportController.current === controller && (!controller.signal.aborted || timedOut)) {
+        showNotification(errorMessage(timedOut ? new LocalizedError('auditLogs.exportTimedOut') : reason), 'error');
+      }
     } finally {
-      setExportingUserId(null);
+      window.clearTimeout(timer);
+      if (exportController.current === controller) {
+        exportController.current = null;
+        setExportingUserId(null);
+      }
     }
   };
 
@@ -91,6 +108,10 @@ export default function AuditLogs() {
         title={t("common.accessLog")}
         description={t("auditLogs.gdprTraceabilityOfAdministratorViewsAndActionsByUser")}
       />
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">{t('auditLogs.exportLimits', { count: ACCESS_LOG_EXPORT_MAX_ROWS, size: 5 })}</Typography>
+        {exportingUserId && <Button onClick={() => exportController.current?.abort()}>{t('common.cancel')}</Button>}
+      </Box>
       <Paper
         component="form"
         onSubmit={submit}

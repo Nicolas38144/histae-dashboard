@@ -1,13 +1,10 @@
 import { t } from '../i18n/core';
 import { useLocale } from '../i18n/useLocale';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
-import { ADMIN_SESSION_EXPIRED_EVENT, clearLegacySessions } from '../auth/session';
-import { getAdminSession } from '../api/auth';
-import type { AdminSession } from '../api/types';
+import { useAdminSession } from '../auth/useAdminSession';
 import { AppShell } from '../components/AppShell';
-import { clearUserNames } from '../utils/userNames';
 
 const AuditLogs = lazy(() => import('../pages/AuditLogs'));
 const Login = lazy(() => import('../pages/Login'));
@@ -30,26 +27,7 @@ const Users = lazy(() => import('../pages/Users'));
 
 function RequireSession() {
   useLocale();
-  const [session, setSession] = useState<AdminSession | null | undefined>();
-  useEffect(() => {
-    let active = true;
-    let invalidated = false;
-    clearLegacySessions();
-    clearUserNames();
-    getAdminSession().then((value) => { if (active && !invalidated) setSession(value); }).catch(() => {
-      if (active) setSession(null);
-    });
-    const expire = () => {
-      invalidated = true;
-      clearUserNames();
-      setSession(null);
-    };
-    window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, expire);
-    return () => {
-      active = false;
-      window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, expire);
-    };
-  }, []);
+  const session = useAdminSession();
   if (session === undefined) return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress aria-label={t("common.loading")} /></Box>;
   return session ? <Outlet context={session} /> : <Navigate to="/login" replace />;
 }

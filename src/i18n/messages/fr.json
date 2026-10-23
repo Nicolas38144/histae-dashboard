@@ -626,5 +626,10 @@
   "storeBilling.hold": "Paiement suspendu",
   "storeBilling.revoked": "Révoqué",
   "storeBilling.disabled": "Fournisseur désactivé",
-  "storeBilling.confirmDetails": "Fournisseur : {provider}. Rapport : {report}. Lignes : {count}. Confirmez les montants affichés avant l’import."
+  "storeBilling.confirmDetails": "Fournisseur : {provider}. Rapport : {report}. Lignes : {count}. Confirmez les montants affichés avant l’import.",
+  "login.signingOut": "Déconnexion du serveur en cours…",
+  "login.serverLogoutFailed": "L’affichage local a été verrouillé, mais la révocation de la session sur le serveur n’a pas pu être confirmée. Le cookie peut encore être valide. Réessayez la déconnexion ou faites révoquer cette session depuis une autre session administrateur.",
+  "auditLogs.exportLimits": "Export CSV limité à {count} entrées, {size} Mio et 60 secondes. Aucun fichier partiel ne sera téléchargé.",
+  "auditLogs.exportLimitExceeded": "Export refusé : la limite de {count} entrées, {size} Mio ou 100 pages a été atteinte. Demandez un export borné côté serveur.",
+  "auditLogs.exportTimedOut": "Export annulé après 60 secondes. Aucun fichier n’a été téléchargé."
 }

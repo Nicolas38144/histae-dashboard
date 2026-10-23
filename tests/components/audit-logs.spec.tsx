@@ -1,17 +1,79 @@
 import { http, HttpResponse } from 'msw';
-import { screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AuditLogs from '../../src/pages/AuditLogs';
 import { adminUser, fixtureIds } from '../fixtures';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
+import * as admin from '../../src/api/admin';
+import type { DataAccessLog } from '../../src/api/types';
+import { ACCESS_LOG_EXPORT_TIMEOUT_MS } from '../../src/utils/accessLogsExport';
+import { notifyAdminSessionExpired } from '../../src/auth/session';
 
 const apiUrl = 'http://localhost/api';
 const csvDownload = vi.hoisted(() => vi.fn());
 
-vi.mock('../../src/utils/accessLogsCsv', () => ({ downloadAccessLogsCsv: csvDownload }));
+vi.mock('../../src/utils/accessLogsCsv', async (importOriginal) => ({
+  ...await importOriginal<typeof import('../../src/utils/accessLogsCsv')>(),
+  downloadAccessLogsCsv: csvDownload,
+}));
 
 describe('access journal administrator directory', () => {
+  function directory() {
+    server.use(http.get(`${apiUrl}/admin/users`, ({ request }) => HttpResponse.json({
+      users: new URL(request.url).searchParams.get('role') === 'superadmin'
+        ? [{ ...adminUser, user_id: fixtureIds.admin, firstname: 'Alex', role: 'superadmin' }] : [],
+      next_cursor: null,
+    })));
+  }
+
+  it('does not download a CSV if the screen is closed during an export', async () => {
+    directory();
+    const user = userEvent.setup();
+    let resolve!: (page: { logs: DataAccessLog[]; next_cursor: null }) => void;
+    const read = vi.spyOn(admin, 'getAccessLogs').mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+    const { unmount } = renderDashboard(<AuditLogs />);
+    await user.click(await screen.findByRole('button', { name: 'Exporter le journal de Alex en CSV' }));
+    const signal = read.mock.calls[0][2];
+    unmount();
+    expect(signal?.aborted).toBe(true);
+    await act(async () => resolve({ logs: [], next_cursor: null }));
+    expect(csvDownload).not.toHaveBeenCalled();
+  });
+
+  it('cancels immediately if the session expires in the same batch as the last page', async () => {
+    directory();
+    const user = userEvent.setup();
+    let resolve!: (page: { logs: DataAccessLog[]; next_cursor: null }) => void;
+    vi.spyOn(admin, 'getAccessLogs').mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+    renderDashboard(<AuditLogs />);
+    await user.click(await screen.findByRole('button', { name: 'Exporter le journal de Alex en CSV' }));
+    await act(async () => {
+      notifyAdminSessionExpired();
+      resolve({ logs: [], next_cursor: null });
+    });
+    expect(csvDownload).not.toHaveBeenCalled();
+  });
+
+  it('cancels an export at the deadline without producing a partial file', async () => {
+    directory();
+    const { unmount } = renderDashboard(<AuditLogs />);
+    const button = await screen.findByRole('button', { name: 'Exporter le journal de Alex en CSV' });
+    vi.spyOn(admin, 'getAccessLogs').mockImplementation((_id, _cursor, signal) => new Promise((_resolve, reject) => {
+      signal?.addEventListener('abort', () => reject(signal.reason), { once: true });
+    }));
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(button);
+      await act(() => vi.advanceTimersByTimeAsync(ACCESS_LOG_EXPORT_TIMEOUT_MS));
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(await screen.findByText('Export annulé après 60 secondes. Aucun fichier n’a été téléchargé.')).toBeVisible();
+    expect(csvDownload).not.toHaveBeenCalled();
+    unmount();
+  });
+
   it('lists admin and superadmin accounts while keeping the UUID search above them', async () => {
     const user = userEvent.setup();
     const roles: string[] = [];

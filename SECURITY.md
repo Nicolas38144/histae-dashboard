@@ -23,6 +23,20 @@ l’autorisation applicatives.
 Le JavaScript ne doit jamais recevoir ni stocker le secret de session. Une XSS pourrait néanmoins agir avec une
 session ouverte : CSP, dépendances maîtrisées, sessions courtes et validation serveur restent indispensables.
 
+La console revalide la session toutes les 60 secondes et au retour sur l’onglet, au focus et à la restauration
+d’une page. Elle retire les écrans privés et vide le cache de prénoms en arrière-plan ; les données sont relues
+après confirmation serveur. Les formulaires non enregistrés sont donc perdus lors de ce verrouillage.
+Une vérification échouée, y compris une panne réseau, ferme l’affichage. Les réponses antérieures et les
+requêtes annulées ne peuvent pas le réactiver. Après 15 minutes sans interaction, la console revient à la connexion.
+Le verrou local reste en mémoire jusqu’à une nouvelle authentification WebAuthn ; il ne constitue pas une
+révocation du cookie serveur et ne survit pas au rechargement complet du document.
+
+Une déconnexion demandée retire immédiatement l’affichage, avant la réponse API. La connexion reste désactivée
+pendant la requête de révocation. Si celle-ci échoue, l’écran de connexion affiche un avertissement persistant
+et permet de réessayer ; le cookie `HttpOnly` peut encore être valide et doit être révoqué par l’API.
+Le délai de détection d’une révocation distante reste borné par la relecture périodique lorsque le navigateur
+exécute ses timers ; les timers peuvent être suspendus en arrière-plan ou pendant la veille.
+
 ## Minimisation des données
 
 Ne jamais exposer au dashboard :
@@ -38,10 +52,17 @@ obligatoire pour un admin et facultatif pour le superadmin, avec un libellé ser
 modération reste sans contenu ; les photos signées de courte durée sont accessibles uniquement dans les détails autorisés et audités.
 Les décisions utilisent une version optimiste et les mêmes règles de motif selon le rôle.
 
-Seule la préférence `histae_theme` est persistée dans le navigateur. Le cache de prénoms en mémoire est vidé
+Seules les préférences `histae_theme` et `histae_locale` sont persistées dans le navigateur. Le nettoyage des
+anciens jetons tolère un refus d’accès au stockage navigateur. Le cache de prénoms en mémoire est vidé
 au chargement d’une nouvelle session et lors de son invalidation. Une vérification antérieure ne peut pas
 réactiver une session invalidée dans la même séquence de réponses. Les tests empêchent la réintroduction d’un token dans
 `localStorage` ou `sessionStorage` et l’usage de `console.*` dans les sources applicatives.
+
+Les exports du journal d’accès sont limités à 5 000 entrées, 5 Mio de CSV UTF-8 (échappement compris),
+100 pages et 60 secondes. Une limite atteinte refuse l’export complet, sans fichier partiel. Le téléchargement
+est annulé lors d’une sortie de l’écran, d’un verrouillage ou sur demande. Les protections contre les formules
+CSV sont conservées. Le contrat actuel ne permet pas de filtrer ces journaux par période : les historiques
+plus volumineux nécessitent un export serveur autorisé, audité et borné avant d’ajouter cette fonction à l’interface.
 
 ## En-têtes de production
 

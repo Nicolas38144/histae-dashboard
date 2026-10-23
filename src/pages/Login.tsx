@@ -13,11 +13,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useState, type FormEvent } from 'react';
+import { useState, useSyncExternalStore, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginWithPasskey, registerWithBootstrap, supportsWebAuthn } from '../api/auth';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { errorMessage } from '../api/client';
+import { useSignOut } from '../auth/useSignOut';
+import { getAdminLogoutStatus, subscribeAdminLogout } from '../auth/session';
 
 export default function Login() {
   useLocale();
@@ -27,6 +29,9 @@ export default function Login() {
   const [loading, setLoading] = useState<'login' | 'bootstrap' | null>(null);
   const [error, setError] = useState<unknown>(null);
   const navigate = useNavigate();
+  const logoutStatus = useSyncExternalStore(subscribeAdminLogout, getAdminLogoutStatus);
+  const signingOut = logoutStatus === 'pending';
+  const signOut = useSignOut();
   const supported = supportsWebAuthn();
 
   const login = async () => {
@@ -68,13 +73,15 @@ export default function Login() {
         <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>
           {t("login.localAuthenticationWithAPasskeyOrSecurityKeySms")}</Typography>
         {!supported && <Alert severity="error" sx={{ mb: 2 }}>{t("login.thisBrowserDoesNotSupportWebauthn")}</Alert>}
+        {signingOut && <Alert severity="info" sx={{ mb: 2 }}>{t('login.signingOut')}</Alert>}
+        {logoutStatus === 'failed' && <Alert severity="warning" sx={{ mb: 2 }} action={<Button color="inherit" onClick={signOut}>{t('common.signOut')}</Button>}>{t('login.serverLogoutFailed')}</Alert>}
         {error !== null && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage(error)}</Alert>}
         <Button
           fullWidth
           variant="contained"
           size="large"
           startIcon={<FingerprintOutlined />}
-          disabled={!supported || loading !== null}
+          disabled={!supported || loading !== null || signingOut}
           onClick={login}
           sx={{ py: 1.25 }}
         >
@@ -111,7 +118,7 @@ export default function Login() {
                 fullWidth
                 type="submit"
                 variant="outlined"
-                disabled={!supported || loading !== null || !passkeyName.trim() || !bootstrapToken.trim()}
+                disabled={!supported || loading !== null || signingOut || !passkeyName.trim() || !bootstrapToken.trim()}
                 sx={{ mt: 2 }}
               >
                 {loading === 'bootstrap' ? <CircularProgress aria-label={t("common.loading")} size={24} /> : t("login.registerThisPasskey")}
