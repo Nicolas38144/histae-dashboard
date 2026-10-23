@@ -412,3 +412,14 @@ Le module `src/features/store-billing/` sépare modèles, normalisation CSV, tot
 panneaux de lecture et cycle d’import. `src/api/store-billing-codec.ts` contrôle les réponses
 inconnues avant affichage. Le hook conserve une copie des lignes à confirmer et ignore les lectures
 de fichier devenues obsolètes ou terminées après démontage. La page assemble ces responsabilités.
+
+## Source access and licensing
+
+Copyright © 2026 Nicolas GERMANI. Original Histae code is proprietary and publicly available only
+for inspection and security audits. Reuse, modification outside an audit, redistribution and use
+in another project or service are prohibited for commercial and non-commercial purposes without
+prior written permission. See [LICENSE.md](LICENSE.md) for the limited audit permission and
+applicable exceptions. External contributions are not accepted.
+
+Third-party dependencies, SDKs and fonts retain their own licenses; these restrictions do not
+override their rights or notices. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

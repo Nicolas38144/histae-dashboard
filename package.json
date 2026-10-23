@@ -1,6 +1,7 @@
 {
   "name": "histae-dashboard",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
   "version": "1.0.0",
   "type": "module",
   "packageManager": "pnpm@12.11.2",
