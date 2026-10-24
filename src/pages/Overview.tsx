@@ -1,3 +1,4 @@
+import { AttentionQueue } from '../components/AttentionQueue';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import {
@@ -33,6 +34,7 @@ export default function Overview() {
       <AsyncState loading={loading} error={error} onRetry={reload} />
       {data && (
         <>
+          <AttentionQueue data={data} />
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' }, gap: 2 }}>
             <MetricCard label={t("common.activeAccounts")} value={data.users.active} icon={<GroupsOutlined color="primary" />} />
             <MetricCard label={t("common.createdInTheLast30Days")} value={data.users.created_last_30_days} icon={<PersonAddAltOutlined color="success" />} accent="success.main" />
@@ -58,7 +60,7 @@ export default function Overview() {
             <SubscriptionDistribution subscription_offers={data.subscription_offers} />
           </Box>
 
-          <Paper variant="outlined" sx={{ mt: 3, overflowX: 'auto' }}>
+          <Paper id="maintenance" variant="outlined" sx={{ mt: 3, overflowX: 'auto', scrollMarginTop: 90 }}>
             <Box sx={{ p: 3, pb: 1 }}>
               <Typography variant="h6" fontWeight={700}>{t("common.boundedJobs")}</Typography>
               <Typography variant="body2" color="text.secondary">

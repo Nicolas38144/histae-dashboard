@@ -1,3 +1,4 @@
+import { useRememberedState } from '../hooks/list-memory';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import {
@@ -22,14 +23,14 @@ const reportStatuses = ['pending', 'reviewed', 'dismissed'] as const satisfies r
 
 export default function Reports() {
   useLocale();
-  const [filter, setFilter] = useState<'' | ReportStatus>('pending');
+  const [filter, setFilter] = useRememberedState<'' | ReportStatus>('reports:filter','pending');
   const [savingId, setSavingId] = useState<string | null>(null);
   const { showNotification } = useNotification();
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getReports(filter || undefined, cursor, signal);
     return { items: page.reports, nextCursor: page.next_cursor };
   }, [filter]);
-  const pagination = useCursorPagination(loadPage, reportKey);
+  const pagination = useCursorPagination(loadPage, reportKey, undefined, 'reports:'+filter);
 
   const changeStatus = async (id: string, status: ReportStatus) => {
     setSavingId(id);

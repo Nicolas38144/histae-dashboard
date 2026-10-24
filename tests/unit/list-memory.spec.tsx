@@ -1,0 +1,22 @@
+import { act, renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { ListMemory } from '../../src/state/list-memory-context';
+import { useCursorPagination } from '../../src/hooks/useCursorPagination';
+const key=(item:{id:string})=>item.id;
+it('restores list depth with fresh data, then resets depth on refresh',async()=>{
+ const memory=new Map<string,unknown>();
+ vi.spyOn(window,'scrollTo').mockImplementation(()=>{});
+ const wrapper=({children}:{children:ReactNode})=><ListMemory.Provider value={memory}>{children}</ListMemory.Provider>;
+ const loader=vi.fn(async(cursor?:string)=>({items:[{id:cursor??'first'}],nextCursor:cursor?null:'second'}));
+ const first=renderHook(()=>useCursorPagination(loader,key,undefined,'users'),{wrapper});
+ await waitFor(()=>expect(first.result.current.loading).toBe(false));
+ act(()=>first.result.current.loadMore());
+ await waitFor(()=>expect(first.result.current.items).toHaveLength(2));
+ first.unmount();loader.mockClear();
+ const returned=renderHook(()=>useCursorPagination(loader,key,undefined,'users'),{wrapper});
+ await waitFor(()=>expect(returned.result.current.items).toHaveLength(2));
+ expect(loader).toHaveBeenCalledTimes(2);
+ act(()=>returned.result.current.reload());
+ await waitFor(()=>expect(returned.result.current.items).toHaveLength(1));
+ expect(memory.get(JSON.stringify(['users', 'fr']) + ':depth')).toBe(1);
+});

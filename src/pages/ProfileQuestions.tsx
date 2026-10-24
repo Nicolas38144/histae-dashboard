@@ -1,3 +1,6 @@
+import { hasMissingTranslations } from '../components/catalog-translations';
+import { CatalogPreview } from '../components/CatalogPreview';
+import { Checkbox, FormControlLabel } from '@mui/material';
 import { formatNumber } from '../utils/format';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
@@ -62,6 +65,7 @@ export default function ProfileQuestions() {
   useLocale();
   const load = useCallback(() => getProfileQuestions(), []);
   const { data, loading, error, reload } = useAsyncData(load);
+  const [missingOnly,setMissingOnly]=useState(false);
   const [editing, setEditing] = useState<AdminProfileQuestion | 'new' | null>(null);
   const [deleting, setDeleting] = useState<AdminProfileQuestion | null>(null);
   const [form, setForm] = useState<QuestionForm>(emptyForm);
@@ -121,6 +125,7 @@ export default function ProfileQuestions() {
     }
   };
 
+  const visibleItems = (data ?? []).filter(item=>!missingOnly || hasMissingTranslations(item.translations));
   return (
     <>
       <PageHeader
@@ -129,6 +134,7 @@ export default function ProfileQuestions() {
         actions={<Button variant="contained" startIcon={<AddOutlined />} onClick={openCreate}>{t("common.addAQuestion")}</Button>}
       />
       <AsyncState loading={loading} error={error} onRetry={reload} />
+      <FormControlLabel control={<Checkbox checked={missingOnly} onChange={event=>setMissingOnly(event.target.checked)}/>} label={t('workspace.missing')} />
       {data && (
         <TableContainer component={Paper} variant="outlined">
           <Table size="small">
@@ -142,7 +148,7 @@ export default function ProfileQuestions() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((question) => (
+              {visibleItems.map((question) => (
                 <TableRow key={question.id} hover>
                   <TableCell>{formatNumber(question.display_order)}</TableCell>
                   <TableCell>
@@ -153,6 +159,7 @@ export default function ProfileQuestions() {
                   <TableCell><Chip size="small" label={categoryLabels()[question.category]} /></TableCell>
                   <TableCell align="right">{formatNumber(question.answer_count)}</TableCell>
                   <TableCell align="right">
+                    <CatalogPreview canonical={question.translations?.fr ?? question.prompt} translations={question.translations} />
                     <IconButton aria-label={t("common.editValue", { value0: question.prompt })} onClick={() => openEdit(question)}>
                       <EditOutlined />
                     </IconButton>
@@ -162,7 +169,7 @@ export default function ProfileQuestions() {
                   </TableCell>
                 </TableRow>
               ))}
-              {!data.length && (
+              {!visibleItems.length && (
                 <TableRow><TableCell colSpan={5} align="center" sx={{ py: 5 }}>{t("profileQuestions.noQuestionsConfigured")}</TableCell></TableRow>
               )}
             </TableBody>
@@ -186,6 +193,7 @@ export default function ProfileQuestions() {
               onChange={(event) => setForm((current) => ({ ...current, prompt: event.target.value }))}
             />
             <CatalogTranslationFields value={translations} onChange={setTranslations} maxLength={200} multiline />
+          <CatalogPreview canonical={form.prompt} translations={{fr:form.prompt,...translations}} />
             <FormControl fullWidth>
               <InputLabel id="profile-question-category-label">{t("common.category")}</InputLabel>
               <Select

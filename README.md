@@ -423,3 +423,23 @@ applicable exceptions. External contributions are not accepted.
 
 Third-party dependencies, SDKs and fonts retain their own licenses; these restrictions do not
 override their rights or notices. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Navigation and working context
+
+The overview starts with an attention queue derived from existing metrics. Navigation is grouped
+by activity and includes a page search (Ctrl/Cmd+K). List filters and scroll positions are held
+in memory for the authenticated session. Returning to a list reloads its previously opened page
+depth through the existing endpoints; refresh starts again at the first page. Signing out clears
+this context. No user records or search terms are written to browser storage.
+
+Traits and profile questions include missing-translation filters and fictional previews, including
+unsaved editor values. Preview language is independent from the interface language. All additions
+use the existing API contract.
+
+
+### Frontend boundaries
+
+- `AppShell` owns layout and the authenticated view-state lifetime; `AppNavigation` owns the menu interaction. Routes, groups and role-dependent visibility live in `navigation/navigation.tsx`.
+- `utils/attention-tasks.ts` derives actionable items without UI dependencies. `AttentionQueue` translates and renders them.
+- `useCursorPagination` owns request cancellation and loading state. `utils/cursor-pages.ts` fetches page ranges, while `useListRestoration` and `useListPosition` restore view preferences. Only successful, current requests update remembered depth.
+- `components/catalog-translations.ts` defines the shared missing-translation and fallback policy used by catalog filters and previews.

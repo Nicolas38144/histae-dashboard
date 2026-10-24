@@ -1,9 +1,10 @@
+import { useRememberedState } from '../hooks/list-memory';
 import { domainLabel } from '../i18n/domain';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import { SearchOutlined } from '@mui/icons-material';
 import { Button, FormControl, InputAdornment, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, type FormEvent } from 'react';
 import { getUsers } from '../api/admin';
 import type { AdminUser, UserRole } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
@@ -20,8 +21,8 @@ const userKey = (user: AdminUser) => user.user_id;
 
 export default function Users() {
   useLocale();
-  const [draft, setDraft] = useState(initialFilters);
-  const [filters, setFilters] = useState(initialFilters);
+  const [draft, setDraft] = useRememberedState('users:draft',initialFilters);
+  const [filters, setFilters] = useRememberedState('users:filters',initialFilters);
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getUsers({
       status: filters.status || undefined,
@@ -31,7 +32,7 @@ export default function Users() {
     }, signal);
     return { items: page.users, nextCursor: page.next_cursor };
   }, [filters]);
-  const pagination = useCursorPagination(loadPage, userKey);
+  const pagination = useCursorPagination(loadPage, userKey, undefined, JSON.stringify(['users',filters]));
 
   const submit = (event: FormEvent) => { event.preventDefault(); setFilters({ ...draft, search: draft.search.trim() }); };
 

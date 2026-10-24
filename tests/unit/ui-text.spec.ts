@@ -12,7 +12,7 @@ async function sourceFiles(root: string): Promise<string[]> {
 
 // Only technical values may remain outside the message dictionaries.
 const technical = new Set([
-  'Content-Type', 'Accept-Language', 'LocalizedError', 'AbortError', 'NotAllowedError',
+  'Escape', 'Content-Type', 'Accept-Language', 'LocalizedError', 'AbortError', 'NotAllowedError',
   'SecurityError', 'InvalidCharacterError', 'UTC', 'fr-FR', 'en-GB', 'es-ES', 'it-IT',
   'noopener noreferrer', 'opacity 150ms ease', 'minmax(280px, 1fr) 180px 180px auto',
   'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',

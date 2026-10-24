@@ -1,3 +1,4 @@
+import { useRememberedState } from '../hooks/list-memory';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import {
@@ -77,8 +78,8 @@ const moderationKey = (item: ModerationCase) => item.case_id;
 export default function ContentModeration() {
   useLocale();
   const session = useOutletContext<AdminSession>();
-  const [statusFilter, setStatusFilter] = useState<'' | ModerationStatus>('pending');
-  const [typeFilter, setTypeFilter] = useState<'' | ModerationContentType>('');
+  const [statusFilter, setStatusFilter] = useRememberedState<'' | ModerationStatus>('moderation:status','pending');
+  const [typeFilter, setTypeFilter] = useRememberedState<'' | ModerationContentType>('moderation:type','');
   const [selected, setSelected] = useState<ModerationCase | null>(null);
   const [accessReason, setAccessReason] = useState('');
   const [detail, setDetail] = useState<ModerationDetail | null>(null);
@@ -97,7 +98,7 @@ export default function ContentModeration() {
     );
     return { items: page.cases, nextCursor: page.next_cursor };
   }, [statusFilter, typeFilter]);
-  const pagination = useCursorPagination(loadPage, moderationKey);
+  const pagination = useCursorPagination(loadPage, moderationKey, undefined, 'moderation:'+statusFilter+typeFilter);
 
   const requestDetail = (item: ModerationCase) => {
     if (session.role === 'superadmin') {

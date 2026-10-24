@@ -1,3 +1,6 @@
+import { hasMissingTranslations } from '../components/catalog-translations';
+import { CatalogPreview } from '../components/CatalogPreview';
+import { Checkbox, FormControlLabel } from '@mui/material';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import { translationForm, translationPatch } from '../components/catalog-translations';
@@ -20,6 +23,7 @@ import { useAsyncData } from '../hooks/useAsyncData';
 export default function Traits() {
   useLocale();
   const { data, loading, error, reload } = useAsyncData(getTraits);
+  const [missingOnly,setMissingOnly]=useState(false);
   const [editing, setEditing] = useState<Trait | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Trait | null>(null);
   const [name, setName] = useState('');
@@ -64,6 +68,7 @@ export default function Traits() {
     }
   };
 
+  const visibleItems = (data ?? []).filter(item=>!missingOnly || hasMissingTranslations(item.translations));
   return (
     <>
       <PageHeader
@@ -75,6 +80,7 @@ export default function Traits() {
         )}
       />
       <AsyncState loading={loading} error={error} onRetry={reload} />
+      <FormControlLabel control={<Checkbox checked={missingOnly} onChange={event=>setMissingOnly(event.target.checked)}/>} label={t('workspace.missing')} />
       {data && (
         <Paper variant="outlined">
           <Table size="small">
@@ -86,11 +92,12 @@ export default function Traits() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((trait) => (
+              {visibleItems.map((trait) => (
                 <TableRow key={trait.id}>
                   <TableCell>{trait.name}<CatalogTranslationCoverage translations={trait.translations} /></TableCell>
                   <TableCell>{trait.id}</TableCell>
                   <TableCell align="right">
+                    <CatalogPreview canonical={trait.translations?.fr ?? trait.name} translations={trait.translations} trait />
                     <IconButton aria-label={t("common.renameValue", { value0: trait.name })} onClick={() => openEditor(trait)}>
                       <EditOutlined />
                     </IconButton>
@@ -100,7 +107,7 @@ export default function Traits() {
                   </TableCell>
                 </TableRow>
               ))}
-              {!data.length && (
+              {!visibleItems.length && (
                 <TableRow>
                   <TableCell colSpan={3} align="center" sx={{ py: 5 }}>{t("traits.noTraitsConfigured")}</TableCell>
                 </TableRow>
@@ -114,6 +121,7 @@ export default function Traits() {
         <DialogContent>
           <TextField autoFocus fullWidth label={t("common.nameFrench")} value={name} onChange={(event) => setName(event.target.value)} sx={{ mt: 1 }} slotProps={{ htmlInput: { maxLength: 100 } }} />
           <CatalogTranslationFields value={translations} onChange={setTranslations} maxLength={100} />
+          <CatalogPreview canonical={name} translations={{fr:name,...translations}} trait />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditing(null)}>{t("common.cancel")}</Button>

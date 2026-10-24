@@ -1,3 +1,4 @@
+import { useRememberedState } from '../hooks/list-memory';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import {
@@ -73,7 +74,7 @@ const photoKey = (photo: PhotoReconciliationItem) => photo.photo_id;
 export default function PhotoReconciliation() {
   useLocale();
   const session = useOutletContext<AdminSession>();
-  const [filter, setFilter] = useState<PhotoReconciliationFilter>('all');
+  const [filter, setFilter] = useRememberedState<PhotoReconciliationFilter>('photos:filter','all');
   const [selected, setSelected] = useState<PhotoReconciliationItem | null>(null);
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -85,7 +86,7 @@ export default function PhotoReconciliation() {
     const page = await getPhotoReconciliation(filter, cursor, signal);
     return { items: page.photos, nextCursor: page.next_cursor };
   }, [filter]);
-  const pagination = useCursorPagination(loadPage, photoKey);
+  const pagination = useCursorPagination(loadPage, photoKey, undefined, 'photos:'+filter);
   const initialLoading = pagination.loading || (metrics.loading && !metrics.data);
   const initialError = pagination.error ?? (metrics.data ? null : metrics.error);
   const reloadAll = () => {

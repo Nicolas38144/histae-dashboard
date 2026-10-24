@@ -1,3 +1,4 @@
+import { useRememberedState } from '../hooks/list-memory';
 import { domainLabel } from '../i18n/domain';
 import { useLocale } from '../i18n/useLocale';
 import { LocalizedError, t } from '../i18n/core';
@@ -25,7 +26,7 @@ const requestKey = (request: DataSubjectRequest) => request.id;
 export default function PrivacyRequests() {
   useLocale();
   const session = useOutletContext<AdminSession>();
-  const [filter, setFilter] = useState<'' | DataRequestStatus>('');
+  const [filter, setFilter] = useRememberedState<'' | DataRequestStatus>('privacy:filter','');
   const [action, setAction] = useState<Action | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -34,7 +35,7 @@ export default function PrivacyRequests() {
     const page = await getDataRequests(filter || undefined, cursor, signal);
     return { items: page.requests, nextCursor: page.next_cursor };
   }, [filter]);
-  const pagination = useCursorPagination(loadPage, requestKey);
+  const pagination = useCursorPagination(loadPage, requestKey, undefined, 'privacy:'+filter);
   const close = () => { setAction(null); setNotes(''); };
 
   const update = async () => {

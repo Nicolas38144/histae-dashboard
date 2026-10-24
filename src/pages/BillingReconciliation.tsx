@@ -1,3 +1,4 @@
+import { useRememberedState } from '../hooks/list-memory';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import { ReplayOutlined } from '@mui/icons-material';
@@ -57,7 +58,7 @@ const eventKey = (event: BillingReconciliationItem) => event.event_id;
 export default function BillingReconciliation() {
   useLocale();
   const session = useOutletContext<AdminSession>();
-  const [kind, setKind] = useState<BillingReconciliationKindFilter>('all');
+  const [kind, setKind] = useRememberedState<BillingReconciliationKindFilter>('billing:filter','all');
   const [selected, setSelected] = useState<BillingReconciliationItem | null>(null);
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -67,7 +68,7 @@ export default function BillingReconciliation() {
     const page = await getBillingReconciliation(kind, cursor, signal);
     return { items: page.events, nextCursor: page.next_cursor };
   }, [kind]);
-  const pagination = useCursorPagination(loadPage, eventKey);
+  const pagination = useCursorPagination(loadPage, eventKey, undefined, 'billing:'+kind);
 
   const retry = async () => {
     if (!selected) return;

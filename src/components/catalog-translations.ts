@@ -13,3 +13,15 @@ export function translationPatch(values: TranslationForm): TranslationPatch {
   return Object.fromEntries(translatedLanguages.map((language) => [language, values[language].trim() || null]));
 }
 
+
+export function hasMissingTranslations(values?: Translations): boolean {
+  return translatedLanguages.some(language => !values?.[language]?.trim());
+}
+
+export function resolveCatalogText(canonical: string, values: Translations | undefined, language: 'fr' | 'en' | 'es' | 'it') {
+  const translated = values?.[language]?.trim();
+  return {
+    text: translated || canonical,
+    fallback: language !== 'fr' && !translated,
+  };
+}

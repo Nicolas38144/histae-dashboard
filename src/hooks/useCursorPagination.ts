@@ -1,25 +1,21 @@
 import { useLocale } from '../i18n/useLocale';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useListPosition } from './useListPosition';
+import { useListRestoration } from './useListRestoration';
+import { loadCursorPages, type CursorPage, type MergeCursorPage } from '../utils/cursor-pages';
+export type { CursorPage, MergeCursorPage } from '../utils/cursor-pages';
 import { errorMessage } from '../api/client';
 import { appendUniqueBy, uniqueBy } from '../utils/pagination';
-
-export type CursorPage<T> = {
-  items: T[];
-  nextCursor: string | null;
-};
-
-export type MergeCursorPage<T> = (
-  current: T[],
-  incoming: T[],
-  getKey: (item: T) => string,
-) => T[];
 
 export function useCursorPagination<T>(
   loader: (cursor: string | undefined, signal: AbortSignal) => Promise<CursorPage<T>>,
   getKey: (item: T) => string,
   mergePage: MergeCursorPage<T> = appendUniqueBy,
+  memoryKey?: string,
 ) {
   const locale = useLocale();
+  const viewKey = memoryKey ? JSON.stringify([memoryKey, locale]) : undefined;
+  const restoration = useListRestoration(viewKey);
   const [items, setItems] = useState<T[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,8 +44,12 @@ export function useCursorPagination<T>(
     }
 
     try {
-      const page = await loader(cursor, controller.signal);
+      const page = await loadCursorPages({
+        loader, cursor, signal: controller.signal, getKey, mergePage,
+        depth: append ? 1 : restoration.readDepth(),
+      });
       if (controller.signal.aborted || requestId !== requestSequence.current) return;
+      restoration.rememberDepth(append ? restoration.readDepth() + 1 : page.depth);
       setItems((current) => append
         ? mergePage(current, page.items, getKey)
         : uniqueBy(page.items, getKey));
@@ -64,7 +64,7 @@ export function useCursorPagination<T>(
         else setLoading(false);
       }
     }
-  }, [getKey, loader, mergePage]);
+  }, [getKey, loader, mergePage, restoration]);
 
   useEffect(() => {
     void load();
@@ -74,7 +74,11 @@ export function useCursorPagination<T>(
     };
   }, [load, revision, locale]);
 
-  const reload = useCallback(() => setRevision((value) => value + 1), []);
+  useListPosition(viewKey, !loading && error === null);
+  const reload = useCallback(() => {
+    restoration.reset();
+    setRevision(value => value + 1);
+  }, [restoration]);
   const loadMore = useCallback(() => {
     if (nextCursor && !loading && !loadingMore) void load(nextCursor);
   }, [load, loading, loadingMore, nextCursor]);
