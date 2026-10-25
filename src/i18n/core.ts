@@ -1,6 +1,6 @@
 import { catalogs, defaultLocale, intlLocales, isLocale, type Locale, type MessageKey } from './catalogs';
 
-export type MessageParams = Readonly<Record<string, string | number>>;
+type MessageParams = Readonly<Record<string, string | number>>;
 export const localeStorageKey = 'histae_locale';
 let currentLocale: Locale = defaultLocale;
 const listeners = new Set<() => void>();

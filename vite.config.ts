@@ -18,9 +18,6 @@ export default defineConfig(({ mode }) => {
           : html;
       },
     }],
-    define: {
-      __APP_ENV__: JSON.stringify(env.VITE_ENV),
-    },
     server: {
       headers: {
         'Cache-Control': 'no-store',

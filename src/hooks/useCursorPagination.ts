@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useListPosition } from './useListPosition';
 import { useListRestoration } from './useListRestoration';
 import { loadCursorPages, type CursorPage, type MergeCursorPage } from '../utils/cursor-pages';
-export type { CursorPage, MergeCursorPage } from '../utils/cursor-pages';
+export type { CursorPage } from '../utils/cursor-pages';
 import { errorMessage } from '../api/client';
 import { appendUniqueBy, uniqueBy } from '../utils/pagination';
 

@@ -65,7 +65,7 @@ export type MaintenanceJob = {
   overdue: boolean;
 };
 
-export type AdminOperations = {
+type AdminOperations = {
   runtime: {
     runtime: 'rust';
     uptime_seconds: number;
@@ -87,7 +87,7 @@ export type AdminMetrics = {
   operations: AdminOperations;
 };
 
-export type PhotoMetrics = {
+type PhotoMetrics = {
   pending: number;
   processing: number;
   ready: number;
@@ -190,7 +190,7 @@ export type Report = {
   created_at: string;
 };
 
-export type Language = 'fr' | 'en' | 'es' | 'it';
+type Language = 'fr' | 'en' | 'es' | 'it';
 export type Translations = Partial<Record<Language, string>>;
 export type TranslationPatch = Partial<Record<Language, string | null>>;
 export type Trait = { id: string; name: string; translations?: Translations };
@@ -209,7 +209,7 @@ export type AdminProfileQuestion = {
 };
 
 export type DataRequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
-export type DataRequestType = 'access' | 'erasure' | 'portability' | 'rectification' | 'restriction' | 'objection';
+type DataRequestType = 'access' | 'erasure' | 'portability' | 'rectification' | 'restriction' | 'objection';
 export type DataSubjectRequest = {
   id: string;
   user_id: string;

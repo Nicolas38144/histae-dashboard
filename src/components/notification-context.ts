@@ -2,7 +2,7 @@ import { LocalizedError } from '../i18n/core';
 import { createContext, useContext } from 'react';
 
 export type NotificationSeverity = 'success' | 'error' | 'info' | 'warning';
-export type NotificationContextValue = { showNotification: (message: string, severity?: NotificationSeverity) => void };
+type NotificationContextValue = { showNotification: (message: string, severity?: NotificationSeverity) => void };
 
 export const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 

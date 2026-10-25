@@ -618,7 +618,6 @@
   "storeBilling.range": "Period",
   "storeBilling.recentAuth": "Import requires recent superadmin authentication.",
   "storeBilling.noVerification": "No verification recorded.",
-  "storeBilling.stripe": "Stripe revenue",
   "storeBilling.stripeNotice": "Stripe revenue is presented separately in the overview.",
   "audit.admin_import_store_finance": "Store finance report imported",
   "storeBilling.metric": "{label}: {value}",
@@ -649,6 +648,5 @@
   "workspace.answer": "A walk without a route, a long coffee and the pleasure of sharing the day’s stories.",
   "workspace.close": "Close",
   "workspace.fallback": "French fallback",
-  "workspace.trait": "Personality trait",
   "workspace.french": "French"
 }

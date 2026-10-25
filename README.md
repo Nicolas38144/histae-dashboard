@@ -93,14 +93,12 @@ Le dépôt ne doit contenir ni `.env.development` ni secret.
 Le fichier `.env.development` doit normalement rester minimal :
 
 ```ini
-VITE_ENV=development
 VITE_API_URL=/api
 VITE_API_PROXY_TARGET=http://localhost:8080
 ```
 
 | Variable | Rôle |
 | --- | --- |
-| `VITE_ENV` | nom de l’environnement intégré au build |
 | `VITE_API_URL` | préfixe appelé par le navigateur, normalement `/api` |
 | `VITE_API_PROXY_TARGET` | origine jointe uniquement par le proxy Vite en développement |
 

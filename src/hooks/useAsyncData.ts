@@ -22,5 +22,5 @@ export function useAsyncData<T>(loader: () => Promise<T>) {
     return () => { active = false; };
   }, [loader, revision, locale]);
 
-  return { data, setData, loading, error: error === null ? null : errorMessage(error), reload };
+  return { data, loading, error: error === null ? null : errorMessage(error), reload };
 }

@@ -618,7 +618,6 @@
   "storeBilling.range": "Période",
   "storeBilling.recentAuth": "L’import exige une authentification récente du superadmin.",
   "storeBilling.noVerification": "Aucune vérification enregistrée.",
-  "storeBilling.stripe": "Revenus Stripe",
   "storeBilling.stripeNotice": "Les revenus Stripe sont présentés séparément dans la vue d’ensemble.",
   "audit.admin_import_store_finance": "Import de rapport financier store",
   "storeBilling.metric": "{label}: {value}",
@@ -649,6 +648,5 @@
   "workspace.answer": "Une promenade sans itinéraire, un café qui dure et le plaisir de raconter sa journée.",
   "workspace.close": "Fermer",
   "workspace.fallback": "Repli sur le français",
-  "workspace.trait": "Trait de personnalité",
   "workspace.french": "Français"
 }

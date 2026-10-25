@@ -4,7 +4,6 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [react()],
   define: {
-    __APP_ENV__: JSON.stringify('test'),
     'import.meta.env.VITE_API_URL': JSON.stringify('http://localhost/api'),
   },
   test: {

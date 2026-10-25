@@ -9,7 +9,7 @@ RUN if command -v corepack >/dev/null 2>&1; then corepack disable pnpm; fi \
 COPY . ./
 # Les fichiers .env locaux sont exclus du contexte Docker. Ces valeurs publiques
 # sont intégrées par Vite au build, indépendamment de la configuration locale.
-RUN VITE_ENV=production VITE_API_URL=/api pnpm run build
+RUN VITE_API_URL=/api pnpm run build
 
 FROM caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f AS production
 ENV XDG_CONFIG_HOME=/tmp/caddy-config XDG_DATA_HOME=/tmp/caddy-data
