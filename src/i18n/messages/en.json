@@ -313,7 +313,7 @@
   "privacyRequests.erasureScheduledTheRequestRemainsInProgressUntilProcessing": "Erasure scheduled. The request remains in progress until processing is complete.",
   "privacyRequests.retryQueued": "Retry queued.",
   "privacyRequests.gdprRequestUpdated": "GDPR request updated.",
-  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Track access, erasure, portability and rectification rights.",
+  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Track data requests and handle corrections that need intervention.",
   "common.refresh": "Refresh",
   "privacyRequests.completed": "Completed",
   "privacyRequests.rejected": "Rejected",
@@ -639,5 +639,13 @@
   "workspace.answer": "A walk without a route, a long coffee and the pleasure of sharing the day’s stories.",
   "workspace.close": "Close",
   "workspace.fallback": "French fallback",
-  "workspace.french": "French"
+  "workspace.french": "French",
+  "privacyRequests.userMessage": "User message",
+  "privacyRequests.noUserMessage": "No details were provided with this request.",
+  "privacyRequests.requestAndMessage": "Request and message",
+  "privacyRequests.internalNotes": "Internal notes",
+  "privacyRequests.publicReply": "Reply to the user",
+  "privacyRequests.publicReplyHelp": "This reply will appear in the user’s request history.",
+  "privacyRequests.resolve": "Resolve",
+  "privacyRequests.resolveGuidance": "Carry out the necessary correction before closing the request. Explain the correction made or the reason for refusal in your reply."
 }

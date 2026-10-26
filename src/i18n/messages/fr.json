@@ -313,7 +313,7 @@
   "privacyRequests.erasureScheduledTheRequestRemainsInProgressUntilProcessing": "Effacement programmé. La demande reste en cours jusqu’à la fin du traitement.",
   "privacyRequests.retryQueued": "Reprise mise en file.",
   "privacyRequests.gdprRequestUpdated": "Demande RGPD mise à jour.",
-  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Suivi des droits d’accès, d’effacement, de portabilité et de rectification.",
+  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Suivre les demandes de données et traiter les corrections qui nécessitent une intervention.",
   "common.refresh": "Actualiser",
   "privacyRequests.completed": "Terminées",
   "privacyRequests.rejected": "Refusées",
@@ -639,5 +639,13 @@
   "workspace.answer": "Une promenade sans itinéraire, un café qui dure et le plaisir de raconter sa journée.",
   "workspace.close": "Fermer",
   "workspace.fallback": "Repli sur le français",
-  "workspace.french": "Français"
+  "workspace.french": "Français",
+  "privacyRequests.userMessage": "Message de l’utilisateur",
+  "privacyRequests.noUserMessage": "Aucune précision n’accompagnait cette demande.",
+  "privacyRequests.requestAndMessage": "Demande et message",
+  "privacyRequests.internalNotes": "Notes internes",
+  "privacyRequests.publicReply": "Réponse à l’utilisateur",
+  "privacyRequests.publicReplyHelp": "Cette réponse sera visible dans le suivi de sa demande.",
+  "privacyRequests.resolve": "Résoudre",
+  "privacyRequests.resolveGuidance": "Effectuez la correction nécessaire avant de clôturer la demande. Expliquez la correction effectuée ou la raison du refus dans votre réponse."
 }

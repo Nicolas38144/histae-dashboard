@@ -313,7 +313,7 @@
   "privacyRequests.erasureScheduledTheRequestRemainsInProgressUntilProcessing": "Cancellazione programmata. La richiesta rimane in corso fino al completamento dell’elaborazione.",
   "privacyRequests.retryQueued": "Ripresa accodata.",
   "privacyRequests.gdprRequestUpdated": "Richiesta GDPR aggiornata.",
-  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Gestione dei diritti di accesso, cancellazione, portabilità e rettifica.",
+  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Seguire le richieste sui dati e gestire le correzioni che richiedono un intervento.",
   "common.refresh": "Aggiorna",
   "privacyRequests.completed": "Completate",
   "privacyRequests.rejected": "Rifiutate",
@@ -639,5 +639,13 @@
   "workspace.answer": "Una passeggiata senza itinerario, un lungo caffè e il piacere di raccontarsi la giornata.",
   "workspace.close": "Chiudi",
   "workspace.fallback": "Testo francese di riserva",
-  "workspace.french": "Francese"
+  "workspace.french": "Francese",
+  "privacyRequests.userMessage": "Messaggio dell’utente",
+  "privacyRequests.noUserMessage": "Questa richiesta non conteneva precisazioni.",
+  "privacyRequests.requestAndMessage": "Richiesta e messaggio",
+  "privacyRequests.internalNotes": "Note interne",
+  "privacyRequests.publicReply": "Risposta all’utente",
+  "privacyRequests.publicReplyHelp": "Questa risposta sarà visibile nello storico della richiesta.",
+  "privacyRequests.resolve": "Risolvi",
+  "privacyRequests.resolveGuidance": "Esegui la correzione necessaria prima di chiudere la richiesta. Spiega la correzione effettuata o il motivo del rifiuto nella risposta."
 }

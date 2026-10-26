@@ -441,3 +441,17 @@ use the existing API contract.
 - `utils/attention-tasks.ts` derives actionable items without UI dependencies. `AttentionQueue` translates and renders them.
 - `useCursorPagination` owns request cancellation and loading state. `utils/cursor-pages.ts` fetches page ranges, while `useListRestoration` and `useListPosition` restore view preferences. Only successful, current requests update remembered depth.
 - `components/catalog-translations.ts` defines the shared missing-translation and fallback policy used by catalog filters and previews.
+
+## Privacy request messages
+
+The privacy queue displays the user's `details` separately from internal administrator notes.
+Expand a message in the table; action dialogs repeat it before a status transition. Correction
+requests need a public `response` before completion or rejection, for every administrator role.
+The app displays this response in the request history. Carry out the correction before closing
+it: closing records manual handling and does not automatically edit arbitrary account data.
+Existing requests without messages remain readable. Restriction/objection categories are now
+historical, read-only entries: no creation or processing action is available for them. Optional
+privacy choices stay in the app's existing settings; no duplicate suspension controls were added.
+
+User messages and replies are plain text. Internal notes are never sent to the mobile app.
+Deploy the API schema upgrade before publishing the updated app and dashboard.

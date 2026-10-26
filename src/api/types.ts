@@ -211,6 +211,8 @@ export type AdminProfileQuestion = {
 export type DataRequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
 type DataRequestType = 'access' | 'erasure' | 'portability' | 'rectification' | 'restriction' | 'objection';
 export type DataSubjectRequest = {
+  details?: string | null;
+  response?: string | null;
   id: string;
   user_id: string;
   type: DataRequestType;

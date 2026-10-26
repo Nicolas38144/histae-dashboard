@@ -313,7 +313,7 @@
   "privacyRequests.erasureScheduledTheRequestRemainsInProgressUntilProcessing": "Eliminación programada. La solicitud sigue en curso hasta que termine el procesamiento.",
   "privacyRequests.retryQueued": "Reintento en cola.",
   "privacyRequests.gdprRequestUpdated": "Solicitud RGPD actualizada.",
-  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Seguimiento de los derechos de acceso, supresión, portabilidad y rectificación.",
+  "privacyRequests.trackAccessErasurePortabilityAndRectificationRights": "Consultar las solicitudes de datos y atender las correcciones que necesitan intervención.",
   "common.refresh": "Actualizar",
   "privacyRequests.completed": "Completadas",
   "privacyRequests.rejected": "Rechazadas",
@@ -639,5 +639,13 @@
   "workspace.answer": "Un paseo sin rumbo, un café largo y el placer de contar cómo ha ido el día.",
   "workspace.close": "Cerrar",
   "workspace.fallback": "Se muestra el francés",
-  "workspace.french": "Francés"
+  "workspace.french": "Francés",
+  "privacyRequests.userMessage": "Mensaje del usuario",
+  "privacyRequests.noUserMessage": "Esta solicitud no incluía detalles.",
+  "privacyRequests.requestAndMessage": "Solicitud y mensaje",
+  "privacyRequests.internalNotes": "Notas internas",
+  "privacyRequests.publicReply": "Respuesta al usuario",
+  "privacyRequests.publicReplyHelp": "Esta respuesta aparecerá en el seguimiento de su solicitud.",
+  "privacyRequests.resolve": "Resolver",
+  "privacyRequests.resolveGuidance": "Realiza la corrección necesaria antes de cerrar la solicitud. Explica la corrección realizada o el motivo del rechazo en tu respuesta."
 }

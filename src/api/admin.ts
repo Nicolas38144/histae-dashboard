@@ -247,8 +247,8 @@ export async function discardOutboxEvent(eventId: string, reason?: string): Prom
   await api.post(`/admin/outbox/${eventId}/discard`, reason?.trim() ? { reason: reason.trim() } : {});
 }
 
-export async function updateDataRequest(id: string, status: Exclude<DataRequestStatus, 'pending'>, notes?: string): Promise<void> {
-  await api.patch(`/admin/data-subject-requests/${id}`, { status, notes: notes || null });
+export async function updateDataRequest(id: string, status: Exclude<DataRequestStatus, 'pending'>, notes?: string, response?: string): Promise<void> {
+  await api.patch(`/admin/data-subject-requests/${id}`, { status, notes: notes || null, ...(response !== undefined ? { response: response.trim() } : {}) });
 }
 
 export async function getAccessLogs(
