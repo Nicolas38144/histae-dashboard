@@ -73,4 +73,49 @@ describe('privacy request messages', () => {
     expect(within(row).queryByRole('button')).not.toBeInTheDocument();
   });
 
+  it('requires separate internal notes and a public reply when an admin rejects a correction', async () => {
+    const user = userEvent.setup();
+    let mutation: unknown;
+    server.use(
+      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, type: 'rectification', erasure: null }], next_cursor: null })),
+      http.patch(`${apiUrl}/admin/data-subject-requests/${fixtureIds.request}`, async ({ request }) => {
+        mutation = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderDashboard(<PrivacyRequests />, { session: { ...adminSession, role: 'admin' } });
+    await user.click(await screen.findByRole('button', { name: 'Refuser' }));
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Confirmer' });
+    await user.type(within(dialog).getByRole('textbox', { name: 'Notes internes' }), 'Justificatif insuffisant.');
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ }), ' Merci de préciser la correction demandée. ');
+    await user.click(confirm);
+    await waitFor(() => expect(mutation).toEqual({ status: 'rejected', notes: 'Justificatif insuffisant.', response: 'Merci de préciser la correction demandée.' }));
+  });
+
+  it('retains the reply after a failed mutation and allows an explicit retry', async () => {
+    const user = userEvent.setup();
+    let calls = 0;
+    server.use(
+      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, type: 'rectification', erasure: null }], next_cursor: null })),
+      http.patch(`${apiUrl}/admin/data-subject-requests/${fixtureIds.request}`, () => {
+        calls += 1;
+        return calls === 1 ? HttpResponse.json({ error: { code: 'unavailable' } }, { status: 503 }) : new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderDashboard(<PrivacyRequests />);
+    await user.click(await screen.findByRole('button', { name: 'Résoudre' }));
+    const dialog = await screen.findByRole('dialog');
+    const reply = within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ });
+    await user.type(reply, 'La correction a été vérifiée.');
+    await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }));
+    expect(await screen.findByText('La requête a échoué (unavailable).')).toBeVisible();
+    expect(calls).toBe(1);
+    expect(reply).toHaveValue('La correction a été vérifiée.');
+    await user.click(within(dialog).getByRole('button', { name: 'Confirmer' }));
+    await waitFor(() => expect(calls).toBe(2));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
 });

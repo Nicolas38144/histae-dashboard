@@ -455,3 +455,8 @@ privacy choices stay in the app's existing settings; no duplicate suspension con
 
 User messages and replies are plain text. Internal notes are never sent to the mobile app.
 Deploy the API schema upgrade before publishing the updated app and dashboard.
+
+`features/privacy-requests/` centralizes available actions and form validation, keeps the action draft
+and mutation lifecycle in a dedicated hook, and renders the action buttons and confirmation dialog.
+The page owns filtering, pagination and the request history. The API contract and translated labels
+are unchanged; a failed mutation retains the draft for an explicit retry.
