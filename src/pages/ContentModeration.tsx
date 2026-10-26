@@ -5,14 +5,12 @@ import {
   Alert,
   Box,
   Button,
-  Checkbox,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
-  FormControlLabel,
   InputLabel,
   MenuItem,
   Paper,
@@ -38,7 +36,6 @@ import type {
   ModerationDetail,
   ModerationReasonCode,
   ModerationStatus,
-  PhotoReviewChecks,
 } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
@@ -47,7 +44,7 @@ import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
 import { useCursorPagination } from '../hooks/useCursorPagination';
-import { formatDate, formatNumber } from '../utils/format';
+import { formatDate } from '../utils/format';
 
 const contentLabels = (): Record<ModerationContentType, string> => ({
   photo: t("common.photo"),
@@ -60,19 +57,9 @@ const reasonLabels = (): Record<ModerationReasonCode, string> => ({
   insult: t("common.insult"),
   personal_contact: t("contentModeration.personalContactDetails"),
   sexual_content: t("common.sexualContent"),
-  face_not_detected: t("common.noFace"),
-  multiple_faces: t("common.multipleFaces"),
-  blurry: t("common.blurryPhoto"),
-  explicit_image: t("contentModeration.potentiallyExplicitImage"),
-  analysis_unavailable: t("common.analysisUnavailable"),
   legacy_unreviewed: t("contentModeration.unreviewedLegacyContent"),
 });
 
-const initialChecks: PhotoReviewChecks = {
-  face_detectable: false,
-  sharp_enough: false,
-  content_allowed: false,
-};
 const moderationKey = (item: ModerationCase) => item.case_id;
 
 export default function ContentModeration() {
@@ -85,7 +72,6 @@ export default function ContentModeration() {
   const [detail, setDetail] = useState<ModerationDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [reason, setReason] = useState('');
-  const [checks, setChecks] = useState<PhotoReviewChecks>(initialChecks);
   const [saving, setSaving] = useState(false);
   const { showNotification } = useNotification();
 
@@ -114,11 +100,6 @@ export default function ContentModeration() {
     try {
       const loaded = await getModerationDetail(item.case_id, accessReason.trim());
       setDetail(loaded);
-      setChecks(loaded.content_type === 'photo' ? {
-        face_detectable: loaded.face_detectable ?? false,
-        sharp_enough: loaded.sharp_enough ?? false,
-        content_allowed: loaded.content_allowed ?? false,
-      } : initialChecks);
       setReason('');
       setSelected(null);
     } catch (loadError) {
@@ -132,7 +113,7 @@ export default function ContentModeration() {
     if (!detail) return;
     setSaving(true);
     try {
-      await reviewModerationCase(detail, decision, reason.trim(), detail.content_type === 'photo' ? checks : undefined);
+      await reviewModerationCase(detail, decision, reason.trim());
       showNotification(decision === 'approved' ? t("common.contentApproved") : t("common.contentRejected"), 'success');
       setDetail(null);
       pagination.reload();
@@ -179,11 +160,9 @@ export default function ContentModeration() {
       <ReviewDialog
         detail={detail}
         reason={reason}
-        checks={checks}
         saving={saving}
         superadmin={session.role === 'superadmin'}
         onReasonChange={setReason}
-        onChecksChange={setChecks}
         onClose={() => setDetail(null)}
         onReview={review}
       />
@@ -224,21 +203,17 @@ function AccessReasonDialog({ item, reason, loading, onReasonChange, onClose, on
   </Dialog>;
 }
 
-function ReviewDialog({ detail, reason, checks, saving, superadmin, onReasonChange, onChecksChange, onClose, onReview }: {
+function ReviewDialog({ detail, reason, saving, superadmin, onReasonChange, onClose, onReview }: {
   detail: ModerationDetail | null;
   reason: string;
-  checks: PhotoReviewChecks;
   saving: boolean;
   superadmin: boolean;
   onReasonChange: (value: string) => void;
-  onChecksChange: (value: PhotoReviewChecks) => void;
   onClose: () => void;
   onReview: (decision: 'approved' | 'rejected') => void;
 }) {
   useLocale();
   if (!detail) return null;
-  const photo = detail.content_type === 'photo';
-  const allChecks = Object.values(checks).every(Boolean);
   return <Dialog open maxWidth="sm" fullWidth onClose={saving ? undefined : onClose}>
     <DialogTitle>{t("moderation.review", { type: contentLabels()[detail.content_type] })}</DialogTitle>
     <DialogContent><Stack spacing={2} sx={{ pt: 1 }}>
@@ -246,21 +221,13 @@ function ReviewDialog({ detail, reason, checks, saving, superadmin, onReasonChan
       {detail.question && <Typography variant="subtitle2">{detail.question}</Typography>}
       {detail.content && <Paper variant="outlined" sx={{ p: 2, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{detail.content}</Paper>}
       {detail.photo && <Box component="img" src={detail.photo} alt={t("common.contentToReview")} sx={{ width: '100%', maxHeight: 480, objectFit: 'contain', bgcolor: 'black', borderRadius: 2 }} />}
-      {photo && <>
-        <Typography variant="body2" color="text.secondary">{t("moderation.signals", { faces: detail.face_count ?? t("common.missing"), sharpness: formatNumber(detail.sharpness_score, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), score: formatNumber(detail.nsfw_score, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) })}</Typography>
-        <Stack>
-          <Check label={t("contentModeration.exactlyOneFaceIsClearlyDetectable")} checked={checks.face_detectable} onChange={(value) => onChecksChange({ ...checks, face_detectable: value })} />
-          <Check label={t("contentModeration.thePhotoIsSharpEnough")} checked={checks.sharp_enough} onChange={(value) => onChecksChange({ ...checks, sharp_enough: value })} />
-          <Check label={t("contentModeration.theContentIsAllowed")} checked={checks.content_allowed} onChange={(value) => onChecksChange({ ...checks, content_allowed: value })} />
-        </Stack>
-      </>}
       {detail.status !== 'pending' && <Alert severity="info">{t("contentModeration.thisDecisionWillBeReplacedWithAVersionCheck")}</Alert>}
       {!superadmin && <TextField label={t("common.reasonForTheDecision")} value={reason} onChange={(event) => onReasonChange(event.target.value)} multiline minRows={2} inputProps={{ maxLength: 500 }} required />}
     </Stack></DialogContent>
     <DialogActions>
       <Button onClick={onClose} disabled={saving}>{t("common.cancel")}</Button>
-      <Button color="error" onClick={() => onReview('rejected')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && allChecks)}>{t("common.reject")}</Button>
-      <Button variant="contained" onClick={() => onReview('approved')} disabled={saving || (!superadmin && reason.trim().length < 3) || (photo && !allChecks)}>{t("common.approve")}</Button>
+      <Button color="error" onClick={() => onReview('rejected')} disabled={saving || (!superadmin && reason.trim().length < 3)}>{t("common.reject")}</Button>
+      <Button variant="contained" onClick={() => onReview('approved')} disabled={saving || (!superadmin && reason.trim().length < 3)}>{t("common.approve")}</Button>
     </DialogActions>
   </Dialog>;
 }
@@ -269,11 +236,6 @@ function ReasonChips({ reasons }: { reasons: ModerationReasonCode[] }) {
   useLocale();
   if (!reasons.length) return <Typography variant="caption" color="text.secondary">{t("common.noSignals")}</Typography>;
   return <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">{reasons.map((reason) => <Chip key={reason} size="small" variant="outlined" label={reasonLabels()[reason]} />)}</Stack>;
-}
-
-function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
-  useLocale();
-  return <FormControlLabel control={<Checkbox checked={checked} onChange={(event) => onChange(event.target.checked)} />} label={label} />;
 }
 
 function Filter({ label, value, onChange, items }: { label: string; value: string; onChange: (value: string) => void; items: Array<[string, string]> }) {

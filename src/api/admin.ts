@@ -28,7 +28,6 @@ import type {
   ModerationContentType,
   ModerationDetail,
   ModerationStatus,
-  PhotoReviewChecks,
   BillingReconciliationItem,
   BillingReconciliationKindFilter,
   OutboxDeadLetter,
@@ -84,13 +83,11 @@ export async function reviewModerationCase(
   moderation: ModerationDetail,
   decision: 'approved' | 'rejected',
   reason?: string,
-  photoChecks?: PhotoReviewChecks,
 ): Promise<void> {
   await api.patch(`/admin/content-moderation/${moderation.case_id}`, {
     version: moderation.version,
     decision,
     ...(reason ? { reason } : {}),
-    ...(photoChecks ? { photo_checks: photoChecks } : {}),
   });
 }
 

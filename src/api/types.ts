@@ -297,8 +297,7 @@ export type ModerationContentType = 'photo' | 'bio' | 'profile_answer';
 export type ModerationStatus = 'pending' | 'approved' | 'rejected';
 export type ModerationReasonCode =
   | 'spam' | 'insult' | 'personal_contact' | 'sexual_content'
-  | 'face_not_detected' | 'multiple_faces' | 'blurry' | 'explicit_image'
-  | 'analysis_unavailable' | 'legacy_unreviewed';
+  | 'legacy_unreviewed';
 
 export type ModerationCase = {
   case_id: string;
@@ -309,12 +308,6 @@ export type ModerationCase = {
   reason_codes: ModerationReasonCode[];
   policy_version: string;
   version: number;
-  face_count: number | null;
-  sharpness_score: number | null;
-  nsfw_score: number | null;
-  face_detectable: boolean | null;
-  sharp_enough: boolean | null;
-  content_allowed: boolean | null;
   review_reason: string | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
@@ -326,12 +319,6 @@ export type ModerationDetail = ModerationCase & {
   content: string | null;
   question: string | null;
   photo: string | null;
-};
-
-export type PhotoReviewChecks = {
-  face_detectable: boolean;
-  sharp_enough: boolean;
-  content_allowed: boolean;
 };
 
 export type SmsSafety = {

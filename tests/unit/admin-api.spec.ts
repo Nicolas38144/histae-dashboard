@@ -64,7 +64,7 @@ describe('critical administration mutations', () => {
     ]);
   });
 
-  it('preserves optimistic moderation version and explicit photo checks', async () => {
+  it('preserves optimistic moderation version for manual photo reviews', async () => {
     let body: unknown;
     server.use(http.patch(`${apiUrl}/admin/content-moderation/${fixtureIds.moderation}`, async ({ request }) => {
       body = await request.json();
@@ -75,14 +75,12 @@ describe('critical administration mutations', () => {
       { ...moderationDetail, content_type: 'photo' },
       'rejected',
       'Photo non conforme',
-      { face_detectable: false, sharp_enough: true, content_allowed: true },
     );
 
     expect(body).toEqual({
       version: 3,
       decision: 'rejected',
       reason: 'Photo non conforme',
-      photo_checks: { face_detectable: false, sharp_enough: true, content_allowed: true },
     });
   });
 
