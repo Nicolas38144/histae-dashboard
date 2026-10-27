@@ -9,7 +9,7 @@ import { server } from '../mocks/server';
 
 const catalog: PlanCatalog = {
   plans: [
-    { code: 'free', display_name: 'Free', monthly_price_cents: 0, annual_price_cents: 0, currency: 'EUR', weekly_continuation_limit: 6, weekly_included_credits: 3, advertising_credit_stock_limit: 3, ads_removed: false, rewarded_advertising_enabled: false, features: [] },
+    { code: 'free', display_name: 'Free', monthly_price_cents: 0, annual_price_cents: 0, currency: 'EUR', weekly_continuation_limit: 5, weekly_included_credits: 2, advertising_credit_stock_limit: 3, ads_removed: false, rewarded_advertising_enabled: false, features: [] },
     { code: 'premium', display_name: 'Premium', monthly_price_cents: 500, annual_price_cents: 4800, currency: 'EUR', advertising_credit_stock_limit: 3, ads_removed: true, rewarded_advertising_enabled: false, features: [] },
   ],
   offers: [
@@ -25,7 +25,10 @@ describe('commercial offers', () => {
     renderDashboard(<Plans />);
     const monthly = (await screen.findByRole('heading', { name: 'Premium Mensuel' })).closest('.MuiPaper-root')!;
     const annual = screen.getByRole('heading', { name: 'Premium Annuel' }).closest('.MuiPaper-root')!;
-    expect(screen.getByRole('heading', { name: 'Free' })).toBeVisible();
+    const free = screen.getByRole('heading', { name: 'Free' }).closest('.MuiPaper-root')!;
+    expect(within(free as HTMLElement).getByText('Continuations : 5 maximum par semaine')).toBeVisible();
+    expect(within(free as HTMLElement).getByText(/2 crédits gratuits renouvelés le lundi à 00:00 UTC/))
+      .toHaveTextContent('les crédits inutilisés expirent le lundi à 00:00 UTC');
     expect(within(monthly as HTMLElement).getByText(/5,00/)).toBeVisible();
     expect(within(monthly as HTMLElement).getByText('par mois')).toBeVisible();
     expect(within(annual as HTMLElement).getByText(/48,00/)).toBeVisible();

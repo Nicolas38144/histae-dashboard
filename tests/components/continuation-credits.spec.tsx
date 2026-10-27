@@ -8,7 +8,7 @@ describe('ContinuationCredits', () => {
     render(<ContinuationCredits quota={adminUser.continuation_quota!} />);
     expect(screen.getByText('Disponibles : 3')).toBeInTheDocument();
     expect(screen.getByText('Réservés : 1')).toBeInTheDocument();
-    expect(screen.getByText('Continuations confirmées cette semaine : 1 sur 6')).toBeInTheDocument();
+    expect(screen.getByText('Continuations confirmées cette semaine : 1 sur 5')).toBeInTheDocument();
     expect(screen.getByText(/Discussion|Pendant les 24 heures/)).toBeInTheDocument();
   });
   it('shows Premium without a numeric weekly allowance', () => {

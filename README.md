@@ -258,7 +258,7 @@ Sources d’installation : [nvm](https://github.com/nvm-sh/nvm), [pnpm](https://
 
 ## Continuations et crédits
 
-La fiche auditée d’un compte affiche le solde transmis dans `continuation_quota` : crédits gratuits disponibles, stock publicitaire, réservations et continuations confirmées de la semaine. Le catalogue distingue les trois crédits gratuits du plafond de six continuations. Premium reste illimité, sans publicité ni débit. Pendant `awaiting_continuation`, la discussion est en pause ; les décisions individuelles ne sont pas révélées à l’autre participant. Les règles et le webhook AdMob sont documentés dans le guide API `docs/continuation-and-rewards.md`.
+La fiche auditée d’un compte affiche le solde transmis dans `continuation_quota` : crédits gratuits disponibles, stock publicitaire, réservations et continuations confirmées de la semaine. Le catalogue distingue les deux crédits gratuits du plafond de cinq continuations. Les crédits publicitaires, réservations comprises, expirent chaque lundi à 00:00 UTC, au renouvellement des crédits gratuits ; le stock maximal reste de trois. Premium reste illimité, sans publicité ni débit. Pendant `awaiting_continuation`, la discussion est en pause ; les décisions individuelles ne sont pas révélées à l’autre participant. Les règles et le webhook AdMob sont documentés dans le guide API `docs/continuation-and-rewards.md`.
 
 ## Conventions React et TypeScript
 

@@ -62,7 +62,7 @@ export const adminUser: AdminUserDetail = {
   is_banned: false,
   banned_at: null,
   banned_reason: null,
-  continuation_quota: { plan: 'free', used: 1, weekly_limit: 6, remaining: 3, weekly_credits: 3, free_remaining: 1, advertising_balance: 2, advertising_remaining: 2, reserved: 1, advertising_stock_limit: 3 },
+  continuation_quota: { plan: 'free', used: 1, weekly_limit: 5, remaining: 3, weekly_credits: 2, free_remaining: 1, advertising_balance: 2, advertising_remaining: 2, reserved: 1, advertising_stock_limit: 3 },
   created_at: now,
   firstname: 'Camille',
   birthdate: '1994-04-12',
