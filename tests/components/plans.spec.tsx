@@ -28,7 +28,7 @@ describe('commercial offers', () => {
     const free = screen.getByRole('heading', { name: 'Free' }).closest('.MuiPaper-root')!;
     expect(within(free as HTMLElement).getByText('Continuations : 5 maximum par semaine')).toBeVisible();
     expect(within(free as HTMLElement).getByText(/2 crédits gratuits renouvelés le lundi à 00:00 UTC/))
-      .toHaveTextContent('les crédits inutilisés expirent le lundi à 00:00 UTC');
+      .toHaveTextContent('les crédits publicitaires inutilisés expirent le lundi à 00:00 UTC');
     expect(within(monthly as HTMLElement).getByText(/5,00/)).toBeVisible();
     expect(within(monthly as HTMLElement).getByText('par mois')).toBeVisible();
     expect(within(annual as HTMLElement).getByText(/48,00/)).toBeVisible();
