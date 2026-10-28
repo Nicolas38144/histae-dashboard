@@ -3,6 +3,7 @@ import { t } from '../i18n/core';
 import { ChatOutlined } from '@mui/icons-material';
 import {
   Box,
+  Chip,
   Button,
   Paper,
   Table,
@@ -157,7 +158,13 @@ function MatchRow({
     <TableRow>
       <TableCell>{compactId(match.id)}</TableCell>
       <TableCell><UserLink id={otherParticipant} /></TableCell>
-      <TableCell><StatusChip value={match.status} /></TableCell>
+      <TableCell>
+        <StatusChip value={match.status} />
+        {match.archived && <Chip size="small" sx={{ ml: 1 }} label={t('matches.archived')} />}
+        {match.inactivity_expires_at && <Typography variant="caption" display="block">
+          {t('matches.inactivityDeadline', { date: formatDate(match.inactivity_expires_at) })}
+        </Typography>}
+      </TableCell>
       <TableCell>{formatDate(match.last_message_at || match.created_at)}</TableCell>
       <TableCell align="right">
         <Button size="small" startIcon={<ChatOutlined />} onClick={onOpen}>{t("common.view")}</Button>

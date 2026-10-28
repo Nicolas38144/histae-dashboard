@@ -647,5 +647,7 @@
   "privacyRequests.publicReply": "Respuesta al usuario",
   "privacyRequests.publicReplyHelp": "Esta respuesta aparecerá en el seguimiento de su solicitud.",
   "privacyRequests.resolve": "Resolver",
-  "privacyRequests.resolveGuidance": "Realiza la corrección necesaria antes de cerrar la solicitud. Explica la corrección realizada o el motivo del rechazo en tu respuesta."
+  "privacyRequests.resolveGuidance": "Realiza la corrección necesaria antes de cerrar la solicitud. Explica la corrección realizada o el motivo del rechazo en tu respuesta.",
+  "matches.archived": "Archivada",
+  "matches.inactivityDeadline": "Eliminación sin un nuevo mensaje: {date}"
 }

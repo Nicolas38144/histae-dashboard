@@ -280,6 +280,8 @@ export type Match = {
   user1_id: string;
   user2_id: string;
   status: 'active' | 'awaiting_continuation' | 'confirmed' | 'expired' | 'ended';
+  archived?: boolean;
+  inactivity_expires_at?: string;
   expires_at: string;
   purge_after?: string;
   created_at: string;

@@ -460,3 +460,11 @@ Deploy the API schema upgrade before publishing the updated app and dashboard.
 and mutation lifecycle in a dedicated hook, and renders the action buttons and confirmation dialog.
 The page owns filtering, pagination and the request history. The API contract and translated labels
 are unchanged; a failed mutation retains the draft for an explicit retry.
+
+## Inactivité des conversations confirmées
+
+Après 10 jours sans nouveau message, la conversation est archivée mais reste accessible. À J23,
+les deux participants reçoivent un avertissement ; à J30, le match et les messages sont supprimés.
+Un nouveau message désarchive et relance le délai sans crédit supplémentaire. Connexion, lecture
+et rejeu ne le relancent pas. La même règle vaut pour Free et Premium. Les champs API `archived`
+et `inactivity_expires_at` pilotent la présentation ; `confirmed` reste le statut métier.

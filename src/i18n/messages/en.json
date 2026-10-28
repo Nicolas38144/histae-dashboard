@@ -647,5 +647,7 @@
   "privacyRequests.publicReply": "Reply to the user",
   "privacyRequests.publicReplyHelp": "This reply will appear in the user’s request history.",
   "privacyRequests.resolve": "Resolve",
-  "privacyRequests.resolveGuidance": "Carry out the necessary correction before closing the request. Explain the correction made or the reason for refusal in your reply."
+  "privacyRequests.resolveGuidance": "Carry out the necessary correction before closing the request. Explain the correction made or the reason for refusal in your reply.",
+  "matches.archived": "Archived",
+  "matches.inactivityDeadline": "Deletion without a new message: {date}"
 }
