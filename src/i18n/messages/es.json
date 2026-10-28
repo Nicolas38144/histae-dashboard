@@ -649,5 +649,22 @@
   "privacyRequests.resolve": "Resolver",
   "privacyRequests.resolveGuidance": "Realiza la corrección necesaria antes de cerrar la solicitud. Explica la corrección realizada o el motivo del rechazo en tu respuesta.",
   "matches.archived": "Archivada",
-  "matches.inactivityDeadline": "Eliminación sin un nuevo mensaje: {date}"
+  "matches.inactivityDeadline": "Eliminación sin un nuevo mensaje: {date}",
+  "premiumGift.title": "Premium ofrecido por Histae",
+  "premiumGift.none": "Sin regalo de Histae",
+  "premiumGift.active": "Regalo activo",
+  "premiumGift.review": "Premium de revisión (automático)",
+  "premiumGift.description": "Acceso Premium gratuito sin fecha de vencimiento.",
+  "premiumGift.banned": "El bloqueo impide el acceso Premium y la concesión de nuevos regalos.",
+  "premiumGift.grant": "Ofrecer Premium",
+  "premiumGift.revoke": "Retirar el regalo",
+  "premiumGift.grantTitle": "¿Ofrecer Premium a esta cuenta?",
+  "premiumGift.revokeTitle": "¿Retirar el Premium gratuito?",
+  "premiumGift.grantDescription": "Esta cuenta recibirá Premium gratuito sin vencimiento. No se cancelará una suscripción de pago existente.",
+  "premiumGift.revokeDescription": "Solo se retirará el regalo de Histae. Una suscripción de pago activa seguirá siendo válida.",
+  "premiumGift.granted": "Premium gratuito activado.",
+  "premiumGift.revoked": "Regalo Premium retirado.",
+  "premiumGift.auditGrant": "Premium gratuito concedido",
+  "premiumGift.auditRevoke": "Premium gratuito retirado",
+  "premiumGift.suspended": "Regalo suspendido (cuenta bloqueada)"
 }

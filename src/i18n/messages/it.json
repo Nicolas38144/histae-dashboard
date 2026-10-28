@@ -649,5 +649,22 @@
   "privacyRequests.resolve": "Risolvi",
   "privacyRequests.resolveGuidance": "Esegui la correzione necessaria prima di chiudere la richiesta. Spiega la correzione effettuata o il motivo del rifiuto nella risposta.",
   "matches.archived": "Archiviata",
-  "matches.inactivityDeadline": "Eliminazione senza un nuovo messaggio: {date}"
+  "matches.inactivityDeadline": "Eliminazione senza un nuovo messaggio: {date}",
+  "premiumGift.title": "Premium offerto da Histae",
+  "premiumGift.none": "Nessun regalo Histae",
+  "premiumGift.active": "Regalo attivo",
+  "premiumGift.review": "Premium per la revisione (automatico)",
+  "premiumGift.description": "Accesso Premium gratuito senza scadenza.",
+  "premiumGift.banned": "Il blocco impedisce l’accesso Premium e l’assegnazione di nuovi regali.",
+  "premiumGift.grant": "Offri Premium",
+  "premiumGift.revoke": "Rimuovi il regalo",
+  "premiumGift.grantTitle": "Offrire Premium a questo account?",
+  "premiumGift.revokeTitle": "Rimuovere il Premium gratuito?",
+  "premiumGift.grantDescription": "Questo account riceverà Premium gratuito senza scadenza. Un abbonamento a pagamento esistente non verrà annullato.",
+  "premiumGift.revokeDescription": "Verrà rimosso solo il regalo Histae. Un abbonamento a pagamento attivo rimarrà valido.",
+  "premiumGift.granted": "Premium gratuito attivato.",
+  "premiumGift.revoked": "Regalo Premium rimosso.",
+  "premiumGift.auditGrant": "Premium gratuito assegnato",
+  "premiumGift.auditRevoke": "Premium gratuito revocato",
+  "premiumGift.suspended": "Regalo sospeso (account bloccato)"
 }

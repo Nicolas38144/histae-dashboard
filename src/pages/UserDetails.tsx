@@ -1,3 +1,4 @@
+import { ComplimentaryPremiumPanel } from '../features/users/complimentary-premium-panel';
 import { domainLabel } from '../i18n/domain';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
@@ -128,7 +129,7 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
       <AsyncState loading={userState.loading} error={userState.error} onRetry={userState.reload} />
       {user && (
         <>
-          <UserProfile user={user} />
+          <UserProfile user={user} canManagePremium={session.role === 'superadmin'} onPremiumUpdated={userState.reload} />
           <UserMatches userId={id} profileReason={accessReason} />
         </>
       )}
@@ -170,7 +171,9 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
   );
 }
 
-function UserProfile({ user }: { user: AdminUserDetail }) {
+function UserProfile({ user, canManagePremium, onPremiumUpdated }: {
+  user: AdminUserDetail; canManagePremium: boolean; onPremiumUpdated: () => void;
+}) {
   useLocale();
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'minmax(320px, .8fr) 1.2fr' }, gap: 2 }}>
@@ -200,6 +203,7 @@ function UserProfile({ user }: { user: AdminUserDetail }) {
         )}
       </Paper>
       <Box sx={{ display: 'grid', gap: 2 }}>
+        <ComplimentaryPremiumPanel user={user} canManage={canManagePremium} onUpdated={onPremiumUpdated} />
         {user.continuation_quota && <ContinuationCredits quota={user.continuation_quota} />}
         <Paper variant="outlined" sx={{ p: 3 }}>
           <Typography variant="h6" fontWeight={750}>{t("common.preferences")}</Typography>

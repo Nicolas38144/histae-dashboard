@@ -649,5 +649,22 @@
   "privacyRequests.resolve": "Resolve",
   "privacyRequests.resolveGuidance": "Carry out the necessary correction before closing the request. Explain the correction made or the reason for refusal in your reply.",
   "matches.archived": "Archived",
-  "matches.inactivityDeadline": "Deletion without a new message: {date}"
+  "matches.inactivityDeadline": "Deletion without a new message: {date}",
+  "premiumGift.title": "Premium offered by Histae",
+  "premiumGift.none": "No Histae gift",
+  "premiumGift.active": "Gift active",
+  "premiumGift.review": "Review Premium (automatic)",
+  "premiumGift.description": "Complimentary Premium access with no expiry date.",
+  "premiumGift.banned": "Banning blocks Premium access and new gifts.",
+  "premiumGift.grant": "Offer Premium",
+  "premiumGift.revoke": "Remove gift",
+  "premiumGift.grantTitle": "Offer Premium to this account?",
+  "premiumGift.revokeTitle": "Remove complimentary Premium?",
+  "premiumGift.grantDescription": "This account will receive complimentary Premium with no expiry. An existing paid subscription will not be canceled.",
+  "premiumGift.revokeDescription": "Only the Histae gift will be removed. An active paid subscription will remain valid.",
+  "premiumGift.granted": "Complimentary Premium activated.",
+  "premiumGift.revoked": "Premium gift removed.",
+  "premiumGift.auditGrant": "Complimentary Premium granted",
+  "premiumGift.auditRevoke": "Complimentary Premium revoked",
+  "premiumGift.suspended": "Gift suspended (banned account)"
 }

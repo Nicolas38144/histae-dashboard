@@ -649,5 +649,22 @@
   "privacyRequests.resolve": "Résoudre",
   "privacyRequests.resolveGuidance": "Effectuez la correction nécessaire avant de clôturer la demande. Expliquez la correction effectuée ou la raison du refus dans votre réponse.",
   "matches.archived": "Archivée",
-  "matches.inactivityDeadline": "Suppression sans nouveau message : {date}"
+  "matches.inactivityDeadline": "Suppression sans nouveau message : {date}",
+  "premiumGift.title": "Premium offert par Histae",
+  "premiumGift.none": "Aucune offre Histae",
+  "premiumGift.active": "Offre active",
+  "premiumGift.review": "Premium de revue (automatique)",
+  "premiumGift.description": "Accès Premium gratuit, sans date de fin.",
+  "premiumGift.banned": "Le bannissement bloque l’accès Premium et l’attribution d’une offre.",
+  "premiumGift.grant": "Offrir Premium",
+  "premiumGift.revoke": "Retirer l’offre",
+  "premiumGift.grantTitle": "Offrir Premium à ce compte ?",
+  "premiumGift.revokeTitle": "Retirer le Premium offert ?",
+  "premiumGift.grantDescription": "Ce compte bénéficiera gratuitement de Premium sans expiration. Un abonnement payant existant ne sera pas annulé.",
+  "premiumGift.revokeDescription": "Seule l’offre Histae sera retirée. Un abonnement payant actif restera valable.",
+  "premiumGift.granted": "Premium offert activé.",
+  "premiumGift.revoked": "Offre Premium retirée.",
+  "premiumGift.auditGrant": "Attribution de Premium offert",
+  "premiumGift.auditRevoke": "Retrait de Premium offert",
+  "premiumGift.suspended": "Offre suspendue (compte banni)"
 }

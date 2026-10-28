@@ -468,3 +468,19 @@ les deux participants reçoivent un avertissement ; à J30, le match et les mess
 Un nouveau message désarchive et relance le délai sans crédit supplémentaire. Connexion, lecture
 et rejeu ne le relancent pas. La même règle vaut pour Free et Premium. Les champs API `archived`
 et `inactivity_expires_at` pilotent la présentation ; `confirmed` reste le statut métier.
+
+## Premium offert par Histae
+
+Dans **Utilisateurs → fiche utilisateur → Premium offert par Histae**, le superadmin peut
+accorder une offre sans expiration ou la retirer après confirmation, sans motif obligatoire.
+Les administrateurs ordinaires voient l’état sans pouvoir le modifier. Les comptes bannis ne
+peuvent pas recevoir une offre ; leur offre existante peut être retirée. Le Premium automatique
+des comptes de revue est affiché en lecture seule.
+
+La route `PATCH /api/admin/users/:id/complimentary-premium` reçoit `{ enabled: boolean }`.
+L’API revalide les droits en base et journalise chaque changement. Le détail utilisateur expose
+`complimentary_premium` et `is_review_account`. Déployer l’API et ses migrations avant le dashboard.
+Aucune variable `.env` supplémentaire n’est nécessaire.
+
+Cette offre ne crée ni achat ni facture, et n’annule pas un abonnement Stripe/store existant.
+Retirer l’offre conserve les droits d’un abonnement payant encore valide.

@@ -158,3 +158,11 @@ et du hook d’import : `pnpm check` réussit, les **12 contrôles ciblés** (fi
 traductions et absence de texte en dur) passent, ainsi que les **deux parcours Chromium stores**.
 La lecture d’un fichier devenue obsolète ou terminée après démontage est ignorée ; la confirmation
 utilise son propre instantané. Les 98 tests complets précédents constituent la campagne initiale.
+
+
+## Premium offert
+
+`tests/components/complimentary-premium.spec.tsx` couvre l’attribution et le retrait depuis la fiche,
+les corps HTTP minimaux, la confirmation sans justification, le rafraîchissement de l’état,
+les refus serveur, les droits admin/superadmin, les comptes bannis et l’accès de revue automatique.
+Le contrôle i18n vérifie aussi les libellés de l’offre et de ses événements d’audit dans les quatre langues.

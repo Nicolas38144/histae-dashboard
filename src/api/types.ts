@@ -155,6 +155,8 @@ export type ContinuationQuota = {
 };
 
 export type AdminUserDetail = AdminUser & {
+  complimentary_premium: boolean;
+  is_review_account: boolean;
   continuation_quota: ContinuationQuota | null;
   banned_reason: string | null;
   preferences: { min_age: number; max_age: number; max_distance_km: number; looking_for: string } | null;

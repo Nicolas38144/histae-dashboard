@@ -57,6 +57,8 @@ export const profileQuestion: AdminProfileQuestion = {
 };
 
 export const adminUser: AdminUserDetail = {
+  complimentary_premium: false,
+  is_review_account: false,
   user_id: fixtureIds.user,
   role: 'user',
   is_banned: false,
