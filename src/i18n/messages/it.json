@@ -666,5 +666,6 @@
   "premiumGift.revoked": "Regalo Premium rimosso.",
   "premiumGift.auditGrant": "Premium gratuito assegnato",
   "premiumGift.auditRevoke": "Premium gratuito revocato",
-  "premiumGift.suspended": "Regalo sospeso (account bloccato)"
+  "premiumGift.suspended": "Regalo sospeso (account bloccato)",
+  "userMatches.reportRequired": "I messaggi sono accessibili solo se una segnalazione riguarda questa conversazione o uno dei suoi partecipanti al suo interno, anche per i superamministratori."
 }

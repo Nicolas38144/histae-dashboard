@@ -52,6 +52,13 @@ obligatoire pour un admin et facultatif pour le superadmin, avec un libellé ser
 modération reste sans contenu ; les photos signées de courte durée sont accessibles uniquement dans les détails autorisés et audités.
 Les décisions utilisent une version optimiste et les mêmes règles de motif selon le rôle.
 
+La lecture administrative des messages exige un signalement conservé lié au match exact et à ses
+deux participants, sans exception superadmin. Un signalement de profil ou concernant un autre match
+ne suffit pas. La liste administrative expose `can_view_messages` ; absent ou faux, il interdit
+l’ouverture dans le dashboard. L’API revérifie la règle à chaque page, avant de lire les messages
+ou d’inscrire les deux consultations dans l’audit. Un match absent ou non signalé retourne `404`.
+Les champs d’autorisation ne sont pas ajoutés aux réponses mobiles.
+
 Seules les préférences `histae_theme` et `histae_locale` sont persistées dans le navigateur. Le nettoyage des
 anciens jetons tolère un refus d’accès au stockage navigateur. Le cache de prénoms en mémoire est vidé
 au chargement d’une nouvelle session et lors de son invalidation. Une vérification antérieure ne peut pas

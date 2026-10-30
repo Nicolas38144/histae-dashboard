@@ -666,5 +666,6 @@
   "premiumGift.revoked": "Offre Premium retirée.",
   "premiumGift.auditGrant": "Attribution de Premium offert",
   "premiumGift.auditRevoke": "Retrait de Premium offert",
-  "premiumGift.suspended": "Offre suspendue (compte banni)"
+  "premiumGift.suspended": "Offre suspendue (compte banni)",
+  "userMatches.reportRequired": "Les messages sont accessibles uniquement si un signalement concerne cette conversation ou un de ses participants dans cette conversation, y compris pour les superadministrateurs."
 }

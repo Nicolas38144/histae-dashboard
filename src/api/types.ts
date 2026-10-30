@@ -278,6 +278,7 @@ export type PlanOffer = {
 export type PlanCatalog = { plans: Plan[]; offers: PlanOffer[] };
 
 export type Match = {
+  can_view_messages?: boolean;
   id: string;
   user1_id: string;
   user2_id: string;

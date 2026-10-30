@@ -666,5 +666,6 @@
   "premiumGift.revoked": "Premium gift removed.",
   "premiumGift.auditGrant": "Complimentary Premium granted",
   "premiumGift.auditRevoke": "Complimentary Premium revoked",
-  "premiumGift.suspended": "Gift suspended (banned account)"
+  "premiumGift.suspended": "Gift suspended (banned account)",
+  "userMatches.reportRequired": "Messages are accessible only when a report concerns this conversation or one of its participants in this conversation, including for superadmins."
 }

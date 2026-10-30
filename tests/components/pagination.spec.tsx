@@ -12,6 +12,7 @@ const apiUrl = 'http://localhost/api';
 const olderParticipant = '20000000-0000-4000-8000-000000000003';
 
 const recentMatch: Match = {
+  can_view_messages: true,
   id: 'a0000000-0000-4000-8000-000000000001',
   user1_id: fixtureIds.user,
   user2_id: fixtureIds.secondUser,

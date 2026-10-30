@@ -47,6 +47,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
   const [activeConversation, setActiveConversation] = useState<ActiveConversation | null>(null);
 
   const openConversation = (match: Match) => {
+    if (match.can_view_messages !== true) return;
     if (session.role === 'superadmin') {
       setActiveConversation({ match, accessReason: '' });
       return;
@@ -63,7 +64,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
   };
 
   const authorizeConversation = () => {
-    if (!pendingMatch) return;
+    if (pendingMatch?.can_view_messages !== true) return;
     setActiveConversation({ match: pendingMatch, accessReason: accessReason.trim() });
     setPendingMatch(null);
     setAccessReason('');
@@ -76,6 +77,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
           <Typography variant="h6" fontWeight={750}>{t("common.matches")}</Typography>
           <Typography variant="body2" color="text.secondary">
             {t("userMatches.viewingIsRecordedInTheAccessLog")}</Typography>
+          <Typography variant="body2" color="text.secondary">{t('userMatches.reportRequired')}</Typography>
         </Box>
         <AsyncState loading={matches.loading} error={matches.error} onRetry={matches.reload} />
         {!matches.loading && !matches.error && (
@@ -117,7 +119,7 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
           </>
         )}
       </Paper>
-      {activeConversation && (
+      {activeConversation?.match.can_view_messages === true && (
         <MatchConversation
           key={activeConversation.match.id}
           match={activeConversation.match}
@@ -167,7 +169,7 @@ function MatchRow({
       </TableCell>
       <TableCell>{formatDate(match.last_message_at || match.created_at)}</TableCell>
       <TableCell align="right">
-        <Button size="small" startIcon={<ChatOutlined />} onClick={onOpen}>{t("common.view")}</Button>
+        <Button size="small" startIcon={<ChatOutlined />} disabled={match.can_view_messages !== true} onClick={onOpen}>{t("common.view")}</Button>
       </TableCell>
     </TableRow>
   );

@@ -411,6 +411,15 @@ panneaux de lecture et cycle d’import. `src/api/store-billing-codec.ts` contr�
 inconnues avant affichage. Le hook conserve une copie des lignes à confirmer et ignore les lectures
 de fichier devenues obsolètes ou terminées après démontage. La page assemble ces responsabilités.
 
+## Administrative conversation access
+
+Administrative conversation reads require a retained report tied to that exact match and its
+participants, for admins and superadmins alike. Profile reports and reports from another conversation
+do not grant access. The API returns `can_view_messages` in the administrative match list and checks
+the same rule again before every message page, including direct API calls. Missing authorization
+metadata disables the dashboard action. Deploy the API change before the dashboard; no database
+migration is needed. Existing reason and access-log requirements still apply to authorized reads.
+
 ## Source access and licensing
 
 Copyright © 2026 Nicolas GERMANI. Original Histae code is proprietary and publicly available only
