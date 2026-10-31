@@ -15,7 +15,8 @@ const webauthn = vi.hoisted(() => ({
   register: vi.fn(),
 }));
 
-vi.mock('@simplewebauthn/browser', () => ({
+vi.mock('@simplewebauthn/browser', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@simplewebauthn/browser')>(),
   browserSupportsWebAuthn: webauthn.supports,
   startAuthentication: webauthn.authenticate,
   startRegistration: webauthn.register,
@@ -97,5 +98,39 @@ describe('native WebAuthn client', () => {
     server.use(http.post(`${apiUrl}/admin/auth/login/options`, () => HttpResponse.json(options)));
 
     await expect(loginWithPasskey()).rejects.toThrow('La demande a été annulée ou aucune passkey compatible n’est disponible.');
+  });
+
+  it.each([
+    ['NotAllowedError', 'auth.theRequestWasCancelledOrNoCompatiblePasskeyIs'],
+    ['AbortError', 'auth.theRequestWasCancelledOrNoCompatiblePasskeyIs'],
+    ['SecurityError', 'auth.invalidPasskeyDomain'],
+    ['UnknownError', 'auth.authenticatorFailed'],
+  ])('recognizes the real SimpleWebAuthn wrapper for %s without exposing its raw message', async (name, key) => {
+    const { WebAuthnError } = await import('@simplewebauthn/browser');
+    webauthn.authenticate.mockRejectedValue(new WebAuthnError({
+      message: 'Raw browser diagnostic must remain private',
+      code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+      cause: new DOMException('Browser diagnostic', name),
+    }));
+    server.use(http.post(`${apiUrl}/admin/auth/login/options`, () => HttpResponse.json(options)));
+    await expect(loginWithPasskey()).rejects.toMatchObject({ name: 'LocalizedError', key });
+  });
+
+  it('handles a wrapped duplicate key during registration', async () => {
+    const { WebAuthnError } = await import('@simplewebauthn/browser');
+    webauthn.register.mockRejectedValue(new WebAuthnError({
+      message: 'Raw browser diagnostic', code: 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED',
+      cause: new DOMException('', 'InvalidStateError'),
+    }));
+    server.use(http.post(`${apiUrl}/admin/auth/bootstrap/options`, () => HttpResponse.json(options)));
+    await expect(registerWithBootstrap('bootstrap-fixture', 'Clé')).rejects.toMatchObject({ key: 'auth.passkeyAlreadyRegistered' });
+  });
+
+  it('preserves server authentication errors instead of treating them as browser cancellations', async () => {
+    server.use(
+      http.post(`${apiUrl}/admin/auth/login/options`, () => HttpResponse.json(options)),
+      http.post(`${apiUrl}/admin/auth/login/verify`, () => HttpResponse.json({ error: { code: 'webauthn_authentication_failed' } }, { status: 401 })),
+    );
+    await expect(loginWithPasskey()).rejects.toMatchObject({ response: { status: 401, data: { error: { code: 'webauthn_authentication_failed' } } } });
   });
 });

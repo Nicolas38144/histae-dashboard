@@ -667,5 +667,8 @@
   "premiumGift.auditGrant": "Premium gratuito assegnato",
   "premiumGift.auditRevoke": "Premium gratuito revocato",
   "premiumGift.suspended": "Regalo sospeso (account bloccato)",
-  "userMatches.reportRequired": "I messaggi sono accessibili solo se una segnalazione riguarda questa conversazione o uno dei suoi partecipanti al suo interno, anche per i superamministratori."
+  "userMatches.reportRequired": "I messaggi sono accessibili solo se una segnalazione riguarda questa conversazione o uno dei suoi partecipanti al suo interno, anche per i superamministratori.",
+  "auth.invalidPasskeyDomain": "Il browser ha rifiutato la chiave per questo dominio. Verifica l’indirizzo della dashboard e la configurazione WebAuthn (origine e RP ID).",
+  "auth.passkeyAlreadyRegistered": "Questa chiave di accesso è già registrata. Utilizza l’accesso con passkey.",
+  "auth.authenticatorFailed": "Il browser o il gestore delle chiavi non ha potuto utilizzare questa chiave di accesso. Verifica che sia sbloccato, quindi riprova."
 }

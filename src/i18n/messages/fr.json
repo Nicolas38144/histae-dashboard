@@ -667,5 +667,8 @@
   "premiumGift.auditGrant": "Attribution de Premium offert",
   "premiumGift.auditRevoke": "Retrait de Premium offert",
   "premiumGift.suspended": "Offre suspendue (compte banni)",
-  "userMatches.reportRequired": "Les messages sont accessibles uniquement si un signalement concerne cette conversation ou un de ses participants dans cette conversation, y compris pour les superadministrateurs."
+  "userMatches.reportRequired": "Les messages sont accessibles uniquement si un signalement concerne cette conversation ou un de ses participants dans cette conversation, y compris pour les superadministrateurs.",
+  "auth.invalidPasskeyDomain": "Le navigateur refuse la clé pour ce domaine. Vérifiez l’adresse du dashboard et sa configuration WebAuthn (origine et RP ID).",
+  "auth.passkeyAlreadyRegistered": "Cette clé d’accès est déjà enregistrée. Utilisez la connexion avec une passkey.",
+  "auth.authenticatorFailed": "Le navigateur ou le gestionnaire de clés n’a pas pu utiliser cette clé d’accès. Vérifiez son déverrouillage, puis réessayez."
 }

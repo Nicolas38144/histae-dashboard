@@ -121,8 +121,14 @@ async function withFriendlyWebAuthnErrors<T>(operation: () => Promise<T>): Promi
 }
 
 function friendlyWebAuthnError(error: unknown): Error | unknown {
-  if (error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'AbortError')) {
-    return new LocalizedError("auth.theRequestWasCancelledOrNoCompatiblePasskeyIs");
+  // SimpleWebAuthn wraps DOMExceptions in WebAuthnError (an Error), preserving their name.
+  if (error instanceof Error || error instanceof DOMException) {
+    if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+      return new LocalizedError('auth.theRequestWasCancelledOrNoCompatiblePasskeyIs');
+    }
+    if (error.name === 'SecurityError') return new LocalizedError('auth.invalidPasskeyDomain');
+    if (error.name === 'InvalidStateError') return new LocalizedError('auth.passkeyAlreadyRegistered');
+    if (error.name === 'UnknownError') return new LocalizedError('auth.authenticatorFailed');
   }
   return error;
 }

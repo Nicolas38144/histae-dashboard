@@ -667,5 +667,8 @@
   "premiumGift.auditGrant": "Premium gratuito concedido",
   "premiumGift.auditRevoke": "Premium gratuito retirado",
   "premiumGift.suspended": "Regalo suspendido (cuenta bloqueada)",
-  "userMatches.reportRequired": "Los mensajes solo son accesibles si existe una denuncia sobre esta conversación o uno de sus participantes en ella, también para los superadministradores."
+  "userMatches.reportRequired": "Los mensajes solo son accesibles si existe una denuncia sobre esta conversación o uno de sus participantes en ella, también para los superadministradores.",
+  "auth.invalidPasskeyDomain": "El navegador ha rechazado la clave para este dominio. Comprueba la dirección del panel y su configuración WebAuthn (origen y RP ID).",
+  "auth.passkeyAlreadyRegistered": "Esta clave de acceso ya está registrada. Utiliza el inicio de sesión con una clave de acceso.",
+  "auth.authenticatorFailed": "El navegador o el gestor de claves no ha podido utilizar esta clave de acceso. Comprueba que esté desbloqueado e inténtalo de nuevo."
 }

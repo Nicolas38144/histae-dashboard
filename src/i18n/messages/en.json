@@ -667,5 +667,8 @@
   "premiumGift.auditGrant": "Complimentary Premium granted",
   "premiumGift.auditRevoke": "Complimentary Premium revoked",
   "premiumGift.suspended": "Gift suspended (banned account)",
-  "userMatches.reportRequired": "Messages are accessible only when a report concerns this conversation or one of its participants in this conversation, including for superadmins."
+  "userMatches.reportRequired": "Messages are accessible only when a report concerns this conversation or one of its participants in this conversation, including for superadmins.",
+  "auth.invalidPasskeyDomain": "The browser refused the passkey for this domain. Check the dashboard address and its WebAuthn configuration (origin and RP ID).",
+  "auth.passkeyAlreadyRegistered": "This passkey is already registered. Use passkey sign-in.",
+  "auth.authenticatorFailed": "The browser or passkey manager could not use this passkey. Check that it is unlocked, then try again."
 }
