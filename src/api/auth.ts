@@ -25,44 +25,38 @@ export function supportsWebAuthn(): boolean {
 }
 
 export async function loginWithPasskey(): Promise<AdminSession> {
-  return withFriendlyWebAuthnErrors(async () => {
-    const { data } = await api.post<AuthenticationOptions>('/admin/auth/login/options');
-    const credential = await startAuthentication({ optionsJSON: data.options });
-    const session = (await api.post<AdminSession>('/admin/auth/login/verify', {
-      challenge_id: data.challenge_id,
-      credential,
-    })).data;
-    unlockAdminSession();
-    return session;
-  });
+  const { data } = await api.post<AuthenticationOptions>('/admin/auth/login/options');
+  const credential = await withFriendlyWebAuthnErrors(() => startAuthentication({ optionsJSON: data.options }));
+  const session = (await api.post<AdminSession>('/admin/auth/login/verify', {
+    challenge_id: data.challenge_id,
+    credential,
+  })).data;
+  unlockAdminSession();
+  return session;
 }
 
 export async function registerWithBootstrap(token: string, name: string): Promise<AdminSession> {
-  return withFriendlyWebAuthnErrors(async () => {
-    const { data } = await api.post<RegistrationOptions>('/admin/auth/bootstrap/options', {
-      bootstrap_token: token,
-    });
-    const credential = await startRegistration({ optionsJSON: data.options });
-    const session = (await api.post<AdminSession>('/admin/auth/bootstrap/verify', {
-      bootstrap_token: token,
-      challenge_id: data.challenge_id,
-      credential,
-      name,
-    })).data;
-    unlockAdminSession();
-    return session;
+  const { data } = await api.post<RegistrationOptions>('/admin/auth/bootstrap/options', {
+    bootstrap_token: token,
   });
+  const credential = await withFriendlyWebAuthnErrors(() => startRegistration({ optionsJSON: data.options }));
+  const session = (await api.post<AdminSession>('/admin/auth/bootstrap/verify', {
+    bootstrap_token: token,
+    challenge_id: data.challenge_id,
+    credential,
+    name,
+  })).data;
+  unlockAdminSession();
+  return session;
 }
 
 export async function addCredential(name: string): Promise<void> {
-  await withFriendlyWebAuthnErrors(async () => {
-    const { data } = await api.post<RegistrationOptions>('/admin/auth/credentials/options');
-    const credential = await startRegistration({ optionsJSON: data.options });
-    await api.post('/admin/auth/credentials/verify', {
-      challenge_id: data.challenge_id,
-      credential,
-      name,
-    });
+  const { data } = await api.post<RegistrationOptions>('/admin/auth/credentials/options');
+  const credential = await withFriendlyWebAuthnErrors(() => startRegistration({ optionsJSON: data.options }));
+  await api.post('/admin/auth/credentials/verify', {
+    challenge_id: data.challenge_id,
+    credential,
+    name,
   });
 }
 
@@ -120,7 +114,7 @@ async function withFriendlyWebAuthnErrors<T>(operation: () => Promise<T>): Promi
   }
 }
 
-function friendlyWebAuthnError(error: unknown): Error | unknown {
+function friendlyWebAuthnError(error: unknown): unknown {
   // SimpleWebAuthn wraps DOMExceptions in WebAuthnError (an Error), preserving their name.
   if (error instanceof Error || error instanceof DOMException) {
     if (error.name === 'NotAllowedError' || error.name === 'AbortError') {

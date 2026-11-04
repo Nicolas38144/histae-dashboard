@@ -31,6 +31,8 @@ type ActiveConversation = {
   match: Match;
 };
 
+type ConversationState = ActiveConversation & { status: 'pending' | 'active' };
+
 const matchKey = (match: Match) => match.id;
 const messageKey = (message: ChatMessage) => message.id;
 
@@ -42,32 +44,22 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
     return { items: page.matches, nextCursor: page.next_cursor };
   }, [userId, profileReason]);
   const matches = useCursorPagination(loadMatchPage, matchKey);
-  const [pendingMatch, setPendingMatch] = useState<Match | null>(null);
-  const [accessReason, setAccessReason] = useState('');
-  const [activeConversation, setActiveConversation] = useState<ActiveConversation | null>(null);
+  const [conversation, setConversation] = useState<ConversationState | null>(null);
+  const pendingConversation = conversation?.status === 'pending' ? conversation : null;
+  const activeConversation = conversation?.status === 'active' ? conversation : null;
 
   const openConversation = (match: Match) => {
     if (match.can_view_messages !== true) return;
-    if (session.role === 'superadmin') {
-      setActiveConversation({ match, accessReason: '' });
-      return;
-    }
-    setPendingMatch(match);
-    setAccessReason('');
-    setActiveConversation(null);
+    setConversation({ match, accessReason: '', status: session.role === 'superadmin' ? 'active' : 'pending' });
   };
 
   const closeConversation = () => {
-    setPendingMatch(null);
-    setAccessReason('');
-    setActiveConversation(null);
+    setConversation(null);
   };
 
   const authorizeConversation = () => {
-    if (pendingMatch?.can_view_messages !== true) return;
-    setActiveConversation({ match: pendingMatch, accessReason: accessReason.trim() });
-    setPendingMatch(null);
-    setAccessReason('');
+    if (pendingConversation?.match.can_view_messages !== true) return;
+    setConversation({ ...pendingConversation, status: 'active', accessReason: pendingConversation.accessReason.trim() });
   };
 
   return (
@@ -128,12 +120,12 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
         />
       )}
       {session.role !== 'superadmin' && <ConfirmActionDialog
-        open={Boolean(pendingMatch)}
+        open={Boolean(pendingConversation)}
         title={t("userMatches.justifyAccessToTheConversation")}
         description={t("userMatches.bothParticipantsWillSeeThisAccessInTheTraceability")}
         confirmLabel={t("userMatches.openConversation")}
-        value={accessReason}
-        onValueChange={setAccessReason}
+        value={pendingConversation?.accessReason ?? ''}
+        onValueChange={(accessReason) => setConversation((current) => current?.status === 'pending' ? { ...current, accessReason } : current)}
         valueLabel={t("userMatches.requiredReason3To500Characters")}
         requireValue
         minValueLength={3}

@@ -8,6 +8,7 @@ import {
 } from '../../src/api/auth';
 import { adminSession, fixtureIds } from '../fixtures';
 import { server } from '../mocks/server';
+import { isAdminSessionLocked, notifyAdminSessionExpired } from '../../src/auth/session';
 
 const webauthn = vi.hoisted(() => ({
   supports: vi.fn(),
@@ -94,10 +95,26 @@ describe('native WebAuthn client', () => {
   });
 
   it('turns an authenticator cancellation into a stable French message', async () => {
+    notifyAdminSessionExpired();
     webauthn.authenticate.mockRejectedValue(new DOMException('cancelled', 'NotAllowedError'));
     server.use(http.post(`${apiUrl}/admin/auth/login/options`, () => HttpResponse.json(options)));
 
     await expect(loginWithPasskey()).rejects.toThrow('La demande a été annulée ou aucune passkey compatible n’est disponible.');
+    expect(isAdminSessionLocked()).toBe(true);
+  });
+
+  it.each([
+    ['login', () => loginWithPasskey()],
+    ['bootstrap', () => registerWithBootstrap('bootstrap-fixture', 'Clé')],
+    ['credentials', () => addCredential('Clé de secours')],
+  ] as const)('preserves an options failure before invoking the authenticator (%s)', async (path, operation) => {
+    notifyAdminSessionExpired();
+    server.use(http.post(`${apiUrl}/admin/auth/${path}/options`, () => HttpResponse.json({ error: { code: 'service_unavailable' } }, { status: 503 })));
+
+    await expect(operation()).rejects.toMatchObject({ response: { status: 503 } });
+    expect(webauthn.authenticate).not.toHaveBeenCalled();
+    expect(webauthn.register).not.toHaveBeenCalled();
+    expect(isAdminSessionLocked()).toBe(true);
   });
 
   it.each([
@@ -127,10 +144,12 @@ describe('native WebAuthn client', () => {
   });
 
   it('preserves server authentication errors instead of treating them as browser cancellations', async () => {
+    notifyAdminSessionExpired();
     server.use(
       http.post(`${apiUrl}/admin/auth/login/options`, () => HttpResponse.json(options)),
       http.post(`${apiUrl}/admin/auth/login/verify`, () => HttpResponse.json({ error: { code: 'webauthn_authentication_failed' } }, { status: 401 })),
     );
     await expect(loginWithPasskey()).rejects.toMatchObject({ response: { status: 401, data: { error: { code: 'webauthn_authentication_failed' } } } });
+    expect(isAdminSessionLocked()).toBe(true);
   });
 });

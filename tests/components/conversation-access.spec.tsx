@@ -42,4 +42,38 @@ describe.each(['admin', 'superadmin'] as const)('conversation access for %s', (r
     }
     await waitFor(() => expect(reason).toBe(role === 'admin' ? 'Examen du signalement' : null));
   });
+
+  it('clears the reason on cancellation and closes an opened conversation', async () => {
+    const user = userEvent.setup();
+    const reasons: Array<string | null> = [];
+    server.use(
+      http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [{ ...match, can_view_messages: true }], next_cursor: null })),
+      http.get(`${apiUrl}/admin/matches/${match.id}/messages`, ({ request }) => {
+        reasons.push(new URL(request.url).searchParams.get('reason'));
+        return HttpResponse.json({ messages: [], next_cursor: null });
+      }),
+    );
+    renderDashboard(<UserMatches userId={fixtureIds.user} profileReason="Contrôle du profil" />, { session: { ...adminSession, role } });
+    await user.click(await screen.findByRole('button', { name: 'Consulter' }));
+
+    if (role === 'admin') {
+      const cancelled = screen.getByRole('dialog');
+      await user.type(within(cancelled).getByRole('textbox'), 'Motif abandonné');
+      await user.click(within(cancelled).getByRole('button', { name: 'Annuler' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(reasons).toEqual([]);
+
+      await user.click(screen.getByRole('button', { name: 'Consulter' }));
+      const reopened = screen.getByRole('dialog');
+      expect(within(reopened).getByRole('textbox')).toHaveValue('');
+      expect(within(reopened).getByRole('button', { name: 'Ouvrir la conversation' })).toBeDisabled();
+      await user.type(within(reopened).getByRole('textbox'), 'Nouveau motif');
+      await user.click(within(reopened).getByRole('button', { name: 'Ouvrir la conversation' }));
+    }
+
+    expect(await screen.findByText('Aucun message conservé.')).toBeVisible();
+    expect(reasons).toEqual([role === 'admin' ? 'Nouveau motif' : null]);
+    await user.click(await screen.findByRole('button', { name: 'Fermer' }));
+    expect(screen.queryByText('Aucun message conservé.')).not.toBeInTheDocument();
+  });
 });
