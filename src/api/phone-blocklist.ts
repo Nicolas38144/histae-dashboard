@@ -20,8 +20,10 @@ export interface PhoneBlocklist {
 export type PhoneTarget = { entry_id: string; phone_number?: never } | { phone_number: string; entry_id?: never };
 export type PhoneChange = PhoneTarget & { decision: PhoneDecision; valid_days?: number; version: number; reason?: string };
 const path = '/admin/sms-safety/phone-blocklist';
+export const PHONE_BLOCKLIST_PAGE_SIZE = 25;
+
 export async function getPhoneBlocklist(offset: number): Promise<PhoneBlocklist> {
-  return (await api.get<PhoneBlocklist>(path, { params: { limit: 25, offset } })).data;
+  return (await api.get<PhoneBlocklist>(path, { params: { limit: PHONE_BLOCKLIST_PAGE_SIZE, offset } })).data;
 }
 export async function lookupPhone(phone_number: string, signal?: AbortSignal): Promise<PhoneEntry> {
   return (await api.post<PhoneEntry>(`${path}/lookup`, { phone_number }, { signal })).data;

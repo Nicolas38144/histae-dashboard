@@ -8,6 +8,22 @@ const syntheticPhone = ['+33', '6', '0'.repeat(8)].join('');
 const path = 'http://localhost/api/admin/sms-safety/phone-blocklist';
 const entry = { id: '90000000-0000-4000-8000-000000000001', phone_hint: '+33……0000', decision: 'automatic', decision_until: null, version: 3, blocked: true, observations: [] };
 describe('public phone number policies', () => {
+  it('uses the same page size for list requests and navigation', async () => {
+    const user = userEvent.setup();
+    const pages: Array<{ limit: string | null; offset: string | null }> = [];
+    server.use(http.get(path, ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      pages.push({ limit: params.get('limit'), offset: params.get('offset') });
+      return HttpResponse.json({ entries: [], total: 26, ready: true, sources: [] });
+    }));
+    render(<PhoneBlocklistPanel isSuperadmin />);
+    await user.click(await screen.findByRole('button', { name: 'Suivant' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Suivant' })).toBeDisabled());
+    await user.click(screen.getByRole('button', { name: 'Précédent' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Précédent' })).toBeDisabled());
+    expect(pages).toEqual([{ limit: '25', offset: '0' }, { limit: '25', offset: '25' }, { limit: '25', offset: '0' }]);
+  });
+
   it('requires an administrator reason and submits one versioned temporary exception', async () => {
     const user = userEvent.setup(); let current = { ...entry }; let body: unknown; let calls = 0;
     server.use(
