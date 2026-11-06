@@ -493,3 +493,17 @@ Aucune variable `.env` supplémentaire n’est nécessaire.
 
 Cette offre ne crée ni achat ni facture, et n’annule pas un abonnement Stripe/store existant.
 Retirer l’offre conserve les droits d’un abonnement payant encore valide.
+
+## Blocage des numéros SMS publics
+
+L’onglet **SMS Sweego** inclut la fraîcheur des sources, une liste masquée paginée et une recherche
+par numéro envoyée en corps POST. Un admin peut autoriser temporairement un numéro avec un motif
+obligatoire ; le superadmin peut aussi le bloquer ou rétablir la politique automatique, sans saisir
+de justification. Les décisions durent de 1 à 90 jours et ne réinitialisent pas les quotas SMS.
+Les écritures nécessitent une authentification récente et la version lue ; une réponse perdue
+provoque une relecture, jamais un nouvel envoi automatique. L’API revérifie les droits dans la
+transaction. L’interface est traduite en français, anglais, italien et espagnol.
+
+Routes : `GET/PATCH /api/admin/sms-safety/phone-blocklist` et
+`POST /api/admin/sms-safety/phone-blocklist/lookup`. Voir
+[le guide API](../histae-api-rust/docs/phone-blocklist.md) pour les limites et le job quotidien.

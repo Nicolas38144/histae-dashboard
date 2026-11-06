@@ -329,6 +329,8 @@ export type ModerationDetail = ModerationCase & {
 };
 
 export type SmsSafety = {
+  phone_blocklist_ready: boolean;
+  phone_blocklist_source_errors: number;
   provider_enabled: boolean;
   suspended: boolean;
   manual_suspended: boolean;

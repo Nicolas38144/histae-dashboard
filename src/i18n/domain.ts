@@ -3,6 +3,9 @@ import { t } from './core';
 
 // Protocol values stay unchanged; only their presentation is localized.
 const labels: Readonly<Record<string, MessageKey>> = {
+  "admin_block_phone": "domain.admin_block_phone",
+  "admin_allow_phone": "domain.admin_allow_phone",
+  "admin_reset_phone_policy": "domain.admin_reset_phone_policy",
   "user": "common.user",
   "admin": "common.admin",
   "superadmin": "common.superadmin",

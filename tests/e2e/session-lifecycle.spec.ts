@@ -8,6 +8,7 @@ async function mockConsole(page: Page, valid: () => boolean = () => true) {
       ? { json: adminSession }
       : { status: 401, json: { error: { code: 'admin_session_invalid' } } });
     if (path.endsWith('/metrics')) return route.fulfill({ json: adminMetrics });
+    if (path.endsWith('/phone-blocklist')) return route.fulfill({ json: { entries: [], total: 0, ready: true, sources: [] } });
     if (path.endsWith('/sms-safety')) return route.fulfill({ json: smsSafety });
     return route.fulfill({ status: 404, json: {} });
   });

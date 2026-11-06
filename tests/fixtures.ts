@@ -196,6 +196,7 @@ export const adminMetrics: AdminMetrics = {
 
 export const smsSafety: SmsSafety = {
   provider_enabled: true, suspended: false, manual_suspended: false,
+  phone_blocklist_ready: true, phone_blocklist_source_errors: 0,
   environment_suspended: false, version: 0,
   hourly_limit_per_phone: 5, daily_limit_per_phone: 10,
   sends_last_5_minutes: 2, sends_last_hour: 3, sends_last_24_hours: 4,

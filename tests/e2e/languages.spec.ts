@@ -12,6 +12,7 @@ for (const language of languages) {
     const requestedLanguages: string[] = [];
     await page.route('**/api/admin/**', async (route) => {
       const pathname = new URL(route.request().url()).pathname;
+      if (pathname.endsWith('/phone-blocklist')) return route.fulfill({ json: { entries: [], total: 0, ready: true, sources: [] } });
       if (pathname.endsWith('/sms-safety')) return route.fulfill({ json: smsSafety });
       if (pathname.endsWith('/auth/session')) return route.fulfill({ json: adminSession });
       if (pathname.endsWith('/metrics')) {

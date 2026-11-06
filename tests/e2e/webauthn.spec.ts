@@ -77,6 +77,7 @@ test('registers and reuses a discoverable passkey with a virtual authenticator',
       verifications.push(route.request().postDataJSON());
       return route.fulfill({ json: adminSession });
     }
+    if (url.pathname.endsWith('/phone-blocklist')) return route.fulfill({ json: { entries: [], total: 0, ready: true, sources: [] } });
     if (url.pathname.endsWith('/sms-safety')) return route.fulfill({ json: smsSafety });
     if (url.pathname.endsWith('/auth/session')) return route.fulfill({ json: adminSession });
     if (url.pathname.endsWith('/metrics')) return route.fulfill({ json: adminMetrics });
