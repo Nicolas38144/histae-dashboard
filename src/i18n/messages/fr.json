@@ -686,7 +686,6 @@
   "phoneBlocklist.sourceStatus": "{source} : dernier import réussi le {date}, {count} numéros français récents.",
   "phoneBlocklist.sourceFailed": "La dernière actualisation a échoué. La dernière liste valide est conservée.",
   "phoneBlocklist.phone": "Numéro de téléphone",
-  "phoneBlocklist.lookup": "Rechercher un numéro",
   "phoneBlocklist.refresh": "Actualiser",
   "phoneBlocklist.status": "État effectif",
   "phoneBlocklist.until": "Fin de la décision manuelle",
@@ -702,5 +701,9 @@
   "domain.admin_block_phone": "Blocage d’un numéro",
   "domain.admin_allow_phone": "Autorisation temporaire d’un numéro",
   "domain.admin_reset_phone_policy": "Retour aux règles automatiques du numéro",
-  "phoneBlocklist.reviewTitle": "Examiner {phone}"
+  "phoneBlocklist.reviewTitle": "Examiner {phone}",
+  "phoneBlocklist.searchHelp": "Recherche automatique : saisissez un numéro français complet au format +33…",
+  "phoneBlocklist.allowHelp": "Autorise ce numéro malgré les listes publiques pendant la durée choisie. Les quotas SMS restent applicables.",
+  "phoneBlocklist.blockHelp": "Bloque ce numéro pendant la durée choisie, même sans observation dans les listes publiques.",
+  "phoneBlocklist.automaticHelp": "Supprime la décision manuelle. Le numéro est bloqué si une observation automatique date de moins de 90 jours."
 }

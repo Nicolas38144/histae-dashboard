@@ -4,6 +4,8 @@ import type { PhoneChange, PhoneDecision, PhoneEntry, PhoneTarget } from '../api
 import { t } from '../i18n/core';
 import { useLocale } from '../i18n/useLocale';
 
+const decisionHelp = { allow: 'phoneBlocklist.allowHelp', block: 'phoneBlocklist.blockHelp', automatic: 'phoneBlocklist.automaticHelp' } as const;
+
 export function PhonePolicyDialog({ entry, target, isSuperadmin, saving, onSave, onClose }: {
   entry: PhoneEntry; target: PhoneTarget; isSuperadmin: boolean; saving: boolean;
   onSave: (change: PhoneChange) => void; onClose: () => void;
@@ -31,6 +33,7 @@ export function PhonePolicyDialog({ entry, target, isSuperadmin, saving, onSave,
         {isSuperadmin && <MenuItem value="block">{t('phoneBlocklist.block')}</MenuItem>}
         {isSuperadmin && <MenuItem value="automatic">{t('phoneBlocklist.automatic')}</MenuItem>}
       </TextField>
+      <Alert severity="info">{t(decisionHelp[decision])}</Alert>
       {decision !== 'automatic' && <TextField label={t('phoneBlocklist.days')} type="number" value={days}
         slotProps={{ htmlInput: { min: 1, max: 90, step: 1 } }} disabled={saving}
         onChange={(event) => setDays(event.target.value)} error={!validDays} />}

@@ -497,7 +497,10 @@ Retirer l’offre conserve les droits d’un abonnement payant encore valide.
 ## Blocage des numéros SMS publics
 
 L’onglet **SMS Sweego** inclut la fraîcheur des sources, une liste masquée paginée et une recherche
-par numéro envoyée en corps POST. Un admin peut autoriser temporairement un numéro avec un motif
+automatique après 400 ms de pause pour un numéro français complet au format `+33…`, envoyée en
+corps POST. Le résultat remplace la liste sans ouvrir de dialogue ; **Examiner** ouvre la décision.
+Effacer la saisie rétablit la liste paginée. Les recherches précédentes sont annulées lors d’une
+nouvelle saisie. Un admin peut autoriser temporairement un numéro avec un motif
 obligatoire ; le superadmin peut aussi le bloquer ou rétablir la politique automatique, sans saisir
 de justification. Les décisions durent de 1 à 90 jours et ne réinitialisent pas les quotas SMS.
 Les écritures nécessitent une authentification récente et la version lue ; une réponse perdue

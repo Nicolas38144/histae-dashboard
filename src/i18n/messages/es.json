@@ -686,7 +686,6 @@
   "phoneBlocklist.sourceStatus": "{source}: última importación correcta el {date}, {count} números franceses recientes.",
   "phoneBlocklist.sourceFailed": "La última actualización ha fallado. Se conserva la última lista válida.",
   "phoneBlocklist.phone": "Número de teléfono",
-  "phoneBlocklist.lookup": "Buscar un número",
   "phoneBlocklist.refresh": "Actualizar",
   "phoneBlocklist.status": "Estado efectivo",
   "phoneBlocklist.until": "Caducidad de la decisión manual",
@@ -702,5 +701,9 @@
   "domain.admin_block_phone": "Bloqueo de un número",
   "domain.admin_allow_phone": "Autorización temporal de un número",
   "domain.admin_reset_phone_policy": "Restauración de las reglas automáticas del número",
-  "phoneBlocklist.reviewTitle": "Revisar {phone}"
+  "phoneBlocklist.reviewTitle": "Revisar {phone}",
+  "phoneBlocklist.searchHelp": "Búsqueda automática: introduce un número francés completo con el formato +33…",
+  "phoneBlocklist.allowHelp": "Autoriza este número pese a las listas públicas durante el plazo elegido. Las cuotas de SMS siguen vigentes.",
+  "phoneBlocklist.blockHelp": "Bloquea este número durante el plazo elegido, incluso sin observaciones en las listas públicas.",
+  "phoneBlocklist.automaticHelp": "Elimina la decisión manual. El número se bloquea si una observación automática tiene menos de 90 días."
 }

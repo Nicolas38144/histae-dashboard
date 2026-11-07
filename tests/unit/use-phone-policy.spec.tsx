@@ -2,8 +2,8 @@ import { act, renderHook } from '@testing-library/react';
 import type { PhoneChange, PhoneEntry } from '../../src/api/phone-blocklist';
 import { usePhonePolicy } from '../../src/features/phone-blocklist/use-phone-policy';
 
-const api = vi.hoisted(() => ({ lookup: vi.fn(), change: vi.fn() }));
-vi.mock('../../src/api/phone-blocklist', () => ({ lookupPhone: api.lookup, changePhonePolicy: api.change }));
+const api = vi.hoisted(() => ({ change: vi.fn() }));
+vi.mock('../../src/api/phone-blocklist', () => ({ changePhonePolicy: api.change }));
 
 const entry: PhoneEntry = {
   id: '90000000-0000-4000-8000-000000000001', phone_hint: '+33……0000',
@@ -19,27 +19,17 @@ function deferred<T>() {
 
 describe('phone policy operations', () => {
   beforeEach(() => {
-    api.lookup.mockReset();
     api.change.mockReset();
   });
 
-  it('ignores repeated lookups and writes while a lookup is pending', async () => {
-    const response = deferred<PhoneEntry>();
-    api.lookup.mockReturnValue(response.promise);
+  it('requires an explicit phone target to review an unregistered number', () => {
     const { result } = renderHook(() => usePhonePolicy(vi.fn()));
-    let lookup!: Promise<void>;
-    act(() => {
-      lookup = result.current.search('synthetic-phone');
-      void result.current.search('another-phone');
-      void result.current.save(change);
-    });
-    expect(api.lookup).toHaveBeenCalledTimes(1);
-    expect(api.change).not.toHaveBeenCalled();
-    expect(result.current.looking).toBe(true);
-
-    await act(async () => { response.resolve(entry); await lookup; });
-    expect(result.current.review).toEqual({ entry, target: { entry_id: entry.id } });
-    expect(result.current.looking).toBe(false);
+    const unknown = { ...entry, id: null };
+    act(() => result.current.open(unknown));
+    expect(result.current.review).toBeNull();
+    const target = { phone_number: 'synthetic-phone' };
+    act(() => result.current.open(unknown, target));
+    expect(result.current.review).toEqual({ entry: unknown, target });
   });
 
   it('submits once and keeps the review open until the write finishes', async () => {
@@ -77,18 +67,16 @@ describe('phone policy operations', () => {
     expect(result.current.error).toBe(failure);
   });
 
-  it('aborts a lookup on unmount and does not publish its late response', async () => {
-    const response = deferred<PhoneEntry>();
-    api.lookup.mockReturnValue(response.promise);
+  it('does not refresh an unmounted panel after a pending write', async () => {
+    const response = deferred<void>();
+    api.change.mockReturnValue(response.promise);
     const reload = vi.fn();
     const { result, unmount } = renderHook(() => usePhonePolicy(reload));
-    let lookup!: Promise<void>;
-    act(() => { lookup = result.current.search('synthetic-phone'); });
-    const signal = api.lookup.mock.calls[0][1] as AbortSignal;
+    act(() => result.current.open(entry));
+    let write!: Promise<void>;
+    act(() => { write = result.current.save(change); });
     unmount();
-    expect(signal.aborted).toBe(true);
-    await act(async () => { response.resolve(entry); await lookup; });
-    expect(result.current.review).toBeNull();
+    await act(async () => { response.resolve(); await write; });
     expect(reload).not.toHaveBeenCalled();
   });
 });

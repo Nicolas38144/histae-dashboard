@@ -686,7 +686,6 @@
   "phoneBlocklist.sourceStatus": "{source}: last successful import on {date}, {count} recent French numbers.",
   "phoneBlocklist.sourceFailed": "The latest update failed. The last valid list is retained.",
   "phoneBlocklist.phone": "Phone number",
-  "phoneBlocklist.lookup": "Look up a number",
   "phoneBlocklist.refresh": "Refresh",
   "phoneBlocklist.status": "Effective status",
   "phoneBlocklist.until": "Manual decision expiry",
@@ -702,5 +701,9 @@
   "domain.admin_block_phone": "Phone number blocked",
   "domain.admin_allow_phone": "Phone number temporarily allowed",
   "domain.admin_reset_phone_policy": "Phone number automatic rules restored",
-  "phoneBlocklist.reviewTitle": "Review {phone}"
+  "phoneBlocklist.reviewTitle": "Review {phone}",
+  "phoneBlocklist.searchHelp": "Automatic search: enter a complete French phone number in +33… format.",
+  "phoneBlocklist.allowHelp": "Allows this number despite the public lists for the selected duration. SMS quotas still apply.",
+  "phoneBlocklist.blockHelp": "Blocks this number for the selected duration, even without an observation in the public lists.",
+  "phoneBlocklist.automaticHelp": "Removes the manual decision. The number is blocked if an automatic observation is less than 90 days old."
 }

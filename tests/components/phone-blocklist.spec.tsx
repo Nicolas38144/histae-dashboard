@@ -63,10 +63,33 @@ describe('public phone number policies', () => {
     );
     render(<PhoneBlocklistPanel isSuperadmin />);
     await user.type(await screen.findByLabelText('Numéro de téléphone'), syntheticPhone);
-    await user.click(screen.getByRole('button', { name: 'Rechercher un numéro' }));
+    expect(screen.queryByRole('button', { name: 'Rechercher un numéro' })).not.toBeInTheDocument();
+    await waitFor(() => expect(lookup).toEqual({ phone_number: syntheticPhone }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Examiner' }));
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirmer' }));
     await waitFor(() => expect(body).toBeDefined());
     expect(lookup).toEqual({ phone_number: syntheticPhone });
     expect(body).toEqual({ phone_number: syntheticPhone, decision: 'block', version: 0, valid_days: 30 });
+  });
+
+  it('filters the table while typing and restores the list when cleared', async () => {
+    const user = userEvent.setup();
+    let lookups = 0;
+    server.use(
+      http.get(path, () => HttpResponse.json({ entries: [entry, { ...entry, id: 'second-entry', phone_hint: '+33……1111' }], total: 2, ready: true, sources: [] })),
+      http.post(`${path}/lookup`, () => { lookups += 1; return HttpResponse.json(entry); }),
+    );
+    render(<PhoneBlocklistPanel isSuperadmin />);
+    expect(await screen.findAllByRole('button', { name: 'Examiner' })).toHaveLength(2);
+    const input = screen.getByLabelText('Numéro de téléphone');
+    await user.type(input, syntheticPhone);
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Examiner' })).toHaveLength(1));
+    expect(lookups).toBe(1);
+    expect(screen.queryByText('+33……1111')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Suivant' })).not.toBeInTheDocument();
+    await user.clear(input);
+    expect(screen.getAllByRole('button', { name: 'Examiner' })).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Suivant' })).toBeDisabled();
   });
 });
