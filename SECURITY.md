@@ -89,6 +89,15 @@ Le dashboard et `/api` doivent partager la même origine HTTPS. Les routes SPA r
 fichier inconnu, source map ou fichier d’environnement ne doit être publié. Les erreurs et redirections doivent
 également recevoir les en-têtes applicables.
 
+Seuls les fichiers JS/CSS versionnés par Vite sous `/assets/` font exception : leurs réponses GET/HEAD
+200, 206 et 304 reçoivent `Cache-Control: public, max-age=31536000, immutable`. Le nom change avec le
+contenu, ce qui invalide leur cache au prochain déploiement. Les pages HTML, données API et erreurs restent
+en `no-store`. Les directives de cache CDN provenant de l’API sont supprimées.
+
+Le cache de prénoms reste en mémoire uniquement, avec un maximum de 1 000 entrées, une expiration de
+5 minutes (30 secondes pour un prénom absent) et une éviction des entrées les moins récemment utilisées.
+Il est toujours vidé lorsque la session est masquée, verrouillée ou démontée.
+
 En développement, le navigateur reste sur `http://localhost:5173`; seul Vite contacte
 `http://localhost:8080` pour l’API. Le navigateur peut aussi charger une URL photo signée depuis
 `http://storage.histae.localhost:8333` (ou l’ancien endpoint loopback `127.0.0.1:8333`), tous deux explicitement

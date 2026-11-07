@@ -289,9 +289,15 @@ et recréer le service. Les anciens fichiers `nginx.conf` et `nginx-logging.conf
 Le guide et les vérifications sont dans `../histae-api-rust/docs/caddy-migration.md`.
 
 Le dashboard approuve uniquement le proxy edge `172.30.0.4` pour les IP et HTTPS publics. Il conserve
-`Origin`, cookies, corps JSON et préfixe `/api`, force `Cache-Control: no-store` et garde les erreurs API
+`Origin`, cookies, corps JSON et préfixe `/api`, force `Cache-Control: no-store` sur l’API et garde ses erreurs
 hors du repli React. Les fichiers absents, sources, fichiers cachés et source maps renvoient 404.
+Les pages restent en `no-store`. Seuls les JS/CSS versionnés de `/assets/`, servis sans erreur, sont
+conservés un an avec `immutable` ; leur nom change à chaque modification du contenu.
 L’HSTS est ajouté seulement pour une requête HTTPS annoncée par ce proxy approuvé.
+
+Vérifier la politique de cache avec Caddy installé : `node tests/deployment/cache-policy.mjs`.
+La variable `CADDY_BIN` permet d’indiquer son exécutable. Ce contrôle utilise uniquement des fichiers
+et une API factices sur la boucle locale, y compris les erreurs, réponses partielles et validations ETag.
 
 ## Supervision Docker
 

@@ -40,7 +40,7 @@ import caddy-common.caddy
 	header @secure Strict-Transport-Security "max-age=31536000; includeSubDomains"
 	header {
 		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
-		>Cache-Control no-store
+		?Cache-Control no-store
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 		Referrer-Policy no-referrer
 		X-Content-Type-Options nosniff
@@ -55,6 +55,7 @@ import caddy-common.caddy
 	}
 	# Keep /api, query, cookies and Origin intact; API errors never use the SPA fallback.
 	handle /api/* {
+		header >Cache-Control no-store
 		reverse_proxy {$HISTAE_API_UPSTREAM:http://api:8080} {
 			header_up Host {upstream_hostport}
 			header_up X-Real-IP {client_ip}
@@ -62,6 +63,9 @@ import caddy-common.caddy
 			header_up X-Forwarded-Proto {histae_forwarded_proto}
 			header_down -Cache-Control
 			header_down -Expires
+			header_down -CDN-Cache-Control
+			header_down -Cloudflare-CDN-Cache-Control
+			header_down -Surrogate-Control
 			transport http {
 				dial_timeout 5s
 				response_header_timeout 60s
@@ -75,6 +79,14 @@ import caddy-common.caddy
 	# Missing files return 404; only application routes fall back to index.html.
 	@file path_regexp /[^/]+\.[^/]+$
 	handle /assets/* {
+		# Vite changes the filename when the content changes. Never cache errors.
+		@versioned_asset {
+			method GET HEAD
+			path_regexp ^/assets/[^/]+-[A-Za-z0-9_-]{8,}\.(js|css)$
+		}
+		header @versioned_asset Cache-Control "public, max-age=31536000, immutable" {
+			match status 200 206 304
+		}
 		file_server
 	}
 	handle @file {
@@ -83,5 +95,9 @@ import caddy-common.caddy
 	handle {
 		try_files {path} /index.html
 		file_server
+	}
+	handle_errors {
+		header Cache-Control no-store
+		respond "{err.status_code} {err.status_text}" {err.status_code}
 	}
 }
