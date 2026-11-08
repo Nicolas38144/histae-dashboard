@@ -705,5 +705,19 @@
   "phoneBlocklist.searchHelp": "Ricerca automatica: inserisci un numero francese completo nel formato +33…",
   "phoneBlocklist.allowHelp": "Autorizza questo numero nonostante le liste pubbliche per la durata scelta. Le quote SMS restano valide.",
   "phoneBlocklist.blockHelp": "Blocca questo numero per la durata scelta, anche senza osservazioni nelle liste pubbliche.",
-  "phoneBlocklist.automaticHelp": "Rimuove la decisione manuale. Il numero viene bloccato se un’osservazione automatica risale a meno di 90 giorni fa."
+  "phoneBlocklist.automaticHelp": "Rimuove la decisione manuale. Il numero viene bloccato se un’osservazione automatica risale a meno di 90 giorni fa.",
+  "identityCorrection.edit": "Correggi il profilo",
+  "identityCorrection.title": "Rettifica le informazioni del profilo",
+  "identityCorrection.firstname": "Nome",
+  "identityCorrection.guidance": "Modifica solo le informazioni verificate con la persona. Dopo il salvataggio, torna alla richiesta GDPR per risolverla con una risposta all’utente.",
+  "identityCorrection.adultRequired": "La persona deve avere almeno 18 anni.",
+  "identityCorrection.consentHelp": "Registrare il sesso richiede il consenso valido della persona al trattamento dei dati sensibili.",
+  "identityCorrection.unspecified": "Non specificato",
+  "identityCorrection.reason": "Motivo della correzione",
+  "identityCorrection.reasonHelp": "Da 3 a 500 caratteri, per tutti gli amministratori. Indica il riferimento della richiesta senza copiare i dati personali corretti.",
+  "identityCorrection.save": "Salva la correzione",
+  "identityCorrection.saved": "Profilo corretto. Ora puoi risolvere la richiesta GDPR con una risposta all’utente.",
+  "identityCorrection.backToRequests": "Torna alle richieste GDPR",
+  "identityCorrection.consentMissing": "Il consenso richiesto è assente o scaduto. Non è possibile registrare il sesso senza il consenso valido della persona.",
+  "identityCorrection.audit": "Identità del profilo rettificata"
 }

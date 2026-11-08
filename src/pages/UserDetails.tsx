@@ -1,4 +1,5 @@
 import { ComplimentaryPremiumPanel } from '../features/users/complimentary-premium-panel';
+import { IdentityCorrectionButton } from '../features/users/identity-correction-button';
 import { domainLabel } from '../i18n/domain';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
@@ -112,6 +113,7 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         description={t("userDetails.accountDetailsAndActivity")}
         actions={user && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            <IdentityCorrectionButton user={user} role={session.role} onUpdated={userState.reload} />
             {canChangeRole && <Button variant="outlined" onClick={() => setAction('role')}>
               {user.role === 'admin' ? t("userDetails.removeAdminPermissions") : t("common.promoteToAdmin")}
             </Button>}
@@ -133,6 +135,7 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
           <UserMatches userId={id} profileReason={accessReason} />
         </>
       )}
+      <Button component={RouterLink} to="/privacy-requests" sx={{ mt: 2 }}>{t('identityCorrection.backToRequests')}</Button>
       <ConfirmActionDialog
         open={action === 'role'}
         title={user?.role === 'admin' ? t("userDetails.removeAdministratorPermissions") : t("userDetails.promoteToAdministrator")}

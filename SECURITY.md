@@ -39,6 +39,12 @@ exécute ses timers ; les timers peuvent être suspendus en arrière-plan ou pen
 
 ## Minimisation des données
 
+La rectification du prénom, de la date de naissance et du sexe exige une authentification récente
+et un motif de 3–500 caractères pour chaque rôle. L’API contrôle la majorité, le consentement sensible
+courant et les droits sur le compte cible, puis audite la correction. Le dashboard n’enregistre pas
+automatiquement les propositions contenues dans le texte utilisateur. La correction du profil et la
+résolution de la demande RGPD restent distinctes ; une correction refusée conserve le formulaire ouvert.
+
 Ne jamais exposer au dashboard :
 
 - téléphone, empreinte ou valeur chiffrée ;

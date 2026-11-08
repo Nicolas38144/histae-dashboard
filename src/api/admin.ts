@@ -9,6 +9,7 @@ import type {
   AdminRevenue,
   AdminUser,
   AdminUserDetail,
+  ProfileIdentityCorrection,
   ChatMessage,
   CursorResponse,
   DataAccessLog,
@@ -129,6 +130,15 @@ export async function setUserRole(userId: string, role: 'user' | 'admin', reason
 
 export async function setUserComplimentaryPremium(userId: string, enabled: boolean): Promise<void> {
   await api.patch(`/admin/users/${userId}/complimentary-premium`, { enabled });
+}
+
+export async function correctProfileIdentity(userId: string, correction: ProfileIdentityCorrection): Promise<void> {
+  await api.patch(`/admin/users/${userId}/profile-identity`, {
+    firstname: correction.firstname.trim(),
+    birthdate: correction.birthdate,
+    sex: correction.sex,
+    reason: correction.reason.trim(),
+  });
 }
 
 export async function getUserMatches(

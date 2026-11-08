@@ -59,6 +59,7 @@ describe('privacy request messages', () => {
     renderDashboard(<PrivacyRequests />);
     await user.click(await screen.findByRole('button', { name: 'Résoudre' }));
     const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('link', { name: 'Corriger le profil' })).toHaveAttribute('href', `/users/${erasureRequest.user_id}`);
     const confirm = within(dialog).getByRole('button', { name: 'Confirmer' });
     expect(confirm).toBeDisabled();
     await user.type(within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ }), 'La donnée historique a été corrigée après vérification.');

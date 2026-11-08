@@ -705,5 +705,19 @@
   "phoneBlocklist.searchHelp": "Automatic search: enter a complete French phone number in +33… format.",
   "phoneBlocklist.allowHelp": "Allows this number despite the public lists for the selected duration. SMS quotas still apply.",
   "phoneBlocklist.blockHelp": "Blocks this number for the selected duration, even without an observation in the public lists.",
-  "phoneBlocklist.automaticHelp": "Removes the manual decision. The number is blocked if an automatic observation is less than 90 days old."
+  "phoneBlocklist.automaticHelp": "Removes the manual decision. The number is blocked if an automatic observation is less than 90 days old.",
+  "identityCorrection.edit": "Correct profile",
+  "identityCorrection.title": "Correct profile information",
+  "identityCorrection.firstname": "First name",
+  "identityCorrection.guidance": "Only change information verified with the person. After saving, return to the GDPR request to resolve it with a reply to the user.",
+  "identityCorrection.adultRequired": "The person must be at least 18 years old.",
+  "identityCorrection.consentHelp": "Recording sex requires the person’s valid consent to sensitive data processing.",
+  "identityCorrection.unspecified": "Not specified",
+  "identityCorrection.reason": "Reason for correction",
+  "identityCorrection.reasonHelp": "3 to 500 characters, for all administrators. Include the request reference without copying the corrected personal information.",
+  "identityCorrection.save": "Save correction",
+  "identityCorrection.saved": "Profile corrected. You can now resolve the GDPR request with a reply to the user.",
+  "identityCorrection.backToRequests": "Back to GDPR requests",
+  "identityCorrection.consentMissing": "Required consent is missing or outdated. Sex cannot be recorded without the person’s valid consent.",
+  "identityCorrection.audit": "Profile identity corrected"
 }

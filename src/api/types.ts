@@ -165,6 +165,13 @@ export type AdminUserDetail = AdminUser & {
   presence: { is_location_fresh: boolean; updated_at: string } | null;
 };
 
+export type ProfileIdentityCorrection = {
+  firstname: string;
+  birthdate: string;
+  sex: AdminUser['sex'];
+  reason: string;
+};
+
 export type CursorResponse<T, K extends string> = Record<K, T[]> & { next_cursor: string | null };
 
 export type BillingReconciliationKind = 'subscription' | 'customer_creation';

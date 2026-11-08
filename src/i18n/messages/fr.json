@@ -705,5 +705,19 @@
   "phoneBlocklist.searchHelp": "Recherche automatique : saisissez un numéro français complet au format +33…",
   "phoneBlocklist.allowHelp": "Autorise ce numéro malgré les listes publiques pendant la durée choisie. Les quotas SMS restent applicables.",
   "phoneBlocklist.blockHelp": "Bloque ce numéro pendant la durée choisie, même sans observation dans les listes publiques.",
-  "phoneBlocklist.automaticHelp": "Supprime la décision manuelle. Le numéro est bloqué si une observation automatique date de moins de 90 jours."
+  "phoneBlocklist.automaticHelp": "Supprime la décision manuelle. Le numéro est bloqué si une observation automatique date de moins de 90 jours.",
+  "identityCorrection.edit": "Corriger le profil",
+  "identityCorrection.title": "Rectifier les informations du profil",
+  "identityCorrection.firstname": "Prénom",
+  "identityCorrection.guidance": "Modifiez uniquement les informations vérifiées avec la personne. Après l’enregistrement, retournez à la demande RGPD pour la résoudre avec une réponse à l’utilisateur.",
+  "identityCorrection.adultRequired": "La personne doit avoir au moins 18 ans.",
+  "identityCorrection.consentHelp": "Un sexe renseigné nécessite le consentement valide de la personne aux données sensibles.",
+  "identityCorrection.unspecified": "Non renseigné",
+  "identityCorrection.reason": "Motif de la correction",
+  "identityCorrection.reasonHelp": "De 3 à 500 caractères, pour tous les administrateurs. Indiquez la référence de la demande sans recopier les données personnelles corrigées.",
+  "identityCorrection.save": "Enregistrer la correction",
+  "identityCorrection.saved": "Profil corrigé. Vous pouvez maintenant résoudre la demande RGPD avec une réponse à l’utilisateur.",
+  "identityCorrection.backToRequests": "Retour aux demandes RGPD",
+  "identityCorrection.consentMissing": "Le consentement requis est absent ou périmé. Le sexe ne peut pas être enregistré sans un consentement valide de la personne.",
+  "identityCorrection.audit": "Identité du profil rectifiée"
 }

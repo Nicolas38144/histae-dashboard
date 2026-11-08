@@ -38,6 +38,7 @@ const apiErrorMessages = (): Readonly<Record<string, string>> => ({
   admin_reauthentication_required: t("errors.signInAgainWithYourPasskeyToPerformThis"),
   admin_session_invalid: t("errors.yourAdministratorSessionHasExpiredSignInAgain"),
   invalid_admin_request_origin: t("errors.theDashboardOriginDoesNotMatchTheOneConfigured"),
+  required_consent_missing: t('identityCorrection.consentMissing'),
   finance_report_conflict: t('storeBilling.conflict'),
   resource_changed: t("errors.thisContentHasChangedReloadItBeforeMakingA"),
   moderation_case_stale: t("errors.thisContentHasChangedReloadItBeforeMakingA"),

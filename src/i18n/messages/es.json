@@ -705,5 +705,19 @@
   "phoneBlocklist.searchHelp": "Búsqueda automática: introduce un número francés completo con el formato +33…",
   "phoneBlocklist.allowHelp": "Autoriza este número pese a las listas públicas durante el plazo elegido. Las cuotas de SMS siguen vigentes.",
   "phoneBlocklist.blockHelp": "Bloquea este número durante el plazo elegido, incluso sin observaciones en las listas públicas.",
-  "phoneBlocklist.automaticHelp": "Elimina la decisión manual. El número se bloquea si una observación automática tiene menos de 90 días."
+  "phoneBlocklist.automaticHelp": "Elimina la decisión manual. El número se bloquea si una observación automática tiene menos de 90 días.",
+  "identityCorrection.edit": "Corregir el perfil",
+  "identityCorrection.title": "Rectificar la información del perfil",
+  "identityCorrection.firstname": "Nombre",
+  "identityCorrection.guidance": "Modifica solo la información verificada con la persona. Después de guardar, vuelve a la solicitud RGPD para resolverla con una respuesta al usuario.",
+  "identityCorrection.adultRequired": "La persona debe tener al menos 18 años.",
+  "identityCorrection.consentHelp": "Registrar el sexo requiere el consentimiento válido de la persona para los datos sensibles.",
+  "identityCorrection.unspecified": "Sin especificar",
+  "identityCorrection.reason": "Motivo de la corrección",
+  "identityCorrection.reasonHelp": "De 3 a 500 caracteres, para todos los administradores. Indica la referencia de la solicitud sin copiar los datos personales corregidos.",
+  "identityCorrection.save": "Guardar la corrección",
+  "identityCorrection.saved": "Perfil corregido. Ya puedes resolver la solicitud RGPD con una respuesta al usuario.",
+  "identityCorrection.backToRequests": "Volver a las solicitudes RGPD",
+  "identityCorrection.consentMissing": "Falta el consentimiento requerido o está caducado. No se puede registrar el sexo sin el consentimiento válido de la persona.",
+  "identityCorrection.audit": "Identidad del perfil rectificada"
 }

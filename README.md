@@ -500,6 +500,20 @@ Aucune variable `.env` supplémentaire n’est nécessaire.
 Cette offre ne crée ni achat ni facture, et n’annule pas un abonnement Stripe/store existant.
 Retirer l’offre conserve les droits d’un abonnement payant encore valide.
 
+## Rectification des informations d’un profil
+
+Une demande de rectification ouverte propose **Corriger le profil**, qui ouvre le dossier utilisateur.
+L’admin justifie d’abord la consultation ; le superadmin conserve son accès habituel. Le bouton du
+dossier permet de corriger le prénom, la date de naissance et le sexe via
+`PATCH /api/admin/users/:id/profile-identity`. Le motif de correction est obligatoire pour les deux
+rôles (3–500 caractères). Un admin peut corriger un compte utilisateur ; le superadmin peut aussi
+corriger un compte privilégié. La majorité et le consentement sensible courant sont contrôlés par l’API.
+
+Après la correction, **Retour aux demandes RGPD** permet de résoudre la demande avec une réponse
+publique. L’enregistrement du profil et la clôture sont deux actions distinctes : un échec de correction
+ne clôture aucune demande. Les autres rectifications restent traitées manuellement avant clôture.
+Le déploiement requiert la route de correction disponible dans la version locale de l’API.
+
 ## Blocage des numéros SMS publics
 
 L’onglet **SMS Sweego** inclut la fraîcheur des sources, une liste masquée paginée et une recherche

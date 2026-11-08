@@ -1,4 +1,5 @@
 import { Alert, Box, Button, TextField } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import type { AdminSession, DataSubjectRequest } from '../../api/types';
 import { ConfirmActionDialog } from '../../components/ConfirmActionDialog';
 import { PrivacyRequestMessage } from '../../components/PrivacyRequestMessage';
@@ -15,6 +16,7 @@ export function PrivacyRequestActions({ request, disabled, onSelect }: {
   const actions = availablePrivacyActions(request);
   if (!actions.length) return null;
   return <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+    {request.type === 'rectification' && <Button component={RouterLink} to={`/users/${request.user_id}`} disabled={disabled} size="small">{t('identityCorrection.edit')}</Button>}
     {actions.map(status => <Button
       key={status}
       disabled={disabled}
@@ -54,6 +56,7 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
     onConfirm={onConfirm}
   >
     <PrivacyRequestMessage details={draft.request.details} />
+    {draft.request.type === 'rectification' && draft.status === 'completed' && <Button component={RouterLink} to={`/users/${draft.request.user_id}`} disabled={saving} sx={{ mb: 2 }}>{t('identityCorrection.edit')}</Button>}
     {rules.requiresReply && <>
       <Alert severity="info" sx={{ mb: 2 }}>{t('privacyRequests.resolveGuidance')}</Alert>
       <TextField fullWidth required multiline minRows={3} label={t('privacyRequests.publicReply')} helperText={t('privacyRequests.publicReplyHelp')} value={draft.response} onChange={(event) => onResponseChange(event.target.value)} inputProps={{ maxLength: PRIVACY_REPLY_MAX_LENGTH }} disabled={saving} sx={{ mb: 2 }} />
