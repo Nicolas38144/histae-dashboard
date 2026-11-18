@@ -14,7 +14,6 @@ const maintenanceDestinations: Record<MaintenanceJob['job_name'], { path: string
   photos: { path: '/photo-reconciliation', label: 'common.photos' },
   privacy: { path: '/privacy-requests', label: 'common.gdprRequests' },
   outbox: { path: '/outbox-dead-letters', label: 'common.outbox' },
-  billing: { path: '/billing-reconciliation', label: 'common.stripe' },
 };
 
 export function attentionTasks(data: Pick<AdminMetrics, 'moderation' | 'photos' | 'operations'>): AttentionTask[] {

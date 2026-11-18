@@ -1,6 +1,6 @@
 import { http, HttpResponse, delay } from 'msw';
 import { ADMIN_SESSION_EXPIRED_EVENT } from '../../src/auth/session';
-import { createTrait, getRevenue } from '../../src/api/admin';
+import { createTrait, getPhotoReconciliation } from '../../src/api/admin';
 import { api, errorMessage } from '../../src/api/client';
 import { server } from '../mocks/server';
 
@@ -76,12 +76,12 @@ describe('HTTP client', () => {
   });
 
   it('propagates cancellation through AbortSignal', async () => {
-    server.use(http.get(`${apiUrl}/admin/revenue`, async () => {
+    server.use(http.get(`${apiUrl}/admin/photo-reconciliation`, async () => {
       await delay(60_000);
       return HttpResponse.json({});
     }));
     const controller = new AbortController();
-    const request = getRevenue('last_7_days', controller.signal);
+    const request = getPhotoReconciliation('all', undefined, controller.signal);
     controller.abort();
 
     await expect(request).rejects.toMatchObject({ code: 'ERR_CANCELED' });

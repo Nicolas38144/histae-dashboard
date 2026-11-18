@@ -17,8 +17,8 @@ Les deux offres Premium partagent les mêmes droits. Le dashboard ne crée aucun
 cette page et n'embarque aucun tarif de secours. Le contrat exige `plans` et `offers` : une réponse
 sans `offers` est rejetée. Une liste explicitement vide reste vide et les données malformées sont refusées.
 
-Aucune carte ne propose d'essai. Le champ `trial_days` a été retiré du catalogue HTTP et des modèles
-clients ; les nouvelles créations Checkout sont sans essai.
+Les abonnements payants sont gérés exclusivement par l’App Store sur iOS et Google Play sur Android.
+Le dashboard affiche le catalogue et les rapports des stores sans proposer de paiement web.
 
 La **Vue d'ensemble** exige `subscription_offers` de `/api/admin/metrics` pour compter Free,
 Premium Mensuel et Premium Annuel selon les droits effectifs. Les accès Premium sans périodicité
@@ -323,20 +323,15 @@ bash reset-docker-compose.sh --production
 Le [guide de supervision API](../histae-api-rust/docs/observability.md) couvre la collecte, les secrets,
 les règles d’alerte et la validation. Aucun nouvel ingress Cloudflare n’est nécessaire.
 
-## Revenus dans la vue d’ensemble
+## Revenus des stores
 
-Le dashboard affiche les **revenus bruts estimés** renvoyés par l’API (`basis: stripe_paid_invoices`).
-Le total additionne les montants des factures d’abonnement Stripe payées enregistrées, selon leur date
-`paid_at`, dans la devise du catalogue. Un achat annuel est compté pour son montant payé, sans division
-par douze ; les renouvellements et remises sont donc pris en compte. Ce montant n’est pas un MRR.
+La vue d’ensemble renvoie vers **Abonnements stores**, qui présente les rapports financiers importés
+de l’App Store et de Google Play. Les montants bruts et nets sont séparés par fournisseur et devise.
+Un net inconnu reste inconnu ; aucun montant n’est déduit des tarifs du catalogue ou du nombre
+d’abonnés. Les informations opérationnelles et l’import financier restent disponibles sur cette page.
 
-Les cartes indiquent aussi le nombre de factures et d’abonnements distincts avec paiement sur la période.
-Les essais à zéro et factures impayées sont exclus. Une annulation ultérieure ou l’effacement du compte
-ne retire pas une facture historique. Les factures dans une autre devise sont exclues et signalées.
-
-Les taxes facturées sont incluses ; frais et remboursements ne sont pas déduits. Les webhooks non reçus
-peuvent laisser des factures absentes : il ne s’agit ni d’un bénéfice, ni d’un relevé des versements Stripe.
-Déployer ce dashboard avec la version de l’API portant le même contrat de revenus.
+Les seuls événements de paiement présentés dans l’outbox sont ceux de `billing.store.*`.
+La maintenance n’affiche que les tâches de matchs, photos, confidentialité et outbox.
 
 ## Traductions du catalogue
 
@@ -408,8 +403,8 @@ authentification récente et confirmation explicite du fichier/fournisseur/rappo
 Le CSV normalisé, son format et l’idempotence sont décrits dans le
 [guide serveur](../histae-api-rust/docs/store-billing.md#dashboard-et-rapports-financiers).
 Le modèle téléchargeable contient uniquement l’en-tête. Les rapports bruts fournisseurs doivent être
-normalisés avant import. Les devises sont séparées, les nets inconnus restent inconnus, Stripe reste
-affiché séparément sur factures payées. Aucun revenu natif n’est déduit du nombre de comptes Premium.
+normalisés avant import. Les devises sont séparées et les nets inconnus restent inconnus.
+Aucun revenu natif n’est déduit du nombre de comptes Premium.
 
 
 Le module `src/features/store-billing/` sépare modèles, normalisation CSV, totaux par devise,
@@ -497,7 +492,7 @@ L’API revalide les droits en base et journalise chaque changement. Le détail 
 `complimentary_premium` et `is_review_account`. Déployer l’API et ses migrations avant le dashboard.
 Aucune variable `.env` supplémentaire n’est nécessaire.
 
-Cette offre ne crée ni achat ni facture, et n’annule pas un abonnement Stripe/store existant.
+Cette offre ne crée ni achat ni facture, et n’annule pas un abonnement App Store ou Google Play existant.
 Retirer l’offre conserve les droits d’un abonnement payant encore valide.
 
 ## Rectification des informations d’un profil

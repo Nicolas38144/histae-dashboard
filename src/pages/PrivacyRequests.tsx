@@ -18,7 +18,7 @@ import { usePrivacyRequestAction } from '../features/privacy-requests/use-reques
 import { useCursorPagination } from '../hooks/useCursorPagination';
 import { formatDate } from '../utils/format';
 
-const steps = () => ({ stripe: t("common.stripe"), photos: t("common.privatePhotos"), swipes: t("privacyRequests.discoveryDecisions"), postgres: t("privacyRequests.postgresqlAnonymisation"), completed: t("common.erasureCompleted") });
+const steps = () => ({ photos: t("common.privatePhotos"), swipes: t("privacyRequests.discoveryDecisions"), postgres: t("privacyRequests.postgresqlAnonymisation"), completed: t("common.erasureCompleted") });
 const requestKey = (request: DataSubjectRequest) => request.id;
 
 export default function PrivacyRequests() {
@@ -70,7 +70,7 @@ function ErasureProgress({ request }: { request: DataSubjectRequest }) {
   const erasure = request.erasure;
   if (!erasure) return null;
   return <Box sx={{ mt: 1 }}>
-    <Typography variant="body2">{steps()[erasure.step]}</Typography>
+    <Typography variant="body2">{steps()[erasure.step] ?? t('common.processing')}</Typography>
     <Typography variant="caption">{t("privacy.attempts", { status: erasure.status === 'dead_letter' ? t("privacyRequests.interventionRequired") : erasure.status === 'processing' ? t("common.processingInProgress") : erasure.step === 'completed' ? t("common.completed") : t("privacyRequests.waitingForRetry"), count: erasure.attempts })}</Typography>
     <Typography variant="caption" display="block">{t("privacy.progress", { date: formatDate(erasure.updated_at) })}</Typography>
     {erasure.last_error_code && <Typography variant="caption" color="error" display="block">{erasure.last_error_code}</Typography>}

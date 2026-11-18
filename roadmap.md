@@ -13,7 +13,7 @@ de réauthentification ou d’audit dans React.
 
 | Lot | Résultat durable |
 | --- | --- |
-| R02/R05/R06 | effacement reprenable, anomalies Stripe actionnables et progression des maintenances |
+| R02/R05/R06 | effacement reprenable, paiements App Store / Google Play et progression des maintenances |
 | Modération | liste minimisée, détail justifié, checklist photo et décision optimiste |
 | Identité | connexion WebAuthn, gestion des passkeys et cookie de session inaccessible au JavaScript |
 | D05 | Vitest/Testing Library/MSW, parcours Playwright WebAuthn et smoke test API local facultatif |

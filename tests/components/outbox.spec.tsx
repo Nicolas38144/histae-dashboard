@@ -13,7 +13,7 @@ describe('dead-letter operations', () => {
   it('only offers discard for eligible event types and sends an audited reason', async () => {
     const user = userEvent.setup();
     let submitted: unknown;
-    const events = ['billing.subscription.reconcile', 'account.erase', 'notification.push', 'photo.delete'].map((event_type, index) => ({
+    const events = ['billing.store.reconcile', 'account.erase', 'notification.push', 'photo.delete'].map((event_type, index) => ({
       event_id: `80000000-0000-4000-8000-00000000000${index + 1}`,
       event_type,
       attempts: 10,

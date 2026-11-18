@@ -11,13 +11,13 @@ import {
   VerifiedUserOutlined,
   FactCheckOutlined,
 } from '@mui/icons-material';
-import { Alert, Box, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { Alert, Box, Button, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useCallback } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { getMetrics } from '../api/admin';
 import { AsyncState } from '../components/AsyncState';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
-import { RevenuePanel } from '../components/RevenuePanel';
 import { StatusChip } from '../components/StatusChip';
 import { SubscriptionDistribution } from '../components/SubscriptionDistribution';
 import { useAsyncData } from '../hooks/useAsyncData';
@@ -48,7 +48,11 @@ export default function Overview() {
             <MetricCard label={t("common.photosToReconcile")} value={data.photos.stale_processing + data.photos.deletion_dead_letters + data.photos.deletion_without_active_event} icon={<PhotoOutlined color="warning" />} accent="warning.main" />
           </Box>
 
-          <RevenuePanel initialRevenue={data.revenue} />
+          <Paper variant="outlined" sx={{ p: 3, mt: 3 }}>
+            <Typography variant="h6" fontWeight={700}>{t('storeBilling.finance')}</Typography>
+            <Typography color="text.secondary" sx={{ mt: 1, mb: 2 }}>{t('storeBilling.overviewNotice')}</Typography>
+            <Button component={RouterLink} to="/store-billing" variant="outlined">{t('storeBilling.title')}</Button>
+          </Paper>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.2fr 1fr' }, gap: 2, mt: 3 }}>
             <Paper variant="outlined" sx={{ p: 3 }}>
@@ -96,5 +100,4 @@ const maintenanceLabels = () => ({
   photos: t("common.photos"),
   privacy: t("common.gdprRetention"),
   outbox: t("common.outbox"),
-  billing: t("billingReconciliation.stripeReconciliation"),
 } as const);

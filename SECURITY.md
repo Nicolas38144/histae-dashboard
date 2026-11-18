@@ -50,7 +50,7 @@ Ne jamais exposer au dashboard :
 - téléphone, empreinte ou valeur chiffrée ;
 - latitude et longitude précises ;
 - clé objet, URL photo durable ou image dans une collection administrative ;
-- payload, Customer ID ou moyen de paiement Stripe ;
+- reçus d’achat bruts, secrets de validation ou moyens de paiement des stores ;
 - token/hash de session, clé publique complète ou secret WebAuthn.
 
 Les consultations de profils, matchs, conversations et contenus sont auditées par l’API. Le motif est

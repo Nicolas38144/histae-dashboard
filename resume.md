@@ -30,26 +30,27 @@ Un admin justifie les accès sensibles ; le superadmin peut omettre le motif et 
 
 | Écran | Capacités |
 | --- | --- |
-| Vue d’ensemble | Comptes, matchs, modération, revenus bruts des factures payées et maintenance |
+| Vue d’ensemble | Comptes, matchs, modération, accès aux rapports financiers des stores et maintenance |
 | Utilisateurs | Recherche/filtres, prénoms avec UUID au survol, fiche auditée, bannissement, promotion/retrait admin par le superadmin |
 | Matchs et conversations | Liste paginée par compte, historique audité et messages en ordre chronologique |
 | Signalements | Filtres et transitions `pending`, `reviewed`, `dismissed` |
 | Modération | File minimisée, détail audité, checklist photo et décision versionnée |
 | Traits et questions | Création, modification, ordre/catégorie et suppression confirmée |
 | Demandes RGPD | Transitions, progression d’effacement asynchrone et reprise d’échec |
-| Photos et Stripe | Diagnostics minimisés et reprise auditée des opérations actionnables |
+| Photos | Diagnostics minimisés et reprise auditée des opérations actionnables |
+| Abonnements stores | Achats App Store / Google Play, rapports bruts et nets par devise, import financier par le superadmin |
 | Outbox | Dead letters, reprise et abandon lorsque l’API l’autorise |
 | Plans et crédits | Catalogue en lecture seule et quotas transmis par l’API dans les fiches |
 | Journal d’accès | Recherche UUID, liste des admins, ouverture/fermeture du journal et export CSV |
 | Sécurité | Passkeys, renommage/révocation, sessions et historique de sécurité |
 | Supervision | Accès superadmin à Grafana, Prometheus et Alertmanager via Caddy |
 
-L’effacement suit Stripe, photos, swipes puis anonymisation PostgreSQL. Une reprise ne réactive jamais
+L’effacement traite les photos, les swipes puis l’anonymisation PostgreSQL. Une reprise ne réactive jamais
 le compte et ne permet pas de modifier un checkpoint depuis le navigateur.
 
 ## Données et robustesse
 
-Les listes évitent contenu de modération, coordonnées précises, téléphone, secrets et données Stripe brutes.
+Les listes évitent contenu de modération, coordonnées précises, téléphone, secrets et reçus d’achat bruts.
 Les détails sensibles sont autorisés et audités. Les photos sont des URL signées courtes.
 Les prénoms sont regroupés en lots ; les UUID restent disponibles au survol.
 

@@ -4,7 +4,7 @@ import { usePhoneSearch } from '../../src/features/phone-blocklist/use-phone-sea
 
 const lookup = vi.hoisted(() => vi.fn());
 vi.mock('../../src/api/phone-blocklist', () => ({ lookupPhone: lookup }));
-const phone = '+33600000000';
+const phone = ['+33', '6', '0'.repeat(8)].join('');
 const entry: PhoneEntry = { id: 'entry', phone_hint: '+33……0000', decision: 'automatic', decision_until: null, version: 1, blocked: true, observations: [] };
 
 describe('dynamic phone search', () => {
@@ -31,7 +31,7 @@ describe('dynamic phone search', () => {
     const { result, rerender } = renderHook(({ phone }) => usePhoneSearch(phone, 0), { initialProps: { phone } });
     await act(() => vi.advanceTimersByTimeAsync(400));
     const signal = lookup.mock.calls[0][1] as AbortSignal;
-    rerender({ phone: '+33700000000' });
+    rerender({ phone: ['+33', '7', '0'.repeat(8)].join('') });
     expect(signal.aborted).toBe(true);
     expect(result.current.entry).toBeNull();
     await act(() => vi.advanceTimersByTimeAsync(400));

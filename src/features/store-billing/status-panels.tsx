@@ -42,7 +42,6 @@ export function StoreBillingPanels({ data, period, setPeriod }: { data: StoreBil
             <TableCell>{row.net_cents === null ? t('common.missing') : formatMoney(row.net_cents, row.currency)}</TableCell><TableCell>{formatDate(row.last_imported_at)}</TableCell>
           </TableRow>)}</TableBody>
         </Table>}
-        <Typography sx={{ mt: 2 }}>{t('storeBilling.stripeNotice')}</Typography>
       </Paper>
       <Paper variant="outlined" sx={{ p: 3, mt: 3, overflowX: 'auto' }}>
         <Typography variant="h6">{t('storeBilling.recent')}</Typography>

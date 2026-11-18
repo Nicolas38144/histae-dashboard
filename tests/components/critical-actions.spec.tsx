@@ -2,7 +2,6 @@ import { http, HttpResponse } from 'msw';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AuditLogs from '../../src/pages/AuditLogs';
-import BillingReconciliation from '../../src/pages/BillingReconciliation';
 import ContentModeration from '../../src/pages/ContentModeration';
 import PhotoReconciliation from '../../src/pages/PhotoReconciliation';
 import PrivacyRequests from '../../src/pages/PrivacyRequests';
@@ -13,7 +12,6 @@ import {
   adminMetrics,
   adminSession,
   adminUser,
-  billingReconciliation,
   erasureRequest,
   fixtureIds,
   moderationDetail,
@@ -145,7 +143,7 @@ describe('critical dashboard actions', () => {
     expect(submitted).toEqual({ version: 3, decision: 'approved' });
   });
 
-  it('retries photo and Stripe dead letters without a reason for the superadmin', async () => {
+  it('retries photo dead letters without a reason for the superadmin', async () => {
     const user = userEvent.setup();
     const retries: Array<{ path: string; body: unknown }> = [];
     server.use(
@@ -156,31 +154,15 @@ describe('critical dashboard actions', () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    const photoView = renderDashboard(<PhotoReconciliation />);
+    renderDashboard(<PhotoReconciliation />);
     await user.click(await screen.findByRole('button', { name: 'Réconcilier' }));
     const photoDialog = await screen.findByRole('dialog', { name: 'Réconcilier cette photo ?' });
     expect(within(photoDialog).queryByRole('textbox')).not.toBeInTheDocument();
     await user.click(within(photoDialog).getByRole('button', { name: 'Remettre en file' }));
     await waitFor(() => expect(retries).toHaveLength(1));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    photoView.unmount();
-
-    server.use(
-      http.get(`${apiUrl}/admin/billing-reconciliation`, () => HttpResponse.json({ events: [billingReconciliation], next_cursor: null })),
-      http.post(`${apiUrl}/admin/outbox/${fixtureIds.event}/retry`, async ({ request }) => {
-        retries.push({ path: new URL(request.url).pathname, body: await request.json() });
-        return new HttpResponse(null, { status: 204 });
-      }),
-    );
-    renderDashboard(<BillingReconciliation />);
-    await user.click(await screen.findByRole('button', { name: 'Revérifier' }));
-    const billingDialog = await screen.findByRole('dialog', { name: 'Revérifier cette anomalie Stripe ?' });
-    expect(within(billingDialog).queryByRole('textbox')).not.toBeInTheDocument();
-    await user.click(within(billingDialog).getByRole('button', { name: 'Remettre en file' }));
-
     await waitFor(() => expect(retries).toEqual([
       { path: `/api/admin/photo-reconciliation/${fixtureIds.photo}/retry`, body: {} },
-      { path: `/api/admin/outbox/${fixtureIds.event}/retry`, body: {} },
     ]));
   });
 

@@ -2,7 +2,7 @@ import {
   AssessmentOutlined, GavelOutlined, GroupsOutlined, LocalOfferOutlined,
   PolicyOutlined, PriceChangeOutlined, QuestionAnswerOutlined, SecurityOutlined,
   SmsOutlined, SyncProblemOutlined, FactCheckOutlined, AdminPanelSettingsOutlined,
-  CreditScoreOutlined, MarkunreadMailboxOutlined, MonitorHeartOutlined,
+  MarkunreadMailboxOutlined, MonitorHeartOutlined,
 } from '@mui/icons-material';
 import { t } from '../i18n/core';
 import type { AdminSession } from '../api/types';
@@ -27,7 +27,6 @@ export function navigationGroups(role: AdminSession['role'], search: string) {
     { id: 'payments', label: t('workspace.payments'), entries: [
       { path: '/plans', label: t('common.plans'), icon: <PriceChangeOutlined /> },
       { path: '/store-billing', label: t('storeBilling.title'), icon: <PriceChangeOutlined /> },
-      { path: '/billing-reconciliation', label: t('common.stripe'), icon: <CreditScoreOutlined /> },
     ] },
     { id: 'operations', label: t('workspace.operations'), entries: [
       { path: '/outbox-dead-letters', label: t('common.outbox'), icon: <MarkunreadMailboxOutlined /> },

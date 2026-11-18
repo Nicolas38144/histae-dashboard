@@ -5,7 +5,6 @@ import type {
   AdminSession,
   SmsSafety,
   AdminUserDetail,
-  BillingReconciliationItem,
   DataSubjectRequest,
   ModerationDetail,
   PhotoReconciliationItem,
@@ -126,16 +125,6 @@ export const photoReconciliation: PhotoReconciliationItem = {
   issue: 'deletion_dead_letter',
 };
 
-export const billingReconciliation: BillingReconciliationItem = {
-  event_id: fixtureIds.event,
-  user_id: fixtureIds.user,
-  kind: 'customer_creation',
-  attempts: 10,
-  last_error_code: 'billing_customer_search_ambiguous',
-  created_at: now,
-  dead_lettered_at: now,
-};
-
 export const erasureRequest: DataSubjectRequest = {
   id: fixtureIds.request,
   user_id: fixtureIds.user,
@@ -176,17 +165,6 @@ export const adminMetrics: AdminMetrics = {
     { offer: 'premium_annual', users: 0 },
     { offer: 'premium_unspecified', users: 0 },
   ],
-  revenue: {
-    period: 'last_30_days',
-    period_start: '2026-08-07T08:00:00.000Z',
-    period_end: now,
-    premium_subscriptions: 0,
-    paid_invoices: 0,
-    estimated_revenue_cents: 0,
-    currency: 'EUR',
-    excluded_currency_invoices: 0,
-    basis: 'stripe_paid_invoices',
-  },
   operations: {
     runtime: { runtime: 'rust', uptime_seconds: 10, memory_rss_bytes: 1_000 },
     postgres_pool: { total: 2, idle: 2, waiting: 0 },

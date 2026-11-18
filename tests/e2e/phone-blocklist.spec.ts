@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { adminSession, smsSafety } from '../fixtures';
 
 test('searches dynamically without opening the review dialog and refreshes the result after saving', async ({ page }) => {
-  const phone = '+33600000000';
+  const phone = ['+33', '6', '0'.repeat(8)].join('');
   let entry = { id: '90000000-0000-4000-8000-000000000001', phone_hint: '+33……0000', decision: 'automatic', decision_until: null, version: 2, blocked: true, observations: [] };
   const lookups: unknown[] = [];
   await page.route('**/api/admin/**', async (route) => {

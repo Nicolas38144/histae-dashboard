@@ -80,6 +80,6 @@ function dialogTitle(action: PrivacyAction): string {
 
 function dialogDescription(action: PrivacyAction): string {
   if (action.status === 'retry') return t('privacyRequests.checkThatTheCauseOfTheFailureIsResolved');
-  if (action.status === 'completed' && action.request.type === 'erasure') return t('privacyRequests.theErasureWorkflowWillBeScheduledStripePhotosDiscovery');
+  if (action.status === 'completed' && action.request.type === 'erasure') return t('privacyRequests.erasureWorkflow');
   return t('privacyRequests.theTransitionAndTheResponsibleAdministratorWillBeRecorded');
 }

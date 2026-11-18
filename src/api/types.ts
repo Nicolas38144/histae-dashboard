@@ -38,20 +38,8 @@ export type AdminAuthEvent = {
 
 export type RevenuePeriod = 'last_7_days' | 'last_30_days' | 'month_to_date' | 'previous_month' | 'year_to_date' | 'all_time';
 
-export type AdminRevenue = {
-  period: RevenuePeriod;
-  period_start: string | null;
-  period_end: string;
-  premium_subscriptions: number;
-  paid_invoices: number;
-  estimated_revenue_cents: number;
-  currency: string;
-  excluded_currency_invoices: number;
-  basis: 'stripe_paid_invoices';
-};
-
 export type MaintenanceJob = {
-  job_name: 'matches' | 'photos' | 'privacy' | 'outbox' | 'billing';
+  job_name: 'matches' | 'photos' | 'privacy' | 'outbox';
   status: 'running' | 'succeeded' | 'failed' | 'skipped' | null;
   started_at: string | null;
   finished_at: string | null;
@@ -83,7 +71,6 @@ export type AdminMetrics = {
   photos: PhotoMetrics;
   subscriptions: Array<{ plan: string; users: number }>;
   subscription_offers: Array<{ offer: 'free' | 'premium_monthly' | 'premium_annual' | 'premium_unspecified'; users: number }>;
-  revenue: AdminRevenue;
   operations: AdminOperations;
 };
 
@@ -174,19 +161,6 @@ export type ProfileIdentityCorrection = {
 
 export type CursorResponse<T, K extends string> = Record<K, T[]> & { next_cursor: string | null };
 
-export type BillingReconciliationKind = 'subscription' | 'customer_creation';
-export type BillingReconciliationKindFilter = BillingReconciliationKind | 'all';
-
-export type BillingReconciliationItem = {
-  event_id: string;
-  user_id: string;
-  kind: BillingReconciliationKind;
-  attempts: number;
-  last_error_code: string | null;
-  created_at: string;
-  dead_lettered_at: string;
-};
-
 export type ReportStatus = 'pending' | 'reviewed' | 'dismissed';
 export type Report = {
   id: string;
@@ -231,7 +205,7 @@ export type DataSubjectRequest = {
   handled_by: string | null;
   notes: string | null;
   erasure: {
-    step: 'stripe' | 'photos' | 'swipes' | 'postgres' | 'completed';
+    step: 'photos' | 'swipes' | 'postgres' | 'completed';
     updated_at: string;
     event_id: string | null;
     status: 'pending' | 'processing' | 'completed' | 'dead_letter' | 'discarded' | null;

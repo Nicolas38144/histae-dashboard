@@ -1,4 +1,4 @@
-# Kept identical in the three independent Docker build contexts.
+# Sanitized access logs for the dashboard HTTP layer.
 (histae_access) {
 	log {
 		output stdout
@@ -24,7 +24,6 @@
 	map {path} {histae_route} {
 		/api/auth/admob/webhook admob-webhook
 		/api/auth/sweego/webhook sweego-webhook
-		/api/billing/stripe/webhook stripe-webhook
 		~^/api(?:/|$) api
 		~^/health(?:/|$) health
 		~^/(?:assets|_next)(?:/|$) asset

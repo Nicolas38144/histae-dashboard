@@ -11,7 +11,6 @@ const Login = lazy(() => import('../pages/Login'));
 const Overview = lazy(() => import('../pages/Overview'));
 const Plans = lazy(() => import('../pages/Plans'));
 const PhotoReconciliation = lazy(() => import('../pages/PhotoReconciliation'));
-const BillingReconciliation = lazy(() => import('../pages/BillingReconciliation'));
 const OutboxDeadLetters = lazy(() => import('../pages/OutboxDeadLetters'));
 const ContentModeration = lazy(() => import('../pages/ContentModeration'));
 const ProfileQuestions = lazy(() => import('../pages/ProfileQuestions'));
@@ -58,7 +57,6 @@ export default function AppRoutes({ mode, toggleMode }: { mode: 'light' | 'dark'
               <Route path="/privacy-requests" element={<PrivacyRequests />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/photo-reconciliation" element={<PhotoReconciliation />} />
-              <Route path="/billing-reconciliation" element={<BillingReconciliation />} />
               <Route path="/outbox-dead-letters" element={<OutboxDeadLetters />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/security" element={<Security />} />

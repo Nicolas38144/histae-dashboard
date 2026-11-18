@@ -101,7 +101,7 @@ restent testées dans `histae-api-rust`.
 
 ## Règles d’isolation
 
-- aucun test autonome ne contacte l’API, Stripe ou un autre fournisseur ;
+- aucun test autonome ne contacte l’API ou les fournisseurs de paiement ;
 - chaque test remet à zéro handlers MSW, DOM et stockages navigateur ;
 - les actions utilisent des motifs explicitement fictifs ;
 - les traces et captures Playwright ne sont conservées qu’en cas d’échec et sont ignorées par Git ;

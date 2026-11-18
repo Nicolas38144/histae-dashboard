@@ -6,7 +6,6 @@ import type {
   AdminMetrics,
   SmsSafety,
   AdminProfileQuestion,
-  AdminRevenue,
   AdminUser,
   AdminUserDetail,
   ProfileIdentityCorrection,
@@ -21,7 +20,6 @@ import type {
   PlanCatalog,
   Report,
   ReportStatus,
-  RevenuePeriod,
   Trait,
   ProfileQuestionCategory,
   UserRole,
@@ -29,8 +27,6 @@ import type {
   ModerationContentType,
   ModerationDetail,
   ModerationStatus,
-  BillingReconciliationItem,
-  BillingReconciliationKindFilter,
   OutboxDeadLetter,
 } from './types';
 
@@ -44,12 +40,14 @@ export async function getMetrics(): Promise<AdminMetrics> {
     || new Set(offers.map((entry) => entry.offer)).size !== 4) {
     throw new LocalizedError("admin.theSubscriptionBreakdownReturnedByTheApiIsIncomplete");
   }
-  return data;
+  return {
+    ...data,
+    operations: {
+      ...data.operations,
+      maintenance: data.operations.maintenance.filter((job) => ['matches', 'photos', 'privacy', 'outbox'].includes(job.job_name)),
+    },
+  };
 }
-
-export const getRevenue = async (revenuePeriod: RevenuePeriod, signal?: AbortSignal): Promise<AdminRevenue> => (
-  await api.get<AdminRevenue>('/admin/revenue', { params: { revenue_period: revenuePeriod }, signal })
-).data;
 
 export async function getPhotoReconciliation(
   status: PhotoReconciliationFilter,
@@ -234,16 +232,6 @@ export async function retryErasure(eventId: string, reason?: string): Promise<vo
   await retryOutboxEvent(eventId, reason);
 }
 
-export async function getBillingReconciliation(
-  kind: BillingReconciliationKindFilter,
-  cursor?: string,
-  signal?: AbortSignal,
-): Promise<CursorResponse<BillingReconciliationItem, 'events'>> {
-  return (await api.get<CursorResponse<BillingReconciliationItem, 'events'>>('/admin/billing-reconciliation', {
-    params: { kind, cursor, limit: 50 }, signal,
-  })).data;
-}
-
 export async function retryOutboxEvent(eventId: string, reason?: string): Promise<void> {
   await api.post(`/admin/outbox/${eventId}/retry`, reason?.trim() ? { reason: reason.trim() } : {});
 }
@@ -252,9 +240,13 @@ export async function getOutboxDeadLetters(
   cursor?: string,
   signal?: AbortSignal,
 ): Promise<CursorResponse<OutboxDeadLetter, 'events'>> {
-  return (await api.get<CursorResponse<OutboxDeadLetter, 'events'>>('/admin/outbox/dead-letters', {
+  const { data } = await api.get<CursorResponse<OutboxDeadLetter, 'events'>>('/admin/outbox/dead-letters', {
     params: { limit: 50, cursor }, signal,
-  })).data;
+  });
+  return {
+    ...data,
+    events: data.events.filter((event) => !event.event_type.startsWith('billing.') || event.event_type.startsWith('billing.store.')),
+  };
 }
 
 export async function discardOutboxEvent(eventId: string, reason?: string): Promise<void> {
