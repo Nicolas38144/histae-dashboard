@@ -155,10 +155,11 @@ describe('critical dashboard actions', () => {
       }),
     );
     renderDashboard(<PhotoReconciliation />);
-    await user.click(await screen.findByRole('button', { name: 'Réconcilier' }));
-    const photoDialog = await screen.findByRole('dialog', { name: 'Réconcilier cette photo ?' });
+    await user.click(await screen.findByRole('button', { name: 'Relancer la suppression' }));
+    const photoDialog = await screen.findByRole('dialog', { name: 'Relancer la suppression de cette photo ?' });
+    expect(within(photoDialog).getByText(/La suppression définitive du fichier sera reprogrammée/)).toBeVisible();
     expect(within(photoDialog).queryByRole('textbox')).not.toBeInTheDocument();
-    await user.click(within(photoDialog).getByRole('button', { name: 'Remettre en file' }));
+    await user.click(within(photoDialog).getByRole('button', { name: 'Relancer la suppression' }));
     await waitFor(() => expect(retries).toHaveLength(1));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(retries).toEqual([

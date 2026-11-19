@@ -299,6 +299,28 @@ Vérifier la politique de cache avec Caddy installé : `node tests/deployment/ca
 La variable `CADDY_BIN` permet d’indiquer son exécutable. Ce contrôle utilise uniquement des fichiers
 et une API factices sur la boucle locale, y compris les erreurs, réponses partielles et validations ETag.
 
+## Maintenance des photos
+
+La page **Maintenance des photos**, dans **Exploitation**, surveille les envois incomplets depuis au
+moins trente minutes et les photos dont la suppression reste à terminer. La conversion a lieu pendant
+la requête d’envoi ; cette page ne permet pas de relancer une conversion ou de modérer une image.
+Les photos disponibles sont comptées, mais ne figurent pas dans le tableau. Le compteur **Envois en
+cours** exclut les envois abandonnés déjà comptés dans **Envois abandonnés à nettoyer**.
+
+**Nettoyer l’envoi abandonné** programme la suppression de son éventuel fichier sans retirer la photo
+actuelle du profil. La personne devra renvoyer sa photo depuis l’app. **Relancer la suppression**
+reprogramme un nettoyage en échec ou sans tâche active. Chaque action demande une confirmation et
+est auditée ; un admin doit saisir un motif de trois à cinq cents caractères. Le superadmin conserve
+le motif automatique fourni par l’API.
+
+La maintenance automatique reprend aussi les envois abandonnés et les suppressions. L’absence de tâche
+Outbox active n’indique donc pas à elle seule une panne : cette maintenance peut supprimer directement
+l’objet. Les échecs après épuisement des tentatives et les tâches terminées ou abandonnées dont la photo
+subsiste restent visibles. **Actualiser** relit à la fois les compteurs et la liste.
+
+Les routes existantes `/photo-reconciliation` et `/api/admin/photo-reconciliation` sont conservées.
+Le [contrat API](../histae-api-rust/docs/http-contract.md#administration) décrit les restrictions de reprise.
+
 ## Supervision Docker
 
 La page **Supervision** est visible uniquement pour le superadmin. Elle ouvre Grafana, Prometheus et

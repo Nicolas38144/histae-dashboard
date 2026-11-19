@@ -11,7 +11,7 @@ type AttentionTask = {
 
 const maintenanceDestinations: Record<MaintenanceJob['job_name'], { path: string; label: MessageKey }> = {
   matches: { path: '#maintenance', label: 'common.matches' },
-  photos: { path: '/photo-reconciliation', label: 'common.photos' },
+  photos: { path: '/photo-reconciliation', label: 'photoMaintenance.title' },
   privacy: { path: '/privacy-requests', label: 'common.gdprRequests' },
   outbox: { path: '/outbox-dead-letters', label: 'common.outbox' },
 };

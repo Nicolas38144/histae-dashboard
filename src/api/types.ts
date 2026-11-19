@@ -92,7 +92,8 @@ export type PhotoReconciliationIssue =
   | 'deletion_retry_scheduled'
   | 'deletion_dead_letter'
   | 'deletion_event_missing'
-  | 'deletion_event_completed';
+  | 'deletion_event_completed'
+  | 'deletion_event_discarded';
 
 export type PhotoReconciliationItem = {
   photo_id: string;
@@ -103,7 +104,7 @@ export type PhotoReconciliationItem = {
   height: number | null;
   created_at: string;
   updated_at: string;
-  outbox_status: 'pending' | 'processing' | 'completed' | 'dead_letter' | null;
+  outbox_status: 'pending' | 'processing' | 'completed' | 'dead_letter' | 'discarded' | null;
   outbox_attempts: number | null;
   outbox_available_at: string | null;
   outbox_locked_at: string | null;

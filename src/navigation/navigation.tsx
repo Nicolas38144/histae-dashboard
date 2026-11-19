@@ -22,13 +22,13 @@ export function navigationGroups(role: AdminSession['role'], search: string) {
       { path: '/reports', label: t('common.reports'), icon: <GavelOutlined /> },
       { path: '/content-moderation', label: t('common.moderation'), icon: <FactCheckOutlined /> },
       { path: '/privacy-requests', label: t('common.gdprRequests'), icon: <PolicyOutlined /> },
-      { path: '/photo-reconciliation', label: t('common.photos'), icon: <SyncProblemOutlined /> },
     ] },
     { id: 'payments', label: t('workspace.payments'), entries: [
       { path: '/plans', label: t('common.plans'), icon: <PriceChangeOutlined /> },
       { path: '/store-billing', label: t('storeBilling.title'), icon: <PriceChangeOutlined /> },
     ] },
     { id: 'operations', label: t('workspace.operations'), entries: [
+      { path: '/photo-reconciliation', label: t('photoMaintenance.title'), icon: <SyncProblemOutlined /> },
       { path: '/outbox-dead-letters', label: t('common.outbox'), icon: <MarkunreadMailboxOutlined /> },
       { path: '/sms-safety', label: t('common.smsSafety'), icon: <SmsOutlined /> },
       { path: '/audit-logs', label: t('common.accessLog'), icon: <SecurityOutlined /> },

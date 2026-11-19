@@ -6,10 +6,12 @@ import {
   DeleteSweepOutlined,
   HourglassTopOutlined,
   PhotoOutlined,
+  RefreshOutlined,
   ReplayOutlined,
   ReportProblemOutlined,
 } from '@mui/icons-material';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -46,7 +48,6 @@ import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
-import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
 import { useAsyncData } from '../hooks/useAsyncData';
@@ -54,13 +55,14 @@ import { useCursorPagination } from '../hooks/useCursorPagination';
 import { compactId, formatDate, formatNumber } from '../utils/format';
 
 const issueLabels = (): Record<PhotoReconciliationIssue, string> => ({
-  stale_processing: t("common.stalledProcessing"),
+  stale_processing: t('photoMaintenance.abandonedUpload'),
   deletion_queued: t("common.deletionQueued"),
   deletion_processing: t("common.deletionInProgress"),
-  deletion_retry_scheduled: t("photoReconciliation.retryScheduled"),
-  deletion_dead_letter: t("common.permanentFailure"),
-  deletion_event_missing: t("common.eventMissing"),
-  deletion_event_completed: t("common.inconsistentState"),
+  deletion_retry_scheduled: t('photoMaintenance.retryScheduled'),
+  deletion_dead_letter: t('photoMaintenance.deletionFailed'),
+  deletion_event_missing: t('photoMaintenance.deletionTaskMissing'),
+  deletion_event_completed: t('photoMaintenance.deletionTaskCompleted'),
+  deletion_event_discarded: t('photoMaintenance.deletionTaskDiscarded'),
 });
 
 const retryableIssues = new Set<PhotoReconciliationIssue>([
@@ -68,6 +70,7 @@ const retryableIssues = new Set<PhotoReconciliationIssue>([
   'deletion_dead_letter',
   'deletion_event_missing',
   'deletion_event_completed',
+  'deletion_event_discarded',
 ]);
 const photoKey = (photo: PhotoReconciliationItem) => photo.photo_id;
 
@@ -94,17 +97,17 @@ export default function PhotoReconciliation() {
     pagination.reload();
   };
 
-  const reconcile = async () => {
+  const scheduleDeletion = async () => {
     if (!selected) return;
     setSaving(true);
     try {
       await retryPhotoReconciliation(selected.photo_id, reason.trim());
-      showNotification(t("photoReconciliation.photoReconciliationHasBeenScheduled"), 'success');
+      showNotification(t('photoMaintenance.deletionScheduled'), 'success');
       setSelected(null);
       setReason('');
       reloadAll();
-    } catch (reconcileError) {
-      showNotification(errorMessage(reconcileError), 'error');
+    } catch (deletionError) {
+      showNotification(errorMessage(deletionError), 'error');
     } finally {
       setSaving(false);
     }
@@ -113,10 +116,18 @@ export default function PhotoReconciliation() {
   return (
     <>
       <PageHeader
-        title={t("photoReconciliation.photoReconciliation")}
-        description={t("photoReconciliation.monitorTheUserPhotoLifecycleAndAuditRetriesOf")}
-        actions={<PhotoFilter value={filter} onChange={setFilter} />}
+        title={t('photoMaintenance.title')}
+        description={t('photoMaintenance.description')}
+        actions={(
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+            <PhotoFilter value={filter} onChange={setFilter} />
+            <Button startIcon={<RefreshOutlined />} onClick={reloadAll} disabled={metrics.loading || pagination.loading || pagination.loadingMore}>
+              {t('common.refresh')}
+            </Button>
+          </Box>
+        )}
       />
+      <Alert severity="info" sx={{ mb: 3 }}>{t('photoMaintenance.automaticCleanupHelp')}</Alert>
       {metrics.data && <PhotoMetricGrid metrics={metrics.data.photos} />}
       <AsyncState loading={initialLoading} error={initialError} onRetry={reloadAll} />
       {!initialLoading && !initialError && (
@@ -128,19 +139,19 @@ export default function PhotoReconciliation() {
                 <TableRow key={photo.photo_id} hover>
                   <TableCell>{compactId(photo.photo_id)}</TableCell>
                   <TableCell><UserLink id={photo.user_id} /></TableCell>
-                  <TableCell><StatusChip value={photo.status} /></TableCell>
+                  <TableCell><Chip size="small" variant="outlined" color={photo.status === 'deleting' ? 'info' : 'warning'} label={t(photo.status === 'deleting' ? 'common.deleting' : 'photoMaintenance.incompleteUpload')} /></TableCell>
                   <TableCell><IssueChip issue={photo.issue} /></TableCell>
                   <TableCell>{photoMetadata(photo)}</TableCell>
                   <TableCell>{formatNumber(photo.outbox_attempts)}</TableCell>
                   <TableCell>{formatDate(photo.updated_at)}</TableCell>
                   <TableCell align="right">
                     {retryableIssues.has(photo.issue)
-                      ? <Button size="small" startIcon={<ReplayOutlined />} onClick={() => setSelected(photo)}>{t("common.reconcile")}</Button>
+                      ? <Button size="small" startIcon={photo.issue === 'stale_processing' ? <DeleteSweepOutlined /> : <ReplayOutlined />} onClick={() => setSelected(photo)}>{t(photo.issue === 'stale_processing' ? 'photoMaintenance.cleanAbandonedUpload' : 'photoMaintenance.retryDeletion')}</Button>
                       : <Typography variant="caption" color="text.secondary">{t("common.observation")}</Typography>}
                   </TableCell>
                 </TableRow>
               ))}
-              {!pagination.items.length && <TableRow><TableCell colSpan={8} align="center" sx={{ py: 5 }}>{t("photoReconciliation.noPhotosInThisQueue")}</TableCell></TableRow>}
+              {!pagination.items.length && <TableRow><TableCell colSpan={8} align="center" sx={{ py: 5 }}>{t('photoMaintenance.emptySelection')}</TableCell></TableRow>}
             </TableBody>
           </Table>
           <CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} />
@@ -148,9 +159,10 @@ export default function PhotoReconciliation() {
       )}
       <ConfirmActionDialog
         open={Boolean(selected)}
-        title={t("photoReconciliation.reconcileThisPhoto")}
-        description={t("photoReconciliation.theApiWillRestartProcessingAccordingToThisPhoto")}
-        confirmLabel={t("common.requeue")}
+        title={t(selected?.issue === 'stale_processing' ? 'photoMaintenance.confirmCleanupTitle' : 'photoMaintenance.confirmDeletionTitle')}
+        description={t(selected?.issue === 'stale_processing' ? 'photoMaintenance.confirmCleanupDescription' : 'photoMaintenance.confirmDeletionDescription')}
+        confirmLabel={t(selected?.issue === 'stale_processing' ? 'photoMaintenance.scheduleCleanup' : 'photoMaintenance.retryDeletion')}
+        danger
         value={reason}
         onValueChange={setReason}
         valueLabel={session.role === 'superadmin' ? undefined : t("common.operationalReason")}
@@ -159,7 +171,7 @@ export default function PhotoReconciliation() {
         maxValueLength={500}
         loading={saving}
         onCancel={() => { setSelected(null); setReason(''); }}
-        onConfirm={() => void reconcile()}
+        onConfirm={() => void scheduleDeletion()}
       />
     </>
   );
@@ -174,13 +186,13 @@ function PhotoFilter({
 }) {
   useLocale();
   return (
-    <FormControl size="small" sx={{ minWidth: 210 }}>
-      <InputLabel>{t("common.queue")}</InputLabel>
-      <Select label={t("common.queue")} value={value} onChange={(event) => onChange(event.target.value as PhotoReconciliationFilter)}>
-        <MenuItem value="all">{t("photoReconciliation.allOperations")}</MenuItem>
-        <MenuItem value="stale_processing">{t("common.stalledOperations")}</MenuItem>
+    <FormControl size="small" sx={{ minWidth: 240, maxWidth: '100%' }}>
+      <InputLabel id="photo-maintenance-filter">{t('photoMaintenance.operations')}</InputLabel>
+      <Select labelId="photo-maintenance-filter" label={t('photoMaintenance.operations')} value={value} onChange={(event) => onChange(event.target.value as PhotoReconciliationFilter)}>
+        <MenuItem value="all">{t('photoMaintenance.allOperations')}</MenuItem>
+        <MenuItem value="stale_processing">{t('photoMaintenance.abandonedUploads')}</MenuItem>
         <MenuItem value="deleting">{t("common.deletions")}</MenuItem>
-        <MenuItem value="dead_letter">{t("common.permanentFailures")}</MenuItem>
+        <MenuItem value="dead_letter">{t('photoMaintenance.failedDeletions')}</MenuItem>
       </Select>
     </FormControl>
   );
@@ -190,19 +202,19 @@ function PhotoMetricGrid({ metrics }: { metrics: AdminMetrics['photos'] }) {
   useLocale();
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
-      <MetricCard label={t("common.readyPhotos")} value={metrics.ready} icon={<PhotoOutlined color="success" />} accent="success.main" />
-      <MetricCard label={t("common.activeProcessing")} value={metrics.pending + metrics.processing} icon={<HourglassTopOutlined color="info" />} accent="info.main" />
-      <MetricCard label={t("common.stalledOperations")} value={metrics.stale_processing} icon={<ReportProblemOutlined color="warning" />} accent="warning.main" />
-      <MetricCard label={t("photoReconciliation.deletionsInProgress")} value={metrics.deleting} icon={<DeleteSweepOutlined color="primary" />} />
-      <MetricCard label={t("common.permanentFailures")} value={metrics.deletion_dead_letters} icon={<BrokenImageOutlined color="error" />} accent="error.main" />
-      <MetricCard label={t("common.withoutAnActiveEvent")} value={metrics.deletion_without_active_event} icon={<ReportProblemOutlined color="error" />} accent="error.main" />
+      <MetricCard label={t('photoMaintenance.availablePhotos')} value={metrics.ready} icon={<PhotoOutlined color="success" />} accent="success.main" />
+      <MetricCard label={t('photoMaintenance.uploadsInProgress')} value={Math.max(0, metrics.pending + metrics.processing - metrics.stale_processing)} icon={<HourglassTopOutlined color="info" />} accent="info.main" />
+      <MetricCard label={t('photoMaintenance.abandonedUploads')} value={metrics.stale_processing} icon={<ReportProblemOutlined color="warning" />} accent="warning.main" />
+      <MetricCard label={t('photoMaintenance.pendingDeletions')} value={metrics.deleting} icon={<DeleteSweepOutlined color="primary" />} />
+      <MetricCard label={t('photoMaintenance.failedDeletions')} value={metrics.deletion_dead_letters} icon={<BrokenImageOutlined color="error" />} accent="error.main" />
+      <MetricCard label={t('photoMaintenance.deletionsWithoutActiveTask')} value={metrics.deletion_without_active_event} icon={<ReportProblemOutlined color="info" />} accent="info.main" />
     </Box>
   );
 }
 
 function IssueChip({ issue }: { issue: PhotoReconciliationIssue }) {
   useLocale();
-  const color = issue === 'deletion_dead_letter' || issue === 'deletion_event_missing' || issue === 'deletion_event_completed'
+  const color = issue === 'deletion_dead_letter' || issue === 'deletion_event_completed' || issue === 'deletion_event_discarded'
     ? 'error'
     : issue === 'stale_processing' || issue === 'deletion_retry_scheduled'
       ? 'warning'
