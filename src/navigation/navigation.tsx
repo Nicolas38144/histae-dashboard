@@ -2,7 +2,7 @@ import {
   AssessmentOutlined, GavelOutlined, GroupsOutlined, LocalOfferOutlined,
   PolicyOutlined, PriceChangeOutlined, QuestionAnswerOutlined, SecurityOutlined,
   SmsOutlined, SyncProblemOutlined, FactCheckOutlined, AdminPanelSettingsOutlined,
-  MarkunreadMailboxOutlined, MonitorHeartOutlined,
+  MarkunreadMailboxOutlined, MonitorHeartOutlined, SupportAgentOutlined,
 } from '@mui/icons-material';
 import { t } from '../i18n/core';
 import type { AdminSession } from '../api/types';
@@ -22,6 +22,7 @@ export function navigationGroups(role: AdminSession['role'], search: string) {
       { path: '/reports', label: t('common.reports'), icon: <GavelOutlined /> },
       { path: '/content-moderation', label: t('common.moderation'), icon: <FactCheckOutlined /> },
       { path: '/privacy-requests', label: t('common.gdprRequests'), icon: <PolicyOutlined /> },
+      { path: '/support-cases', label: t('casework.support'), icon: <SupportAgentOutlined /> },
     ] },
     { id: 'payments', label: t('workspace.payments'), entries: [
       { path: '/plans', label: t('common.plans'), icon: <PriceChangeOutlined /> },

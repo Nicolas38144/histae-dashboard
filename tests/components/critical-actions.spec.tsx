@@ -218,6 +218,30 @@ describe('critical dashboard actions', () => {
     await waitFor(() => expect(filters).toContain('dismissed'));
   });
 
+  it('sends the report reply and closure together only after a reply is provided', async () => {
+    const user = userEvent.setup();
+    const decisions: unknown[] = [];
+    server.use(
+      http.get(`${apiUrl}/admin/reports`, () => HttpResponse.json({ reports: [report], next_cursor: null })),
+      http.patch(`${apiUrl}/admin/reports/${fixtureIds.report}/decision`, async ({ request }) => {
+        decisions.push(await request.json());
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderDashboard(<Reports />);
+
+    await user.click(await screen.findByRole('button', { name: 'Répondre et clôturer' }));
+    const dialog = screen.getByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Répondre et clôturer' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ }), 'Nous avons examiné votre signalement.');
+    await user.click(confirm);
+
+    await waitFor(() => expect(decisions).toEqual([
+      { status: 'reviewed', response: 'Nous avons examiné votre signalement.' },
+    ]));
+  });
+
   it('appends cursor pages without losing the original access-log search', async () => {
     const user = userEvent.setup();
     const cursors: Array<string | null> = [];

@@ -44,6 +44,9 @@ const apiErrorMessages = (): Readonly<Record<string, string>> => ({
   moderation_case_stale: t("errors.thisContentHasChangedReloadItBeforeMakingA"),
   invalid_data_request_transition: t("errors.thisGdprRequestTransitionIsNoLongerAllowedRefresh"),
   match_not_found: t('reports.linkedConversationUnavailable'),
+  case_not_found: t('casework.notFound'),
+  case_action_unavailable: t('casework.unavailable'),
+  casework_rate_limit_exceeded: t('casework.rateLimited'),
   outbox_event_not_dead_letter: t("errors.thisEventIsNoLongerInAPermanentFailure"),
   outbox_discard_not_allowed: t("errors.discardingThisEventIsNotAllowed"),
 });

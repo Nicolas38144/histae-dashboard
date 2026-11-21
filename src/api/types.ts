@@ -170,6 +170,7 @@ export type Report = {
   match_id?: string;
   reason: string;
   description?: string;
+  public_response?: string;
   status: ReportStatus;
   created_at: string;
 };

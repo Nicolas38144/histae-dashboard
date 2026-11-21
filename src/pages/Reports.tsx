@@ -2,16 +2,18 @@ import { useRememberedState } from '../hooks/list-memory';
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import {
-  Alert, Box, Button, Dialog, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody,
+  Alert, Box, Button, Dialog, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody, TextField,
   TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { getReports, updateReport } from '../api/admin';
+import { decideReport, validCaseMessage } from '../api/casework';
 import { errorMessage } from '../api/client';
 import type { AdminSession, Report, ReportStatus } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
+import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { MatchAccessDialog, MatchConversation } from '../components/MatchConversation';
 import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
@@ -38,6 +40,7 @@ export default function Reports() {
   const [filter, setFilter] = useRememberedState<'' | ReportStatus>('reports:filter','pending');
   const [saving, setSaving] = useState(false);
   const [reportedMatch, setReportedMatch] = useState<ReportedMatch | null>(null);
+  const [decision, setDecision] = useState<{ id: string; status: 'reviewed' | 'dismissed'; response: string } | null>(null);
   const { showNotification } = useNotification();
   const loadPage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
     const page = await getReports(filter || undefined, cursor, signal);
@@ -61,6 +64,20 @@ export default function Reports() {
   const openConversation = (report: Report) => {
     if (report.match_id) setReportedMatch({ id: report.match_id, reporterId: report.reporter_id });
   };
+  const sendDecision = async () => {
+    if (!decision || saving || !validCaseMessage(decision.response)) return;
+    setSaving(true);
+    try {
+      await decideReport(decision.id, decision.status, decision.response);
+      setDecision(null);
+      showNotification(t('casework.replySent'), 'success');
+      pagination.reload();
+    } catch (error) {
+      showNotification(errorMessage(error), 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
@@ -79,7 +96,7 @@ export default function Reports() {
           </FormControl>
         )}
       />
-      <Alert severity="info" sx={{ mb: 2 }}>{t('reports.internalStatusHelp')}</Alert>
+      <Alert severity="info" sx={{ mb: 2 }}>{t('casework.reportHelp')}</Alert>
       <AsyncState loading={pagination.loading} error={pagination.error} onRetry={pagination.reload} />
       {!pagination.loading && !pagination.error && (
         <TableContainer component={Paper} variant="outlined">
@@ -132,6 +149,11 @@ export default function Reports() {
                         </MenuItem>
                       ))}
                     </Select>
+                    {report.status === 'pending' && <Button size="small" disabled={saving} onClick={() => setDecision({ id: report.id, status: 'reviewed', response: '' })}>{t('casework.replyAndClose')}</Button>}
+                    {report.public_response && <Box component="details" sx={{ mt: 1, maxWidth: 300 }}>
+                      <Box component="summary" sx={{ cursor: 'pointer', color: 'primary.main' }}>{t('privacyRequests.publicReply')}</Box>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{report.public_response}</Typography>
+                    </Box>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -157,6 +179,19 @@ export default function Reports() {
         role={session.role}
         onClose={() => setReportedMatch(null)}
       />}
+      {decision && <ConfirmActionDialog
+        open title={t('casework.replyAndClose')} description={t('casework.reportHelp')}
+        confirmLabel={t('casework.replyAndClose')} confirmDisabled={!validCaseMessage(decision.response)} loading={saving}
+        onCancel={() => setDecision(null)} onConfirm={() => void sendDecision()}
+      >
+        <TextField select fullWidth sx={{ mt: 2 }} label={t('reports.reportStatus')} value={decision.status} disabled={saving}
+          onChange={event => setDecision({ ...decision, status: event.target.value as typeof decision.status })}>
+          <MenuItem value="reviewed"><StatusChip value="reviewed" /></MenuItem>
+          <MenuItem value="dismissed"><StatusChip value="dismissed" /></MenuItem>
+        </TextField>
+        <TextField fullWidth required multiline minRows={3} sx={{ mt: 2 }} label={t('privacyRequests.publicReply')} helperText={t('casework.replyLimit')}
+          value={decision.response} disabled={saving} onChange={event => setDecision({ ...decision, response: event.target.value })} />
+      </ConfirmActionDialog>}
     </>
   );
 }

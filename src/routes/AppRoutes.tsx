@@ -16,6 +16,7 @@ const ContentModeration = lazy(() => import('../pages/ContentModeration'));
 const ProfileQuestions = lazy(() => import('../pages/ProfileQuestions'));
 const PrivacyRequests = lazy(() => import('../pages/PrivacyRequests'));
 const Reports = lazy(() => import('../pages/Reports'));
+const SupportCases = lazy(() => import('../pages/SupportCases'));
 const Security = lazy(() => import('../pages/Security'));
 const StoreBilling = lazy(() => import('../pages/StoreBilling'));
 const SmsSafety = lazy(() => import('../pages/SmsSafety'));
@@ -51,6 +52,7 @@ export default function AppRoutes({ mode, toggleMode }: { mode: 'light' | 'dark'
               <Route path="/users" element={<Users />} />
               <Route path="/users/:id" element={<UserDetails />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/support-cases" element={<SupportCases />} />
               <Route path="/content-moderation" element={<ContentModeration />} />
               <Route path="/traits" element={<Traits />} />
               <Route path="/profile-questions" element={<ProfileQuestions />} />
