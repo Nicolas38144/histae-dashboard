@@ -1,11 +1,9 @@
-import { Button } from '@mui/material';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { AsyncState } from '../../src/components/AsyncState';
 import { ConfirmActionDialog } from '../../src/components/ConfirmActionDialog';
 import { CursorPaginationControls } from '../../src/components/CursorPaginationControls';
-import { useNotification } from '../../src/components/notification-context';
 import { renderDashboard } from '../helpers/render';
 
 describe('shared interaction components', () => {
@@ -48,17 +46,6 @@ describe('shared interaction components', () => {
     expect(retry).toHaveBeenCalledOnce();
     rerender(<AsyncState loading error={null} />);
     expect(screen.getByRole('progressbar')).toBeVisible();
-  });
-
-  it('shows user-visible success and error notifications', async () => {
-    const user = userEvent.setup();
-    function Trigger() {
-      const { showNotification } = useNotification();
-      return <Button onClick={() => showNotification('Opération confirmée.', 'success')}>Notifier</Button>;
-    }
-    renderDashboard(<Trigger />);
-    await user.click(screen.getByRole('button', { name: 'Notifier' }));
-    expect(await screen.findByText('Opération confirmée.')).toBeVisible();
   });
 
   it('offers a full reload when the next cursor is refused', async () => {

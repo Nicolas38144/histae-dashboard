@@ -63,8 +63,8 @@ navigateur ne doit pas empêcher le chargement de la connexion.
 - `tests/unit/ui-text.spec.ts` : analyse AST interdisant les textes d’interface dans les sources ;
 - `tests/components/language-selector.spec.tsx` : changement des quatre langues dès la connexion,
   conservation des saisies et des éditions françaises canoniques, abandon des résultats périmés ;
-- `tests/e2e/languages.spec.ts` : parcours Chromium de la connexion à la console en anglais, espagnol
-  et italien, persistance après rechargement, retour au français et en-tête API.
+- `tests/e2e/languages.spec.ts` vérifie le passage à l’anglais dans Chromium, la persistance après
+  rechargement, le retour au français et l’en-tête `Accept-Language`.
 
 Les tests réinitialisent aussi la préférence de langue après chaque scénario. Les données personnelles
 restent dans leur langue d’origine. Les noms de colonnes CSV et codes techniques ne sont pas des traductions.

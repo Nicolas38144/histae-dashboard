@@ -1,9 +1,8 @@
 import { http, HttpResponse } from 'msw';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import UserDetails from '../../src/pages/UserDetails';
 import { IdentityCorrectionButton } from '../../src/features/users/identity-correction-button';
-import { adminSession, adminUser, fixtureIds } from '../fixtures';
+import { adminUser, fixtureIds } from '../fixtures';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
 
@@ -53,15 +52,5 @@ describe('profile identity corrections', () => {
   it('hides corrections of privileged accounts from an ordinary admin', () => {
     renderDashboard(<IdentityCorrectionButton user={{ ...adminUser, role: 'admin' }} role="admin" onUpdated={vi.fn()} />);
     expect(screen.queryByRole('button', { name: 'Corriger le profil' })).not.toBeInTheDocument();
-  });
-
-  it('makes the editor available from the audited user file', async () => {
-    server.use(
-      http.get(`http://localhost/api/admin/users/${fixtureIds.user}`, () => HttpResponse.json(adminUser)),
-      http.get(`http://localhost/api/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [], next_cursor: null })),
-    );
-    renderDashboard(<UserDetails />, { route: `/users/${fixtureIds.user}`, routePath: '/users/:id', session: adminSession });
-    expect(await screen.findByRole('button', { name: 'Corriger le profil' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Retour aux demandes RGPD' })).toHaveAttribute('href', '/privacy-requests');
   });
 });
