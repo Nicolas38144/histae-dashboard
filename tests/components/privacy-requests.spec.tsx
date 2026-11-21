@@ -46,6 +46,41 @@ describe('privacy request messages', () => {
     await user.click(await screen.findByText('Message de l’utilisateur'));
     expect(screen.getByText('Aucune précision n’accompagnait cette demande.')).toBeVisible();
   });
+
+  it.each([
+    ['access', 'pending', 'Prendre en charge', 'in_progress'],
+    ['portability', 'in_progress', 'Résoudre', 'completed'],
+    ['erasure', 'pending', 'Refuser', 'rejected'],
+  ] as const)('sends a public reply for a %s request when the admin selects %s → %s', async (type, status, action, transition) => {
+    const user = userEvent.setup();
+    let mutation: unknown;
+    server.use(
+      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, type, status, erasure: null }], next_cursor: null })),
+      http.patch(`${apiUrl}/admin/data-subject-requests/${fixtureIds.request}`, async ({ request }) => {
+        mutation = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderDashboard(<PrivacyRequests />);
+
+    await user.click(await screen.findByRole('button', { name: action }));
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Confirmer' });
+    expect(confirm).toBeEnabled();
+    await user.type(within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ }), ' Une réponse à votre demande. ');
+    await user.click(confirm);
+    await waitFor(() => expect(mutation).toEqual({ status: transition, notes: null, response: 'Une réponse à votre demande.' }));
+  });
+
+  it('warns that account access ends when erasure is scheduled', async () => {
+    const user = userEvent.setup();
+    server.use(http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, erasure: null }], next_cursor: null })));
+    renderDashboard(<PrivacyRequests />);
+    await user.click(await screen.findByRole('button', { name: 'Lancer l’effacement' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/ferme immédiatement l’accès au compte/)).toBeVisible();
+    expect(within(dialog).queryByRole('textbox', { name: /Réponse à l’utilisateur/ })).not.toBeInTheDocument();
+  });
   it('requires a public reply before resolving a correction request', async () => {
     const user = userEvent.setup();
     let mutation: unknown;

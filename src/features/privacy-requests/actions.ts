@@ -18,12 +18,15 @@ export function availablePrivacyActions(request: DataSubjectRequest): PrivacyAct
 
 export function privacyActionRules(action: PrivacyAction, role: AdminSession['role']) {
   const retry = action.status === 'retry';
+  const schedulesErasure = action.status === 'completed' && action.request.type === 'erasure';
   return {
+    allowsReply: !retry && !schedulesErasure,
     requiresReply: action.request.type === 'rectification' && (action.status === 'completed' || action.status === 'rejected'),
+    schedulesErasure,
     requiresNotes: role !== 'superadmin' && (action.status === 'rejected' || retry),
     minNotesLength: retry ? 3 : 1,
     maxNotesLength: retry ? 500 : 2_000,
-    danger: action.status === 'rejected' || (action.status === 'completed' && action.request.type === 'erasure'),
+    danger: action.status === 'rejected' || schedulesErasure,
   };
 }
 
@@ -34,9 +37,10 @@ export function validatePrivacyAction(draft: PrivacyActionDraft, role: AdminSess
     return draft.status === 'retry' ? 'retry_reason' : 'invalid_form';
   }
   if (notesLength > rules.maxNotesLength) return 'invalid_form';
-  if (rules.requiresReply) {
-    const replyLength = [...draft.response.trim()].length;
-    if (replyLength === 0 || replyLength > PRIVACY_REPLY_MAX_LENGTH) return 'invalid_form';
+  if (rules.allowsReply) {
+    const reply = [...draft.response.trim()];
+    if ((rules.requiresReply && reply.length === 0) || reply.length > PRIVACY_REPLY_MAX_LENGTH
+      || reply.some(character => /\p{Cc}/u.test(character) && !['\n', '\r', '\t'].includes(character))) return 'invalid_form';
   }
   return null;
 }

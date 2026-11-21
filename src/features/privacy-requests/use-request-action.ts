@@ -35,8 +35,9 @@ export function usePrivacyRequestAction(role: AdminSession['role'], onUpdated: (
         if (!eventId) throw new LocalizedError('privacyRequests.thisJobIsNoLongerAvailableRefreshTheList');
         await retryErasure(eventId, draft.notes);
       } else {
-        const { requiresReply } = privacyActionRules(draft, role);
-        await updateDataRequest(draft.request.id, draft.status, draft.notes, requiresReply ? draft.response : undefined);
+        const { allowsReply } = privacyActionRules(draft, role);
+        const response = draft.response.trim();
+        await updateDataRequest(draft.request.id, draft.status, draft.notes, allowsReply && response ? response : undefined);
       }
       showNotification(draft.status === 'completed' && draft.request.type === 'erasure'
         ? t('privacyRequests.erasureScheduledTheRequestRemainsInProgressUntilProcessing')

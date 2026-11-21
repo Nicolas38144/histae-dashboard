@@ -2,12 +2,40 @@ import { http, HttpResponse } from 'msw';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserMatches } from '../../src/components/UserMatches';
-import { adminSession, fixtureIds } from '../fixtures';
+import Reports from '../../src/pages/Reports';
+import { adminSession, fixtureIds, report } from '../fixtures';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
 
 const apiUrl = 'http://localhost/api';
 const match = { id: fixtureIds.event, user1_id: fixtureIds.user, user2_id: fixtureIds.secondUser, status: 'confirmed', created_at: '2026-10-30T10:00:00Z', expires_at: '2026-11-30T10:00:00Z' };
+
+it('opens only the conversation linked by the report and sends the administrator’s audit reason', async () => {
+  const user = userEvent.setup();
+  const reads: Array<string | null> = [];
+  const profileReport = { ...report, id: fixtureIds.secondUser };
+  server.use(
+    http.get(`${apiUrl}/admin/reports`, () => HttpResponse.json({ reports: [{ ...report, match_id: match.id }, profileReport], next_cursor: null })),
+    http.get(`${apiUrl}/admin/matches/${match.id}/messages`, ({ request }) => {
+      reads.push(new URL(request.url).searchParams.get('reason'));
+      return HttpResponse.json({ error: { code: 'match_not_found' } }, { status: 404 });
+    }),
+  );
+  renderDashboard(<Reports />, { session: { ...adminSession, role: 'admin' } });
+  const profileOnly = (await screen.findByText('Aucune conversation liée')).closest('tr')!;
+  expect(within(profileOnly).queryByRole('button', { name: /Ouvrir la conversation/ })).not.toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: /Ouvrir la conversation .+/ }));
+  const prompt = screen.getByRole('dialog', { name: 'Justifier l’accès à la conversation' });
+  const confirm = within(prompt).getByRole('button', { name: 'Ouvrir la conversation' });
+  expect(confirm).toBeDisabled();
+  expect(reads).toEqual([]);
+  await user.type(within(prompt).getByRole('textbox'), 'Vérification du signalement');
+  await user.click(confirm);
+
+  expect(await screen.findByText('Cette conversation signalée n’est plus accessible.')).toBeVisible();
+  expect(reads).toEqual(['Vérification du signalement']);
+});
 
 describe.each(['admin', 'superadmin'] as const)('conversation access for %s', (role) => {
   it.each([false, undefined, 'true'])('does not request messages unless the API explicitly authorizes access (%s)', async (permission) => {

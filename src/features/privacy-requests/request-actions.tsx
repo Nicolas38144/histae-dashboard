@@ -1,4 +1,4 @@
-import { Alert, Box, Button, TextField } from '@mui/material';
+import { Alert, Box, Button, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import type { AdminSession, DataSubjectRequest } from '../../api/types';
 import { ConfirmActionDialog } from '../../components/ConfirmActionDialog';
@@ -14,8 +14,11 @@ export function PrivacyRequestActions({ request, disabled, onSelect }: {
 }) {
   useLocale();
   const actions = availablePrivacyActions(request);
+  if (request.type === 'restriction' || request.type === 'objection') {
+    return <Typography variant="caption" color="text.secondary">{t('privacyRequests.historicalReadOnly')}</Typography>;
+  }
   if (!actions.length) return null;
-  return <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+  return <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 1 }}>
     {request.type === 'rectification' && <Button component={RouterLink} to={`/users/${request.user_id}`} disabled={disabled} size="small">{t('identityCorrection.edit')}</Button>}
     {actions.map(status => <Button
       key={status}
@@ -38,6 +41,7 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
 }) {
   useLocale();
   const rules = privacyActionRules(draft, role);
+  const replyTooLong = [...draft.response.trim()].length > PRIVACY_REPLY_MAX_LENGTH;
   return <ConfirmActionDialog
     open
     title={dialogTitle(draft)}
@@ -57,10 +61,23 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
   >
     <PrivacyRequestMessage details={draft.request.details} />
     {draft.request.type === 'rectification' && draft.status === 'completed' && <Button component={RouterLink} to={`/users/${draft.request.user_id}`} disabled={saving} sx={{ mb: 2 }}>{t('identityCorrection.edit')}</Button>}
-    {rules.requiresReply && <>
-      <Alert severity="info" sx={{ mb: 2 }}>{t('privacyRequests.resolveGuidance')}</Alert>
-      <TextField fullWidth required multiline minRows={3} label={t('privacyRequests.publicReply')} helperText={t('privacyRequests.publicReplyHelp')} value={draft.response} onChange={(event) => onResponseChange(event.target.value)} inputProps={{ maxLength: PRIVACY_REPLY_MAX_LENGTH }} disabled={saving} sx={{ mb: 2 }} />
-    </>}
+    {rules.requiresReply && <Alert severity="info" sx={{ mb: 2 }}>{t('privacyRequests.resolveGuidance')}</Alert>}
+    {draft.status === 'completed' && (draft.request.type === 'access' || draft.request.type === 'portability') &&
+      <Alert severity="info" sx={{ mb: 2 }}>{t('privacyRequests.exportGuidance')}</Alert>}
+    {rules.schedulesErasure && <Alert severity="warning" sx={{ mb: 2 }}>{t('privacyRequests.erasureReplyUnavailable')}</Alert>}
+    {rules.allowsReply && <TextField
+      fullWidth
+      required={rules.requiresReply}
+      multiline
+      minRows={3}
+      label={t('privacyRequests.publicReply')}
+      helperText={t(replyTooLong ? 'privacyRequests.publicReplyTooLong' : 'privacyRequests.publicReplyHelp', { limit: PRIVACY_REPLY_MAX_LENGTH })}
+      error={replyTooLong}
+      value={draft.response}
+      onChange={(event) => onResponseChange(event.target.value)}
+      disabled={saving}
+      sx={{ mb: 2 }}
+    />}
   </ConfirmActionDialog>;
 }
 

@@ -207,7 +207,7 @@ describe('critical dashboard actions', () => {
     );
     renderDashboard(<Reports />);
 
-    const row = (await screen.findByText(report.reason)).closest('tr')!;
+    const row = (await screen.findByText('Spam')).closest('tr')!;
     await user.click(within(row).getByRole('combobox'));
     await user.click(await screen.findByRole('option', { name: 'Traité' }));
     await waitFor(() => expect(updates).toBe(1));

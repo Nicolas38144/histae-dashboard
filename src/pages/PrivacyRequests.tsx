@@ -37,7 +37,7 @@ export default function PrivacyRequests() {
       <PageHeader title={t("common.gdprRequests")} description={t("privacyRequests.trackAccessErasurePortabilityAndRectificationRights")} actions={
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button disabled={pagination.loading || action.saving} onClick={pagination.reload}>{t("common.refresh")}</Button>
-          <FormControl size="small" sx={{ minWidth: 190 }}><InputLabel>{t("common.status")}</InputLabel><Select label={t("common.status")} value={filter} onChange={(event) => setFilter(event.target.value as '' | DataRequestStatus)}>
+          <FormControl size="small" sx={{ minWidth: 190 }}><InputLabel id="privacy-request-status">{t("common.status")}</InputLabel><Select labelId="privacy-request-status" label={t("common.status")} value={filter} onChange={(event) => setFilter(event.target.value as '' | DataRequestStatus)}>
             <MenuItem value="">{t("common.all")}</MenuItem><MenuItem value="pending">{t("common.pending")}</MenuItem><MenuItem value="in_progress">{t("common.inProgress")}</MenuItem><MenuItem value="completed">{t("privacyRequests.completed")}</MenuItem><MenuItem value="rejected">{t("privacyRequests.rejected")}</MenuItem>
           </Select></FormControl>
         </Box>
@@ -69,9 +69,12 @@ function ErasureProgress({ request }: { request: DataSubjectRequest }) {
   useLocale();
   const erasure = request.erasure;
   if (!erasure) return null;
+  const status = erasure.step === 'completed' ? t("common.completed")
+    : erasure.status === 'dead_letter' ? t("privacyRequests.interventionRequired")
+      : erasure.status === 'processing' ? t("common.processingInProgress") : t("privacyRequests.waitingForRetry");
   return <Box sx={{ mt: 1 }}>
     <Typography variant="body2">{steps()[erasure.step] ?? t('common.processing')}</Typography>
-    <Typography variant="caption">{t("privacy.attempts", { status: erasure.status === 'dead_letter' ? t("privacyRequests.interventionRequired") : erasure.status === 'processing' ? t("common.processingInProgress") : erasure.step === 'completed' ? t("common.completed") : t("privacyRequests.waitingForRetry"), count: erasure.attempts })}</Typography>
+    <Typography variant="caption">{t("privacy.attempts", { status, count: erasure.attempts })}</Typography>
     <Typography variant="caption" display="block">{t("privacy.progress", { date: formatDate(erasure.updated_at) })}</Typography>
     {erasure.last_error_code && <Typography variant="caption" color="error" display="block">{erasure.last_error_code}</Typography>}
   </Box>;

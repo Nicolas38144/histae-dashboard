@@ -15,13 +15,12 @@ import {
 } from '@mui/material';
 import { useCallback, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { getMatchMessages, getUserMatches } from '../api/admin';
-import type { AdminSession, ChatMessage, Match } from '../api/types';
+import { getUserMatches } from '../api/admin';
+import type { AdminSession, Match } from '../api/types';
 import { useCursorPagination } from '../hooks/useCursorPagination';
 import { compactId, formatDate } from '../utils/format';
-import { prependUniqueBy } from '../utils/pagination';
 import { AsyncState } from './AsyncState';
-import { ConfirmActionDialog } from './ConfirmActionDialog';
+import { MatchAccessDialog, MatchConversation } from './MatchConversation';
 import { CursorPaginationControls } from './CursorPaginationControls';
 import { StatusChip } from './StatusChip';
 import { UserLink } from './UserLink';
@@ -34,7 +33,6 @@ type ActiveConversation = {
 type ConversationState = ActiveConversation & { status: 'pending' | 'active' };
 
 const matchKey = (match: Match) => match.id;
-const messageKey = (message: ChatMessage) => message.id;
 
 export function UserMatches({ userId, profileReason }: { userId: string; profileReason: string }) {
   useLocale();
@@ -114,22 +112,16 @@ export function UserMatches({ userId, profileReason }: { userId: string; profile
       {activeConversation?.match.can_view_messages === true && (
         <MatchConversation
           key={activeConversation.match.id}
-          match={activeConversation.match}
+          matchId={activeConversation.match.id}
+          firstParticipantId={activeConversation.match.user1_id}
           accessReason={activeConversation.accessReason}
           onClose={closeConversation}
         />
       )}
-      {session.role !== 'superadmin' && <ConfirmActionDialog
+      {session.role !== 'superadmin' && <MatchAccessDialog
         open={Boolean(pendingConversation)}
-        title={t("userMatches.justifyAccessToTheConversation")}
-        description={t("userMatches.bothParticipantsWillSeeThisAccessInTheTraceability")}
-        confirmLabel={t("userMatches.openConversation")}
-        value={pendingConversation?.accessReason ?? ''}
-        onValueChange={(accessReason) => setConversation((current) => current?.status === 'pending' ? { ...current, accessReason } : current)}
-        valueLabel={t("userMatches.requiredReason3To500Characters")}
-        requireValue
-        minValueLength={3}
-        maxValueLength={500}
+        reason={pendingConversation?.accessReason ?? ''}
+        onReasonChange={(accessReason) => setConversation((current) => current?.status === 'pending' ? { ...current, accessReason } : current)}
         onCancel={closeConversation}
         onConfirm={authorizeConversation}
       />}
@@ -167,64 +159,3 @@ function MatchRow({
   );
 }
 
-function MatchConversation({
-  match,
-  accessReason,
-  onClose,
-}: ActiveConversation & { onClose: () => void }) {
-  useLocale();
-  const loadMessagePage = useCallback(async (cursor: string | undefined, signal: AbortSignal) => {
-    const page = await getMatchMessages(match.id, accessReason, cursor, signal);
-    return { items: [...page.messages].reverse(), nextCursor: page.next_cursor };
-  }, [accessReason, match.id]);
-  const messages = useCursorPagination(loadMessagePage, messageKey, prependUniqueBy);
-
-  return (
-    <Paper variant="outlined" sx={{ mt: 2, p: 2.5 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Box>
-          <Typography variant="h6">{t("matches.conversation", { id: compactId(match.id) })}</Typography>
-          <Typography variant="caption" color="text.secondary">{t("common.accessLogged")}</Typography>
-        </Box>
-        <Button onClick={onClose}>{t("common.close")}</Button>
-      </Box>
-      <AsyncState loading={messages.loading} error={messages.error} onRetry={messages.reload} />
-      {!messages.loading && !messages.error && (
-        <>
-          <CursorPaginationControls
-            nextCursor={messages.nextCursor}
-            loading={messages.loadingMore}
-            error={messages.loadMoreError}
-            onLoadMore={messages.loadMore}
-            onReload={messages.reload}
-            loadLabel={t("userMatches.loadEarlierMessages")}
-          />
-          <Box sx={{ maxHeight: 520, overflowY: 'auto', bgcolor: 'action.hover', borderRadius: 2, p: 2 }}>
-            {messages.items.map((message) => (
-              <Box
-                key={message.id}
-                sx={{
-                  display: 'flex',
-                  justifyContent: message.sender_id === match.user1_id ? 'flex-start' : 'flex-end',
-                  mb: 1,
-                }}
-              >
-                <Paper sx={{ p: 1.5, maxWidth: '75%' }}>
-                  <Typography variant="caption" color="text.secondary">
-                    <UserLink id={message.sender_id} /> {' '}{t("common.separator")}{' '}{formatDate(message.created_at)}
-                  </Typography>
-                  <Typography sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                    {message.content}
-                  </Typography>
-                </Paper>
-              </Box>
-            ))}
-            {!messages.items.length && (
-              <Typography textAlign="center" color="text.secondary">{t("userMatches.noRetainedMessages")}</Typography>
-            )}
-          </Box>
-        </>
-      )}
-    </Paper>
-  );
-}
