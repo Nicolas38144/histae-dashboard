@@ -9,6 +9,34 @@ import { server } from '../mocks/server';
 const apiUrl = 'http://localhost/api';
 
 describe('privacy request messages', () => {
+  it('places earlier messages between the original request and the latest messages without duplicates', async () => {
+    const user = userEvent.setup();
+    const request = { ...erasureRequest, type: 'rectification', erasure: null, details: 'Demande initiale.' };
+    const message = (id: string, body: string) => ({ id, body, author: 'team', created_at: request.requested_at });
+    const latest = message('latest', 'Dernière réponse.');
+    const middle = message('middle', 'Réponse suivante.');
+    const earliest = message('earliest', 'Première réponse.');
+    const cursors: Array<string | null> = [];
+    server.use(
+      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [request], next_cursor: null })),
+      http.get(`${apiUrl}/admin/data-subject-requests/${request.id}/messages`, ({ request: read }) => {
+        const before = new URL(read.url).searchParams.get('before');
+        cursors.push(before);
+        return before === middle.id
+          ? HttpResponse.json({ messages: [middle, earliest], next_cursor: null })
+          : HttpResponse.json({ messages: [latest, middle], next_cursor: middle.id });
+      }),
+    );
+    renderDashboard(<PrivacyRequests />);
+    await user.click(await screen.findByRole('button', { name: 'Échanges' }));
+    const thread = within(await screen.findByRole('dialog', { name: 'Échanges' }));
+    await user.click(await thread.findByRole('button', { name: 'Charger les messages précédents' }));
+    await thread.findByText(earliest.body);
+    expect(thread.getAllByText(/^(Demande initiale|Première réponse|Réponse suivante|Dernière réponse)\.$/).map((element) => element.textContent))
+      .toEqual([request.details, earliest.body, middle.body, latest.body]);
+    expect(cursors).toEqual([null, middle.id]);
+  });
+
   it('shows user text safely and keeps it separate from editable internal notes', async () => {
     const user = userEvent.setup();
     const details = 'Corriger ma date de naissance.\n<img src=x onerror=alert(1)>';

@@ -1,7 +1,6 @@
 import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, TextField, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
-import { getExportGrant, getRightsMessages, grantExport, sendRightsMessage, validCaseMessage, type RightsMessage } from '../../api/casework';
-import { errorMessage } from '../../api/client';
+import { getExportGrant, getRightsMessages, grantExport, sendRightsMessage, type RightsMessage } from '../../api/casework';
 import type { DataSubjectRequest } from '../../api/types';
 import { AsyncState } from '../../components/AsyncState';
 import { CursorPaginationControls } from '../../components/CursorPaginationControls';
@@ -11,44 +10,41 @@ import { useCursorPagination } from '../../hooks/useCursorPagination';
 import { t } from '../../i18n/core';
 import { useLocale } from '../../i18n/useLocale';
 import { formatDate } from '../../utils/format';
+import { prependUniqueBy } from '../../utils/pagination';
+import { validateCaseReply } from '../casework/reply';
+import { useCaseworkAction } from '../casework/use-casework-action';
 
 const messageKey = (message: RightsMessage) => message.id;
 
 export function RightsConversation({ request, onClose, onReply }: { request: DataSubjectRequest; onClose: () => void; onReply: () => void }) {
   useLocale();
   const [draft, setDraft] = useState('');
-  const [saving, setSaving] = useState(false);
-  const { showNotification } = useNotification();
+  const { saving, run } = useCaseworkAction();
   const load = useCallback(async (before: string | undefined, signal: AbortSignal) => {
     const page = await getRightsMessages(request.id, before, signal);
-    return { items: page.messages, nextCursor: page.next_cursor };
+    return { items: [...page.messages].reverse(), nextCursor: page.next_cursor };
   }, [request.id]);
-  const page = useCursorPagination(load, messageKey);
+  const page = useCursorPagination(load, messageKey, prependUniqueBy);
   const canReply = !request.erasure && request.type !== 'restriction' && request.type !== 'objection';
+  const validReply = validateCaseReply(draft) === null;
 
-  const send = async () => {
-    if (saving || !validCaseMessage(draft)) return;
-    setSaving(true);
-    try {
-      await sendRightsMessage(request.id, draft);
+  const send = () => {
+    if (!canReply || !validReply) return;
+    void run(() => sendRightsMessage(request.id, draft), () => {
       setDraft('');
       page.reload();
       onReply();
-    } catch (error) {
-      showNotification(errorMessage(error), 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
   };
   return <Dialog open onClose={saving ? undefined : onClose} fullWidth maxWidth="md" aria-labelledby="rights-conversation-title">
     <DialogTitle id="rights-conversation-title">{t('casework.thread')}</DialogTitle>
     <DialogContent dividers>
       <AsyncState loading={page.loading} error={page.error} onRetry={page.reload} />
       {!page.loading && !page.error && <>
-        <CursorPaginationControls nextCursor={page.nextCursor} loading={page.loadingMore} error={page.loadMoreError} onLoadMore={page.loadMore} onReload={page.reload} />
+        <CursorPaginationControls nextCursor={page.nextCursor} loading={page.loadingMore} error={page.loadMoreError} onLoadMore={page.loadMore} onReload={page.reload} loadLabel={t('userMatches.loadEarlierMessages')} />
         <Box sx={{ display: 'grid', gap: 1.5, my: 2 }}>
           {request.details && <ThreadEntry label={t('privacyRequests.userMessage')} body={request.details} date={request.requested_at} />}
-          {[...page.items].reverse().map(message => <ThreadEntry key={message.id} label={t(message.author === 'team' ? 'casework.team' : 'privacyRequests.userMessage')} body={message.body} date={message.created_at} />)}
+          {page.items.map(message => <ThreadEntry key={message.id} label={t(message.author === 'team' ? 'casework.team' : 'privacyRequests.userMessage')} body={message.body} date={message.created_at} />)}
           {!request.details && !page.items.length && <Typography color="text.secondary">{t('casework.noMessages')}</Typography>}
         </Box>
       </>}
@@ -59,14 +55,14 @@ export function RightsConversation({ request, onClose, onReply }: { request: Dat
     </DialogContent>
     <DialogActions>
       <Button onClick={onClose} disabled={saving}>{t('common.close')}</Button>
-      {canReply && <Button variant="contained" onClick={() => void send()} disabled={saving || !validCaseMessage(draft)}>{t('casework.sendReply')}</Button>}
+      {canReply && <Button variant="contained" onClick={send} disabled={saving || !validReply}>{t('casework.sendReply')}</Button>}
     </DialogActions>
   </Dialog>;
 }
 
 function ThreadEntry({ label, body, date }: { label: string; body: string; date: string }) {
   return <Paper variant="outlined" sx={{ p: 1.5 }}>
-    <Typography variant="caption" color="text.secondary">{label} · {formatDate(date)}</Typography>
+    <Typography variant="caption" color="text.secondary">{label} {t('common.separator')} {formatDate(date)}</Typography>
     <Typography sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{body}</Typography>
   </Paper>;
 }
@@ -74,25 +70,19 @@ function ThreadEntry({ label, body, date }: { label: string; body: string; date:
 function AssistedExport({ requestId }: { requestId: string }) {
   const load = useCallback(() => getExportGrant(requestId), [requestId]);
   const grant = useAsyncData(load);
-  const [saving, setSaving] = useState(false);
+  const { saving, run } = useCaseworkAction();
   const { showNotification } = useNotification();
-  const authorize = async () => {
-    setSaving(true);
-    try {
-      await grantExport(requestId);
+  const authorize = () => {
+    void run(() => grantExport(requestId), () => {
       grant.reload();
       showNotification(t('casework.exportGranted'), 'success');
-    } catch (error) {
-      showNotification(errorMessage(error), 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
   };
   return <Box sx={{ mt: 3 }}>
     <Alert severity="info">{t('casework.exportHelp')}</Alert>
     <AsyncState loading={grant.loading} error={grant.error} onRetry={grant.reload} />
     {!grant.loading && !grant.error && (grant.data
       ? <Typography sx={{ mt: 1 }}>{t('casework.exportExpiry', { date: formatDate(grant.data.expires_at) })}</Typography>
-      : <Button sx={{ mt: 1 }} variant="outlined" disabled={saving} onClick={() => void authorize()}>{t('casework.grantExport')}</Button>)}
+      : <Button sx={{ mt: 1 }} variant="outlined" disabled={saving} onClick={authorize}>{t('casework.grantExport')}</Button>)}
   </Box>;
 }

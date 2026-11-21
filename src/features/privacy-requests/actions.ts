@@ -1,10 +1,9 @@
 import type { AdminSession, DataRequestStatus, DataSubjectRequest } from '../../api/types';
+import { validateCaseReply } from '../casework/reply';
 
 export type PrivacyActionStatus = Exclude<DataRequestStatus, 'pending'> | 'retry';
 export type PrivacyAction = { request: DataSubjectRequest; status: PrivacyActionStatus };
 export type PrivacyActionDraft = PrivacyAction & { notes: string; response: string };
-
-export const PRIVACY_REPLY_MAX_LENGTH = 2_000;
 
 export function availablePrivacyActions(request: DataSubjectRequest): PrivacyActionStatus[] {
   if (request.type === 'restriction' || request.type === 'objection') return [];
@@ -37,10 +36,6 @@ export function validatePrivacyAction(draft: PrivacyActionDraft, role: AdminSess
     return draft.status === 'retry' ? 'retry_reason' : 'invalid_form';
   }
   if (notesLength > rules.maxNotesLength) return 'invalid_form';
-  if (rules.allowsReply) {
-    const reply = [...draft.response.trim()];
-    if ((rules.requiresReply && reply.length === 0) || reply.length > PRIVACY_REPLY_MAX_LENGTH
-      || reply.some(character => /\p{Cc}/u.test(character) && !['\n', '\r', '\t'].includes(character))) return 'invalid_form';
-  }
+  if (rules.allowsReply && validateCaseReply(draft.response, rules.requiresReply)) return 'invalid_form';
   return null;
 }

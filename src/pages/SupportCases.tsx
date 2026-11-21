@@ -1,7 +1,6 @@
 import { Box, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
-import { getSupportCases, replyToSupport, validCaseMessage, type SupportCase, type SupportStatus } from '../api/casework';
-import { errorMessage } from '../api/client';
+import { getSupportCases, replyToSupport, type SupportCase, type SupportCategory, type SupportStatus } from '../api/casework';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
@@ -9,37 +8,42 @@ import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
+import { validateCaseReply } from '../features/casework/reply';
+import { useCaseworkAction } from '../features/casework/use-casework-action';
 import { useCursorPagination } from '../hooks/useCursorPagination';
+import type { MessageKey } from '../i18n/catalogs';
 import { t } from '../i18n/core';
 import { useLocale } from '../i18n/useLocale';
 import { formatDate } from '../utils/format';
 
 const caseKey = (entry: SupportCase) => entry.id;
+const categoryLabels = {
+  login: 'casework.category.login',
+  billing: 'casework.category.billing',
+  appeal: 'casework.category.appeal',
+  privacy: 'casework.category.privacy',
+  other: 'casework.category.other',
+} as const satisfies Record<SupportCategory, MessageKey>;
 
 export default function SupportCases() {
   useLocale();
   const [draft, setDraft] = useState<{ id: string; status: Exclude<SupportStatus, 'pending'>; response: string } | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, run } = useCaseworkAction();
   const { showNotification } = useNotification();
   const load = useCallback(async (before: string | undefined, signal: AbortSignal) => {
     const result = await getSupportCases(before, signal);
     return { items: result.cases, nextCursor: result.next_cursor };
   }, []);
   const page = useCursorPagination(load, caseKey);
+  const validReply = draft !== null && validateCaseReply(draft.response) === null;
 
-  const send = async () => {
-    if (!draft || saving || !validCaseMessage(draft.response)) return;
-    setSaving(true);
-    try {
-      await replyToSupport(draft.id, draft.status, draft.response);
+  const send = () => {
+    if (!draft || !validReply) return;
+    void run(() => replyToSupport(draft.id, draft.status, draft.response), () => {
       setDraft(null);
       showNotification(t('casework.replySent'), 'success');
       page.reload();
-    } catch (error) {
-      showNotification(errorMessage(error), 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   return <>
@@ -49,22 +53,24 @@ export default function SupportCases() {
     {!page.loading && !page.error && <Stack spacing={2}>
       {page.items.map(entry => <Paper key={entry.id} variant="outlined" sx={{ p: 2.5 }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
-          <Typography component="h2" variant="h6">{t(`casework.category.${entry.category}`)}</Typography>
+          <Typography component="h2" variant="h6">
+            {t(Object.hasOwn(categoryLabels, entry.category) ? categoryLabels[entry.category] : categoryLabels.other)}
+          </Typography>
           <StatusChip value={entry.status === 'closed' ? 'completed' : entry.status} />
           {entry.user_id ? <UserLink id={entry.user_id} /> : <Typography variant="caption">{t('casework.guest')}</Typography>}
           <Typography variant="caption">{formatDate(entry.created_at)}</Typography>
         </Box>
         <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{entry.body}</Typography>
         {entry.response && <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-          <strong>{t('casework.team')}</strong> · {entry.response}</Typography>}
+          <strong>{t('casework.team')}</strong> {t('common.separator')} {entry.response}</Typography>}
         {entry.status !== 'closed' && <Button sx={{ mt: 1 }} disabled={saving} onClick={() => setDraft({ id: entry.id, status: 'closed', response: '' })}>{t('casework.sendReply')}</Button>}
       </Paper>)}
       {!page.items.length && <Typography>{t('casework.noCases')}</Typography>}
       <CursorPaginationControls nextCursor={page.nextCursor} loading={page.loadingMore} error={page.loadMoreError} onLoadMore={page.loadMore} onReload={page.reload} />
     </Stack>}
     {draft && <ConfirmActionDialog open title={t('casework.sendReply')} description={t('casework.supportReplyHelp')}
-      confirmLabel={t('casework.sendReply')} confirmDisabled={!validCaseMessage(draft.response)} loading={saving}
-      onCancel={() => setDraft(null)} onConfirm={() => void send()}>
+      confirmLabel={t('casework.sendReply')} confirmDisabled={!validReply} loading={saving}
+      onCancel={() => setDraft(null)} onConfirm={send}>
       <TextField select fullWidth sx={{ mt: 2 }} label={t('common.status')} value={draft.status} disabled={saving}
         onChange={event => setDraft({ ...draft, status: event.target.value as typeof draft.status })}>
         <MenuItem value="in_progress">{t('common.inProgress')}</MenuItem>

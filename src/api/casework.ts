@@ -15,12 +15,6 @@ export type SupportCase = {
   created_at: string;
 };
 
-export const validCaseMessage = (input: string) => {
-  const text = [...input.trim()];
-  return text.length > 0 && text.length <= 2000
-    && !text.some(character => /\p{Cc}/u.test(character) && !['\n', '\r', '\t'].includes(character));
-};
-
 export async function getRightsMessages(id: string, before?: string, signal?: AbortSignal) {
   return (await api.get<CursorResponse<RightsMessage, 'messages'>>(`/admin/data-subject-requests/${id}/messages`, {
     params: { before }, signal,

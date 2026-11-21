@@ -8,8 +8,7 @@ import {
 import { useCallback, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { getReports, updateReport } from '../api/admin';
-import { decideReport, validCaseMessage } from '../api/casework';
-import { errorMessage } from '../api/client';
+import { decideReport } from '../api/casework';
 import type { AdminSession, Report, ReportStatus } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { CursorPaginationControls } from '../components/CursorPaginationControls';
@@ -19,6 +18,8 @@ import { PageHeader } from '../components/PageHeader';
 import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
 import { useNotification } from '../components/notification-context';
+import { validateCaseReply } from '../features/casework/reply';
+import { useCaseworkAction } from '../features/casework/use-casework-action';
 import { useCursorPagination } from '../hooks/useCursorPagination';
 import { compactId, formatDate } from '../utils/format';
 import type { MessageKey } from '../i18n/catalogs';
@@ -38,7 +39,7 @@ export default function Reports() {
   useLocale();
   const session = useOutletContext<AdminSession>();
   const [filter, setFilter] = useRememberedState<'' | ReportStatus>('reports:filter','pending');
-  const [saving, setSaving] = useState(false);
+  const { saving, run } = useCaseworkAction();
   const [reportedMatch, setReportedMatch] = useState<ReportedMatch | null>(null);
   const [decision, setDecision] = useState<{ id: string; status: 'reviewed' | 'dismissed'; response: string } | null>(null);
   const { showNotification } = useNotification();
@@ -47,36 +48,25 @@ export default function Reports() {
     return { items: page.reports, nextCursor: page.next_cursor };
   }, [filter]);
   const pagination = useCursorPagination(loadPage, reportKey, undefined, 'reports:'+filter);
+  const validReply = decision !== null && validateCaseReply(decision.response) === null;
 
-  const changeStatus = async (id: string, status: ReportStatus) => {
-    setSaving(true);
-    try {
-      await updateReport(id, status);
+  const changeStatus = (id: string, status: ReportStatus) => {
+    void run(() => updateReport(id, status), () => {
       showNotification(t("reports.reportStatusUpdated"), 'success');
       pagination.reload();
-    } catch (reason) {
-      showNotification(errorMessage(reason), 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   const openConversation = (report: Report) => {
     if (report.match_id) setReportedMatch({ id: report.match_id, reporterId: report.reporter_id });
   };
-  const sendDecision = async () => {
-    if (!decision || saving || !validCaseMessage(decision.response)) return;
-    setSaving(true);
-    try {
-      await decideReport(decision.id, decision.status, decision.response);
+  const sendDecision = () => {
+    if (!decision || !validReply) return;
+    void run(() => decideReport(decision.id, decision.status, decision.response), () => {
       setDecision(null);
       showNotification(t('casework.replySent'), 'success');
       pagination.reload();
-    } catch (error) {
-      showNotification(errorMessage(error), 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   return (
@@ -140,7 +130,7 @@ export default function Reports() {
                       value={report.status}
                       inputProps={{ 'aria-label': t('reports.reportStatus') }}
                       disabled={saving}
-                      onChange={(event) => void changeStatus(report.id, event.target.value as ReportStatus)}
+                      onChange={(event) => changeStatus(report.id, event.target.value as ReportStatus)}
                       sx={{ minWidth: 130 }}
                     >
                       {reportStatuses.map((status) => (
@@ -181,8 +171,8 @@ export default function Reports() {
       />}
       {decision && <ConfirmActionDialog
         open title={t('casework.replyAndClose')} description={t('casework.reportHelp')}
-        confirmLabel={t('casework.replyAndClose')} confirmDisabled={!validCaseMessage(decision.response)} loading={saving}
-        onCancel={() => setDecision(null)} onConfirm={() => void sendDecision()}
+        confirmLabel={t('casework.replyAndClose')} confirmDisabled={!validReply} loading={saving}
+        onCancel={() => setDecision(null)} onConfirm={sendDecision}
       >
         <TextField select fullWidth sx={{ mt: 2 }} label={t('reports.reportStatus')} value={decision.status} disabled={saving}
           onChange={event => setDecision({ ...decision, status: event.target.value as typeof decision.status })}>

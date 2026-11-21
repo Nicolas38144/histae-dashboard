@@ -1,5 +1,6 @@
 import type { DataSubjectRequest } from '../../src/api/types';
-import { availablePrivacyActions, privacyActionRules, PRIVACY_REPLY_MAX_LENGTH, validatePrivacyAction, type PrivacyActionDraft } from '../../src/features/privacy-requests/actions';
+import { CASE_REPLY_MAX_LENGTH } from '../../src/features/casework/reply';
+import { availablePrivacyActions, privacyActionRules, validatePrivacyAction, type PrivacyActionDraft } from '../../src/features/privacy-requests/actions';
 import { erasureRequest } from '../fixtures';
 
 const correction: DataSubjectRequest = { ...erasureRequest, type: 'rectification', status: 'in_progress', erasure: null };
@@ -37,8 +38,8 @@ describe('privacy request action policy', () => {
   });
 
   it('counts public reply code points at the 2000-character boundary', () => {
-    expect(validatePrivacyAction({ ...draft, response: '😀'.repeat(PRIVACY_REPLY_MAX_LENGTH) }, 'superadmin')).toBeNull();
-    expect(validatePrivacyAction({ ...draft, response: 'a'.repeat(PRIVACY_REPLY_MAX_LENGTH + 1) }, 'superadmin')).toBe('invalid_form');
+    expect(validatePrivacyAction({ ...draft, response: '😀'.repeat(CASE_REPLY_MAX_LENGTH) }, 'superadmin')).toBeNull();
+    expect(validatePrivacyAction({ ...draft, response: 'a'.repeat(CASE_REPLY_MAX_LENGTH + 1) }, 'superadmin')).toBe('invalid_form');
   });
 
   it('keeps notes and public replies distinct when an ordinary administrator rejects a correction', () => {

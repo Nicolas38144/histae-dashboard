@@ -5,7 +5,8 @@ import { ConfirmActionDialog } from '../../components/ConfirmActionDialog';
 import { PrivacyRequestMessage } from '../../components/PrivacyRequestMessage';
 import { t } from '../../i18n/core';
 import { useLocale } from '../../i18n/useLocale';
-import { availablePrivacyActions, privacyActionRules, PRIVACY_REPLY_MAX_LENGTH, validatePrivacyAction, type PrivacyAction, type PrivacyActionDraft, type PrivacyActionStatus } from './actions';
+import { CASE_REPLY_MAX_LENGTH, validateCaseReply } from '../casework/reply';
+import { availablePrivacyActions, privacyActionRules, validatePrivacyAction, type PrivacyAction, type PrivacyActionDraft, type PrivacyActionStatus } from './actions';
 
 export function PrivacyRequestActions({ request, disabled, onSelect }: {
   request: DataSubjectRequest;
@@ -41,7 +42,7 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
 }) {
   useLocale();
   const rules = privacyActionRules(draft, role);
-  const replyTooLong = [...draft.response.trim()].length > PRIVACY_REPLY_MAX_LENGTH;
+  const replyTooLong = validateCaseReply(draft.response, rules.requiresReply) === 'too_long';
   return <ConfirmActionDialog
     open
     title={dialogTitle(draft)}
@@ -71,7 +72,7 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
       multiline
       minRows={3}
       label={t('privacyRequests.publicReply')}
-      helperText={t(replyTooLong ? 'privacyRequests.publicReplyTooLong' : 'privacyRequests.publicReplyHelp', { limit: PRIVACY_REPLY_MAX_LENGTH })}
+      helperText={t(replyTooLong ? 'privacyRequests.publicReplyTooLong' : 'privacyRequests.publicReplyHelp', { limit: CASE_REPLY_MAX_LENGTH })}
       error={replyTooLong}
       value={draft.response}
       onChange={(event) => onResponseChange(event.target.value)}
