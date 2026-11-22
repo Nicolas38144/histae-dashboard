@@ -37,7 +37,7 @@ export function usePrivacyRequestAction(role: AdminSession['role'], onUpdated: (
       } else {
         const { allowsReply } = privacyActionRules(draft, role);
         const response = draft.response.trim();
-        await updateDataRequest(draft.request.id, draft.status, draft.notes, allowsReply && response ? response : undefined);
+        await updateDataRequest(draft.request.id, draft.status, draft.notes.trim(), allowsReply && response ? response : undefined);
       }
       showNotification(draft.status === 'completed' && draft.request.type === 'erasure'
         ? t('privacyRequests.erasureScheduledTheRequestRemainsInProgressUntilProcessing')

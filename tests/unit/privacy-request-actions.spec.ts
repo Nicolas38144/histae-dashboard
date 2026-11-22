@@ -37,13 +37,15 @@ describe('privacy request action policy', () => {
     expect(privacyActionRules({ ...draft, request: { ...correction, type: 'access' } }, role).requiresReply).toBe(false);
   });
 
-  it('counts public reply code points at the 2000-character boundary', () => {
+  it('counts public reply code points at the new 1000-character boundary', () => {
     expect(validatePrivacyAction({ ...draft, response: '😀'.repeat(CASE_REPLY_MAX_LENGTH) }, 'superadmin')).toBeNull();
     expect(validatePrivacyAction({ ...draft, response: 'a'.repeat(CASE_REPLY_MAX_LENGTH + 1) }, 'superadmin')).toBe('invalid_form');
   });
 
   it('keeps notes and public replies distinct when an ordinary administrator rejects a correction', () => {
     const rejected = { ...draft, status: 'rejected' as const };
+    expect(validatePrivacyAction({ ...rejected, notes: '😀'.repeat(1000) }, 'admin')).toBeNull();
+    expect(validatePrivacyAction({ ...rejected, notes: '😀'.repeat(1001) }, 'admin')).toBe('invalid_form');
     expect(validatePrivacyAction(rejected, 'admin')).toBe('invalid_form');
     expect(validatePrivacyAction({ ...rejected, notes: 'Motif interne.' }, 'admin')).toBeNull();
     expect(validatePrivacyAction(rejected, 'superadmin')).toBeNull();

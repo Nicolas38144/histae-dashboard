@@ -24,14 +24,15 @@ export function privacyActionRules(action: PrivacyAction, role: AdminSession['ro
     schedulesErasure,
     requiresNotes: role !== 'superadmin' && (action.status === 'rejected' || retry),
     minNotesLength: retry ? 3 : 1,
-    maxNotesLength: retry ? 500 : 2_000,
+    maxNotesLength: retry ? 500 : 1_000,
     danger: action.status === 'rejected' || schedulesErasure,
   };
 }
 
 export function validatePrivacyAction(draft: PrivacyActionDraft, role: AdminSession['role']): 'retry_reason' | 'invalid_form' | null {
   const rules = privacyActionRules(draft, role);
-  const notesLength = draft.notes.trim().length;
+  const notes = draft.notes.trim();
+  const notesLength = draft.status === 'retry' ? notes.length : [...notes].length;
   if (rules.requiresNotes && (notesLength < rules.minNotesLength || notesLength > rules.maxNotesLength)) {
     return draft.status === 'retry' ? 'retry_reason' : 'invalid_form';
   }

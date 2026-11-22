@@ -54,7 +54,8 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
     valueLabel={role === 'superadmin' ? undefined : draft.status === 'retry' ? t('privacyRequests.retryReason3To500Characters') : t('privacyRequests.internalNotes')}
     requireValue={rules.requiresNotes}
     minValueLength={rules.minNotesLength}
-    maxValueLength={rules.maxNotesLength}
+    maxValueLength={draft.status === 'retry' ? rules.maxNotesLength : undefined}
+    valueHelperText={draft.status === 'retry' ? undefined : t('casework.replyLimit')}
     loading={saving}
     confirmDisabled={validatePrivacyAction(draft, role) !== null}
     onCancel={onCancel}

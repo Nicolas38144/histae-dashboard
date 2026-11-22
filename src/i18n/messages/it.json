@@ -713,7 +713,7 @@
   "casework.thread": "Conversazione",
   "casework.team": "Team Histae",
   "casework.noMessages": "Nessun messaggio.",
-  "casework.replyLimit": "Massimo 2.000 caratteri.",
+  "casework.replyLimit": "Massimo 1000 caratteri.",
   "casework.sendReply": "Invia risposta",
   "casework.exportGranted": "Download assistito autorizzato.",
   "casework.exportHelp": "Il download assistito è disponibile nell’app per il titolare del conto per 24 ore.",

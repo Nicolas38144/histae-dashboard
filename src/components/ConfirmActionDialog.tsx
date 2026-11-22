@@ -4,11 +4,11 @@ import { t } from '../i18n/core';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
 
 export function ConfirmActionDialog({
-  children, open, title, description, confirmLabel, value, onValueChange, valueLabel, requireValue = false, minValueLength = 1, maxValueLength, confirmDisabled = false, danger = false, loading = false, onCancel, onConfirm,
+  children, open, title, description, confirmLabel, value, onValueChange, valueLabel, valueHelperText, requireValue = false, minValueLength = 1, maxValueLength, confirmDisabled = false, danger = false, loading = false, onCancel, onConfirm,
 }: {
   children?: ReactNode;
   open: boolean; title: string; description: string; confirmLabel: string; value?: string; onValueChange?: (value: string) => void;
-  valueLabel?: string; requireValue?: boolean; minValueLength?: number; maxValueLength?: number;
+  valueLabel?: string; valueHelperText?: string; requireValue?: boolean; minValueLength?: number; maxValueLength?: number;
   confirmDisabled?: boolean; danger?: boolean; loading?: boolean; onCancel: () => void; onConfirm: () => void;
 }) {
   useLocale();
@@ -19,7 +19,7 @@ export function ConfirmActionDialog({
       <DialogContent>
         <DialogContentText sx={{ mb: valueLabel ? 2 : 0 }}>{description}</DialogContentText>
         {children}
-        {valueLabel && <TextField autoFocus fullWidth multiline minRows={2} label={valueLabel} value={value ?? ''} onChange={(event) => onValueChange?.(event.target.value)} inputProps={{ maxLength: maxValueLength }} />}
+        {valueLabel && <TextField autoFocus fullWidth multiline minRows={2} label={valueLabel} helperText={valueHelperText} value={value ?? ''} onChange={(event) => onValueChange?.(event.target.value)} inputProps={{ maxLength: maxValueLength }} />}
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} disabled={loading}>{t("common.cancel")}</Button>

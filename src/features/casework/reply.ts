@@ -1,4 +1,4 @@
-export const CASE_REPLY_MAX_LENGTH = 2_000;
+export const CASE_REPLY_MAX_LENGTH = 1_000;
 
 export function validateCaseReply(input: string, required = true) {
   const text = input.trim();
