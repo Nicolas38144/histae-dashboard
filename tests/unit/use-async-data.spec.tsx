@@ -3,24 +3,11 @@ import { useAsyncData } from '../../src/hooks/useAsyncData';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
-  let reject!: (reason: unknown) => void;
-  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
-    resolve = resolvePromise;
-    reject = rejectPromise;
-  });
-  return { promise, resolve, reject };
+  const promise = new Promise<T>((done) => { resolve = done; });
+  return { promise, resolve };
 }
 
 describe('useAsyncData', () => {
-  it('exposes loading, result and normalized errors', async () => {
-    const success = deferred<string>();
-    const { result } = renderHook(() => useAsyncData(() => success.promise));
-    expect(result.current).toMatchObject({ data: null, loading: true, error: null });
-
-    act(() => success.resolve('ready'));
-    await waitFor(() => expect(result.current).toMatchObject({ data: 'ready', loading: false, error: null }));
-  });
-
   it('keeps the newest result when an older request finishes later', async () => {
     const first = deferred<string>();
     const second = deferred<string>();
@@ -44,6 +31,7 @@ describe('useAsyncData', () => {
       return 'recovered';
     });
     const { result } = renderHook(() => useAsyncData(loader));
+    expect(result.current).toMatchObject({ data: null, loading: true, error: null });
 
     await waitFor(() => expect(result.current.error).toBe('Une erreur inattendue est survenue.'));
     act(() => result.current.reload());

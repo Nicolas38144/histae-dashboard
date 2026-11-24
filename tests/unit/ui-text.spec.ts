@@ -10,7 +10,7 @@ async function sourceFiles(root: string): Promise<string[]> {
   }))).flat().filter((path) => /\.tsx?$/.test(path));
 }
 
-// Only technical values may remain outside the message dictionaries.
+// Technical literals that the heuristic would otherwise flag.
 const technical = new Set([
   'Escape', 'Content-Type', 'Accept-Language', 'LocalizedError', 'AbortError', 'NotAllowedError',
   'SecurityError', 'InvalidStateError', 'UnknownError', 'InvalidCharacterError', 'UTC', 'fr-FR', 'en-GB', 'es-ES', 'it-IT',
@@ -23,7 +23,8 @@ const visibleAttributes = new Set([
   'primary', 'secondary', 'confirmLabel', 'valueLabel', 'loadLabel',
 ]);
 
-it('keeps visible UI copy in the translation dictionaries', async () => {
+// Literal and JSX patterns catch common omissions but can miss text assembled at runtime.
+it('flags likely untranslated UI text in source files', async () => {
   const violations: string[] = [];
   for (const file of await sourceFiles('src')) {
     const ast = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);

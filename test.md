@@ -2,8 +2,8 @@
 
 ## Niveaux de validation
 
-`tests/components/plans.spec.tsx` vérifie les trois cartes commerciales, leurs prix et périodicités,
-la prise en compte d'un prix API modifié et le refus d'une offre sans plan de droits correspondant.
+`tests/components/plans.spec.tsx` vérifie les trois cartes commerciales avec les prix et périodicités
+de l’API, ainsi que le refus d’une offre sans plan de droits correspondant.
 
 | Niveau | Outil | Infrastructure |
 | --- | --- | --- |
@@ -52,7 +52,8 @@ plus récente à la plus ancienne, dans un ordre chronologique global.
 
 Les tests de sécurité couvrent aussi la revalidation périodique des sessions, l’inactivité, les retours sur
 l’onglet et la restauration de page, les réponses tardives après révocation, ainsi que la disparition des données
-avant la réponse de déconnexion et le message d’échec de révocation serveur. Les tests d’export vérifient les
+avant la réponse de déconnexion et le message d’échec de révocation serveur. Playwright vérifie la redirection après
+révocation lors d’un contrôle périodique. Vitest couvre l’inactivité et la déconnexion. Les tests d’export vérifient les
 limites de lignes, de pages et d’octets UTF-8, le délai maximal et l’annulation au démontage. Le refus du stockage
 navigateur ne doit pas empêcher le chargement de la connexion.
 
@@ -60,7 +61,8 @@ navigateur ne doit pas empêcher le chargement de la connexion.
 
 - `tests/unit/i18n.spec.ts` : parité des quatre catalogues, paramètres, pluriels, formats, préférence
   validée, stockage bloqué, synchronisation entre onglets, erreurs et en-tête HTTP dynamique ;
-- `tests/unit/ui-text.spec.ts` : analyse AST interdisant les textes d’interface dans les sources ;
+- `tests/unit/ui-text.spec.ts` : analyse AST qui signale les textes d’interface probablement non traduits.
+  Elle peut manquer les textes construits à l’exécution.
 - `tests/components/language-selector.spec.tsx` : changement des quatre langues dès la connexion,
   conservation des saisies et des éditions françaises canoniques, abandon des résultats périmés ;
 - `tests/e2e/languages.spec.ts` vérifie le passage à l’anglais dans Chromium, la persistance après

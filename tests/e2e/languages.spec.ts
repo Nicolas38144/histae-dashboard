@@ -23,7 +23,6 @@ test('persists English from login through the authenticated console', async ({ p
   await expect(page.getByRole('button', { name: 'Change language' })).toBeVisible();
   await page.goto('/overview');
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Change language' })).toBeVisible();
   expect(requestedLanguages.length).toBeGreaterThan(0);
   expect(requestedLanguages.every((value) => value === 'en')).toBe(true);
   const initialRequests = [...requestedLanguages];

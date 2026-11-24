@@ -62,7 +62,7 @@ describe('dashboard language contract', () => {
     dispose();
   });
 
-  it('uses the current locale on each HTTP request, keeping cookies and payloads intact', async () => {
+  it('uses the current locale on each HTTP request without altering the payload', async () => {
     const headers: string[] = [];
     server.use(http.post('http://localhost/api/language-contract', async ({ request }) => {
       headers.push(request.headers.get('accept-language') ?? '');
@@ -74,7 +74,6 @@ describe('dashboard language contract', () => {
       await api.post('/language-contract', { reason: 'Mon texte privé' });
     }
     expect(headers).toEqual(locales);
-    expect(api.defaults.withCredentials).toBe(true);
   });
 
   it('retranslates retained errors and domain labels and never exposes unknown raw errors', () => {

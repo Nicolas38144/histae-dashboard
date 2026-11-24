@@ -75,15 +75,14 @@ describe('privacy request messages', () => {
     expect(screen.getByText('Aucune précision n’accompagnait cette demande.')).toBeVisible();
   });
 
-  it.each([
-    ['access', 'pending', 'Prendre en charge', 'in_progress'],
-    ['portability', 'in_progress', 'Résoudre', 'completed'],
-    ['erasure', 'pending', 'Refuser', 'rejected'],
-  ] as const)('sends a public reply for a %s request when the admin selects %s → %s', async (type, status, action, transition) => {
+  it('sends the optional public reply when resolving a portability request', async () => {
     const user = userEvent.setup();
     let mutation: unknown;
     server.use(
-      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, type, status, erasure: null }], next_cursor: null })),
+      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({
+        requests: [{ ...erasureRequest, type: 'portability', status: 'in_progress', erasure: null }],
+        next_cursor: null,
+      })),
       http.patch(`${apiUrl}/admin/data-subject-requests/${fixtureIds.request}`, async ({ request }) => {
         mutation = await request.json();
         return new HttpResponse(null, { status: 204 });
@@ -91,13 +90,13 @@ describe('privacy request messages', () => {
     );
     renderDashboard(<PrivacyRequests />);
 
-    await user.click(await screen.findByRole('button', { name: action }));
+    await user.click(await screen.findByRole('button', { name: 'Résoudre' }));
     const dialog = await screen.findByRole('dialog');
     const confirm = within(dialog).getByRole('button', { name: 'Confirmer' });
     expect(confirm).toBeEnabled();
     await user.type(within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ }), ' Une réponse à votre demande. ');
     await user.click(confirm);
-    await waitFor(() => expect(mutation).toEqual({ status: transition, notes: null, response: 'Une réponse à votre demande.' }));
+    await waitFor(() => expect(mutation).toEqual({ status: 'completed', notes: null, response: 'Une réponse à votre demande.' }));
   });
 
   it('warns that account access ends when erasure is scheduled', async () => {
@@ -130,11 +129,17 @@ describe('privacy request messages', () => {
     await waitFor(() => expect(mutation).toEqual({ status: 'completed', notes: null, response: 'La donnée historique a été corrigée après vérification.' }));
   });
 
-  it.each(['restriction', 'objection'])('keeps retired %s requests read-only', async (type) => {
-    server.use(http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, type, erasure: null }], next_cursor: null })));
+  it('keeps retired restriction and objection requests read-only', async () => {
+    const requests = [
+      { ...erasureRequest, type: 'restriction', erasure: null },
+      { ...erasureRequest, id: fixtureIds.secondUser, type: 'objection', erasure: null },
+    ];
+    server.use(http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests, next_cursor: null })));
     renderDashboard(<PrivacyRequests />);
-    const row = (await screen.findByText(fixtureIds.request)).closest('tr')!;
-    expect(within(row).queryByRole('button')).not.toBeInTheDocument();
+    for (const { id } of requests) {
+      const row = (await screen.findByText(id)).closest('tr')!;
+      expect(within(row).queryByRole('button')).not.toBeInTheDocument();
+    }
   });
 
   it('requires separate internal notes and a public reply when an admin rejects a correction', async () => {

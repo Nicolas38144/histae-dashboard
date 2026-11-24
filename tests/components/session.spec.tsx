@@ -2,7 +2,6 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import * as auth from '../../src/api/auth';
 import { ADMIN_SESSION_EXPIRED_EVENT, isAdminSessionLocked } from '../../src/auth/session';
-import { api } from '../../src/api/client';
 import { http, HttpResponse } from 'msw';
 import { server } from '../mocks/server';
 import userEvent from '@testing-library/user-event';
@@ -32,24 +31,32 @@ it('keeps a revoked session invalid when an older session check completes in the
 it('clears the view before logout completes and reports a server failure on the login screen', async () => {
   const user = userEvent.setup();
   vi.spyOn(auth, 'getAdminSession').mockResolvedValue(adminSession);
-  let reject!: (reason: Error) => void;
-  const post = vi.spyOn(api, 'post').mockImplementation(() => new Promise((_resolve, fail) => { reject = fail; }));
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  let requests = 0;
+  server.use(http.post('http://localhost/api/admin/auth/logout', async () => {
+    requests += 1;
+    if (requests > 1) return new HttpResponse(null, { status: 204 });
+    await pending;
+    return HttpResponse.json({ error: { code: 'unavailable' } }, { status: 503 });
+  }));
   window.history.replaceState({}, '', '/overview');
   render(<NotifierProvider><AppRoutes mode="light" toggleMode={() => undefined} /></NotifierProvider>);
   expect(await screen.findByText('Sensitive account fixture')).toBeVisible();
 
-  await user.click(screen.getAllByText('Se déconnecter')[0]);
-
-  expect(screen.queryByText('Sensitive account fixture')).not.toBeInTheDocument();
-  expect(await screen.findByText('Déconnexion du serveur en cours…')).toBeVisible();
-  expect(screen.getByRole('button', { name: 'Se connecter avec une passkey' })).toBeDisabled();
-  expect(isAdminSessionLocked()).toBe(true);
-  await act(async () => reject(new Error('offline')));
+  try {
+    await user.click(screen.getAllByText('Se déconnecter')[0]);
+    expect(screen.queryByText('Sensitive account fixture')).not.toBeInTheDocument();
+    expect(await screen.findByText('Déconnexion du serveur en cours…')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Se connecter avec une passkey' })).toBeDisabled();
+    expect(isAdminSessionLocked()).toBe(true);
+  } finally {
+    finish();
+  }
   expect(await screen.findByText(/la révocation de la session sur le serveur n’a pas pu être confirmée/)).toBeVisible();
   expect(window.location.pathname).toBe('/login');
 
-  post.mockRestore();
-  server.use(http.post('http://localhost/api/admin/auth/logout', () => new HttpResponse(null, { status: 204 })));
   await user.click(screen.getByRole('button', { name: 'Se déconnecter' }));
   await waitFor(() => expect(screen.queryByText(/la révocation de la session sur le serveur n’a pas pu être confirmée/)).not.toBeInTheDocument());
+  expect(requests).toBe(2);
 });

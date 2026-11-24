@@ -9,8 +9,18 @@ const endpoint = 'http://localhost/api/admin/sms-safety';
 
 describe('SMS sending protection', () => {
   it('shows per-phone limits without exposing phone identifiers or controls to ordinary admins', async () => {
-    render(<SmsSafetyPanel canManage={false} />);
+    const phoneNumber = '+12025550142';
+    const phoneHash = 'test-phone-hash-42';
+    server.use(http.get(endpoint, () => HttpResponse.json({
+      ...smsSafety,
+      phone_number: phoneNumber,
+      phone_hash: phoneHash,
+    })));
+
+    const { baseElement } = render(<SmsSafetyPanel canManage={false} />);
     expect(await screen.findByText(/5 tentatives sur une heure et 10 sur 24 heures/)).toBeVisible();
+    expect(baseElement.innerHTML).not.toContain(phoneNumber);
+    expect(baseElement.innerHTML).not.toContain(phoneHash);
     expect(screen.queryByRole('button', { name: 'Suspendre les SMS' })).not.toBeInTheDocument();
   });
 

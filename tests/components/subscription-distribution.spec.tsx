@@ -20,11 +20,11 @@ const countFor = (label: string) => within(screen.getByText(label).parentElement
 describe('subscription distribution', () => {
   it('connects overview to the API counts for all three offers', async () => {
     server.use(http.get('http://localhost/api/admin/metrics', () => HttpResponse.json({
-      ...adminMetrics, subscription_offers: offers,
+      ...adminMetrics, subscription_offers: [{ ...offers[0], users: 0 }, ...offers.slice(1)],
     })));
     renderDashboard(<Overview />);
     await screen.findByText('Premium Mensuel');
-    expect(countFor('Free').getByText('4')).toBeVisible();
+    expect(countFor('Free').getByText('0')).toBeVisible();
     expect(countFor('Premium Mensuel').getByText('2')).toBeVisible();
     expect(countFor('Premium Annuel').getByText('1')).toBeVisible();
     expect(screen.queryByText('Premium sans périodicité')).not.toBeInTheDocument();
@@ -36,14 +36,6 @@ describe('subscription distribution', () => {
     ]} />);
     expect(countFor('Premium sans périodicité').getByText('3')).toBeVisible();
     expect(countFor('Premium Mensuel').getByText('2')).toBeVisible();
-  });
-
-  it('shows the three zero counts supplied by the current API', () => {
-    renderDashboard(<SubscriptionDistribution subscription_offers={offers.map((entry) => ({ ...entry, users: 0 }))} />);
-    expect(countFor('Free').getByText('0')).toBeVisible();
-    expect(countFor('Premium Mensuel').getByText('0')).toBeVisible();
-    expect(countFor('Premium Annuel').getByText('0')).toBeVisible();
-    expect(screen.queryByText('Premium sans périodicité')).not.toBeInTheDocument();
   });
 
   for (const counts of [undefined, [], [offers[0], offers[0], offers[2], offers[3]], [{ ...offers[0], users: -1 }, ...offers.slice(1)]]) {

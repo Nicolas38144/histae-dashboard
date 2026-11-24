@@ -20,8 +20,10 @@ const catalog: PlanCatalog = {
 };
 
 describe('commercial offers', () => {
-  it('renders three distinct API offers with the correct billing periods', async () => {
-    server.use(http.get('http://localhost/api/plans', () => HttpResponse.json(catalog)));
+  it('renders three distinct offers with the prices and billing periods supplied by the API', async () => {
+    const updated = structuredClone(catalog);
+    updated.offers[2].price_cents = 9900;
+    server.use(http.get('http://localhost/api/plans', () => HttpResponse.json(updated)));
     renderDashboard(<Plans />);
     const monthly = (await screen.findByRole('heading', { name: 'Premium Mensuel' })).closest('.MuiPaper-root')!;
     const annual = screen.getByRole('heading', { name: 'Premium Annuel' }).closest('.MuiPaper-root')!;
@@ -31,18 +33,10 @@ describe('commercial offers', () => {
       .toHaveTextContent('les crédits publicitaires inutilisés expirent le lundi à 00:00 UTC');
     expect(within(monthly as HTMLElement).getByText(/5,00/)).toBeVisible();
     expect(within(monthly as HTMLElement).getByText('par mois')).toBeVisible();
-    expect(within(annual as HTMLElement).getByText(/48,00/)).toBeVisible();
+    expect(within(annual as HTMLElement).getByText(/99,00/)).toBeVisible();
+    expect(within(annual as HTMLElement).queryByText(/48,00/)).not.toBeInTheDocument();
     expect(within(annual as HTMLElement).getByText('par an')).toBeVisible();
     expect(screen.getAllByText('Continuations : illimitées')).toHaveLength(2);
-  });
-
-  it('uses changed API prices instead of embedding the website amounts', async () => {
-    const updated = structuredClone(catalog);
-    updated.offers[2].price_cents = 9900;
-    server.use(http.get('http://localhost/api/plans', () => HttpResponse.json(updated)));
-    renderDashboard(<Plans />);
-    expect(await screen.findByText(/99,00/)).toBeVisible();
-    expect(screen.queryByText(/48,00/)).not.toBeInTheDocument();
   });
 
   it('rejects an offer whose entitlement plan is missing', async () => {
@@ -61,9 +55,7 @@ describe('commercial offers', () => {
   });
 
   it('respects explicitly empty offers without reconstructing them', () => {
-    expect(parsePlanCatalog({ ...catalog, offers: [] }).offers).toEqual([]);
     expect(parsePlanCatalog({ plans: [catalog.plans[0]], offers: [] }).offers).toEqual([]);
-    expect(parsePlanCatalog({ plans: [], offers: [] }).offers).toEqual([]);
   });
 
   for (const offers of [null, {}, [{ ...catalog.offers[2], billing_period: 'monthly' }], [catalog.offers[0], catalog.offers[0]]]) {

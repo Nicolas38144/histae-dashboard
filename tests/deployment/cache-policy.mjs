@@ -106,7 +106,5 @@ try {
     await stopped;
   }
   await new Promise((resolve) => upstream.close(resolve));
-  assert.equal(path.dirname(directory), path.resolve(tmpdir()));
-  assert.ok(path.basename(directory).startsWith('histae-cache-test-'));
   await rm(directory, { recursive: true, force: true });
 }

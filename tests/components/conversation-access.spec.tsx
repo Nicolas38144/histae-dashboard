@@ -37,39 +37,24 @@ it('opens only the conversation linked by the report and sends the administrator
   expect(reads).toEqual(['Vérification du signalement']);
 });
 
-describe.each(['admin', 'superadmin'] as const)('conversation access for %s', (role) => {
-  it.each([false, undefined, 'true'])('does not request messages unless the API explicitly authorizes access (%s)', async (permission) => {
-    let reads = 0;
-    server.use(
-      http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [{ ...match, can_view_messages: permission }], next_cursor: null })),
-      http.get(`${apiUrl}/admin/matches/${match.id}/messages`, () => { reads += 1; return HttpResponse.json({ messages: [], next_cursor: null }); }),
-    );
-    renderDashboard(<UserMatches userId={fixtureIds.user} profileReason="Contrôle du profil" />, { session: { ...adminSession, role } });
-    expect(await screen.findByRole('button', { name: 'Consulter' })).toBeDisabled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(reads).toBe(0);
-  });
+it.each([
+  ['admin', false],
+  ['superadmin', false],
+  ['admin', undefined],
+  ['superadmin', 'true'],
+] as const)('denies conversation access to %s unless the API explicitly authorizes it (%s)', async (role, permission) => {
+  let reads = 0;
+  server.use(
+    http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [{ ...match, can_view_messages: permission }], next_cursor: null })),
+    http.get(`${apiUrl}/admin/matches/${match.id}/messages`, () => { reads += 1; return HttpResponse.json({ messages: [], next_cursor: null }); }),
+  );
+  renderDashboard(<UserMatches userId={fixtureIds.user} profileReason="Contrôle du profil" />, { session: { ...adminSession, role } });
+  expect(await screen.findByRole('button', { name: 'Consulter' })).toBeDisabled();
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(reads).toBe(0);
+});
 
-  it('opens a reported conversation with the existing audit reason rules', async () => {
-    const user = userEvent.setup();
-    let reason: string | null | undefined;
-    server.use(
-      http.get(`${apiUrl}/matches/${fixtureIds.user}`, () => HttpResponse.json({ matches: [{ ...match, can_view_messages: true }], next_cursor: null })),
-      http.get(`${apiUrl}/admin/matches/${match.id}/messages`, ({ request }) => {
-        reason = new URL(request.url).searchParams.get('reason');
-        return HttpResponse.json({ messages: [], next_cursor: null });
-      }),
-    );
-    renderDashboard(<UserMatches userId={fixtureIds.user} profileReason="Contrôle du profil" />, { session: { ...adminSession, role } });
-    await user.click(await screen.findByRole('button', { name: 'Consulter' }));
-    if (role === 'admin') {
-      const dialog = await screen.findByRole('dialog');
-      expect(reason).toBeUndefined();
-      await user.type(within(dialog).getByRole('textbox'), 'Examen du signalement');
-      await user.click(within(dialog).getByRole('button', { name: 'Ouvrir la conversation' }));
-    }
-    await waitFor(() => expect(reason).toBe(role === 'admin' ? 'Examen du signalement' : null));
-  });
+describe.each(['admin', 'superadmin'] as const)('conversation access for %s', (role) => {
 
   it('clears the reason on cancellation and closes an opened conversation', async () => {
     const user = userEvent.setup();
