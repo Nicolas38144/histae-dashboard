@@ -9,8 +9,8 @@ de l’API, ainsi que le refus d’une offre sans plan de droits correspondant.
 | --- | --- | --- |
 | Unitaire et composant | Vitest, Testing Library, jsdom | aucune |
 | Contrat HTTP simulé | MSW | aucune ; les requêtes Axios sont interceptées |
-| Parcours navigateur | Playwright Chromium | serveur Vite lancé automatiquement, API simulée |
-| Smoke réel | Playwright request | API et stockages locaux configurés |
+| Clé d’accès virtuelle | Playwright Chromium | serveur Vite lancé automatiquement, API simulée |
+| Smoke réel | Node.js | API et stockages locaux configurés |
 
 Les fixtures utilisent uniquement des UUID déterministes et du contenu fictif. Elles ne doivent contenir ni compte,
 token, téléphone, photo ni texte de modération provenant d’un environnement réel.
@@ -19,27 +19,19 @@ token, téléphone, photo ni texte de modération provenant d’un environnement
 
 ```powershell
 pnpm install --frozen-lockfile
-pnpm exec playwright install chromium
 ```
-
-Le navigateur Playwright est nécessaire uniquement aux tests E2E. `msw` et le navigateur sont des dépendances de
-développement ; aucun serveur de test n’est ajouté au build de production.
 
 ## Commandes autonomes
 
 ```powershell
 pnpm run test:unit
-pnpm run test:e2e
 pnpm test
 pnpm run validate
 ```
 
-- `test:unit` couvre client HTTP, WebAuthn simulé, hooks, pagination, composants et actions administratives ;
-- `test:e2e` démarre Vite sur `http://localhost:4173` et exécute trois parcours Chromium avec une API simulée.
-  Ils couvrent l’enregistrement et la réutilisation d’une passkey, la redirection après révocation de session et
-  la rectification d’un profil jusqu’à la clôture de la demande RGPD. Le test marqué `@real` s’exécute séparément.
-- `test` exécute les deux niveaux autonomes ;
-- `validate` ajoute typecheck, lint et build de production.
+`test` et `test:unit` exécutent Vitest sans navigateur. La suite couvre le client HTTP, WebAuthn simulé,
+les hooks, la pagination, la redirection après révocation de session et la rectification d’un profil jusqu’à la
+clôture de la demande RGPD. `validate` ajoute le typage, le lint et le build de production.
 
 Vitest exécute les fichiers avec un seul worker afin d’éviter les démarrages de processus instables observés sous
 Windows. Cette sérialisation privilégie la reproductibilité ; elle ne change pas l’isolation entre les fichiers.
@@ -54,8 +46,7 @@ plus récente à la plus ancienne, dans un ordre chronologique global.
 
 Les tests de sécurité couvrent aussi la revalidation périodique des sessions, l’inactivité, les retours sur
 l’onglet et la restauration de page, les réponses tardives après révocation, ainsi que la disparition des données
-avant la réponse de déconnexion et le message d’échec de révocation serveur. Playwright vérifie la redirection après
-révocation lors d’un contrôle périodique. Vitest couvre l’inactivité et la déconnexion. Les tests d’export vérifient les
+avant la réponse de déconnexion et le message d’échec de révocation serveur. Les tests d’export vérifient les
 limites de lignes, de pages et d’octets UTF-8, le délai maximal et l’annulation au démontage. Le refus du stockage
 navigateur ne doit pas empêcher le chargement de la connexion.
 
@@ -78,19 +69,22 @@ $env:HISTAE_REAL_API_URL='http://localhost:8080'
 pnpm run test:e2e:real
 ```
 
-Ce test est volontairement en lecture seule :
+Le test utilise Node.js et des requêtes en lecture seule.
 
 - `/health/ready` confirme que l’API rejoint ses dépendances locales configurées ;
 - une session administrative anonyme doit être refusée ;
 - l’accès à un UUID aléatoire doit être refusé avant toute lecture métier.
 
-Il ne dépend d’aucun compte de production et n’écrit aucune donnée. Les parcours administratifs authentifiés restent
-isolés avec MSW et l’authenticator virtuel tant qu’un mécanisme officiel de création/destruction de compte admin de
-test n’existe pas côté API.
-
 ## WebAuthn virtuel
 
-Le parcours Playwright crée un authenticator CTAP2 Chromium avec :
+Lancer ce parcours séparément après une modification de la connexion par clé d’accès.
+
+```powershell
+pnpm exec playwright install chromium
+pnpm run test:webauthn
+```
+
+Playwright démarre Vite sur `http://localhost:4173` et crée un authenticator CTAP2 dans Chromium avec :
 
 - credential découvrable ;
 - vérification utilisateur ;

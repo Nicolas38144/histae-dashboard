@@ -64,8 +64,9 @@ Premium reste illimité et sans publicité. Le dashboard lit ces valeurs et l’
 
 ## Vérification et limites
 
-`pnpm run check`, `pnpm run test:unit` et `pnpm run test:e2e` vérifient typage, lint, build, contrats simulés,
-pagination, sessions et cérémonies WebAuthn Chromium virtuelles. Les résultats courants sont dans la
+`pnpm run validate` vérifie le typage, le lint, le build et la suite Vitest sans navigateur. Le parcours
+`pnpm run test:webauthn` vérifie séparément l’enregistrement et la connexion avec une clé d’accès virtuelle
+dans Chromium. Les résultats courants sont dans la
 [revue fonctionnelle](../histae-api-rust/docs/feature-audit.md).
 
 La validation du domaine réel, des authenticators matériels, de l’accessibilité et des procédures de reprise

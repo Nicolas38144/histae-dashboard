@@ -172,20 +172,13 @@ pas rendre Vite, SeaweedFS ou l’API directement publics pour contourner le tun
 
 ## Tests et validation
 
-Installer Chromium et ses bibliothèques Debian uniquement si les tests E2E doivent être exécutés :
-
-```bash
-pnpm exec playwright install --with-deps chromium
-```
-
-Puis lancer les contrôles :
+Les contrôles habituels s’exécutent sans navigateur.
 
 ```bash
 pnpm run typecheck
 pnpm run lint
 pnpm run build
-pnpm run test:unit
-pnpm run test:e2e
+pnpm test
 pnpm run validate
 pnpm run security:audit
 ```
@@ -193,10 +186,18 @@ pnpm run security:audit
 | Commande | Contenu |
 | --- | --- |
 | `pnpm run check` | typecheck, lint et build de production |
-| `pnpm run test:unit` | Vitest, Testing Library et MSW sans API réelle |
-| `pnpm run test:e2e` | parcours Chromium isolés, dont WebAuthn virtuel |
-| `pnpm run validate` | contrôles statiques, build et tous les tests autonomes |
+| `pnpm test` ou `pnpm run test:unit` | Vitest, Testing Library et MSW sans navigateur ni API réelle |
+| `pnpm run test:webauthn` | un parcours Playwright avec une clé d’accès virtuelle dans Chromium |
+| `pnpm run validate` | contrôles statiques, build et suite Vitest |
 | `pnpm run security:audit` | audit des dépendances de production |
+
+Lors d’une modification de la connexion par clé d’accès, lancer le parcours dédié. Sur Debian, la première
+commande installe Chromium et ses bibliothèques système.
+
+```bash
+pnpm exec playwright install --with-deps chromium
+pnpm run test:webauthn
+```
 
 Le smoke test réel reste en lecture seule et doit viser uniquement l’API locale :
 
@@ -267,9 +268,9 @@ Les pages coordonnent le chargement et les mutations ; les composants typés pr�
 Les états asynchrones passent par les hooks partagés. Le client HTTP centralise les erreurs et conserve les
 contrôles de session, les cookies et l’absence de retry automatique des mutations.
 
-Avant de livrer : `pnpm run check` puis `pnpm run test:unit`. Les tests découverts par Vitest sont les fichiers
-`*.spec.ts` et `*.spec.tsx` de `tests/unit` et `tests/components`. `pnpm run test:e2e` utilise Chromium et une API
-simulée ; les scénarios `@real` nécessitent une pile de test dédiée.
+Avant de livrer, lancer `pnpm run validate`. Les tests découverts par Vitest sont les fichiers
+`*.spec.ts` et `*.spec.tsx` de `tests/unit` et `tests/components`. Le parcours `test:webauthn` utilise
+Chromium et une API simulée. Le smoke test utilise Node.js et une API locale configurée.
 
 ## Serveur Caddy et confidentialité des logs
 
