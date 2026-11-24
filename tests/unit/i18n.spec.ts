@@ -38,7 +38,9 @@ describe('dashboard language contract', () => {
   });
 
   it('validates persisted preferences and synchronizes document and cross-tab changes', () => {
-    localStorage.setItem(localeStorageKey, 'it');
+    setLocale('it');
+    expect(localStorage.getItem(localeStorageKey)).toBe('it');
+    setLocale('fr', { persist: false });
     const dispose = initializeLocale();
     expect(getLocale()).toBe('it');
     expect(document.documentElement.lang).toBe('it');

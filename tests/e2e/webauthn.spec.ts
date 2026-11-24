@@ -1,27 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { adminMetrics, adminSession, smsSafety } from '../fixtures';
 
-test('redirects an expired session and clears legacy browser tokens', async ({ page }) => {
-  await page.route('**/api/admin/auth/session', (route) => route.fulfill({
-    status: 401,
-    contentType: 'application/json',
-    body: JSON.stringify({ error: { code: 'unauthorized', message: 'Session expirée.' } }),
-  }));
-  await page.goto('/login');
-  await page.evaluate(() => {
-    localStorage.setItem('auth_token', 'legacy-fixture');
-    localStorage.setItem('user_id', 'legacy-user-fixture');
-    sessionStorage.setItem('histae_admin_access_token', 'legacy-fixture');
-  });
-
-  await page.goto('/overview');
-
-  await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole('heading', { name: 'Administration Histae' })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length })))
-    .toEqual({ local: 0, session: 0 });
-});
-
 test('registers and reuses a discoverable passkey with a virtual authenticator', async ({ page, context }) => {
   const cdp = await context.newCDPSession(page);
   await cdp.send('WebAuthn.enable');

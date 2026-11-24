@@ -15,6 +15,8 @@ it('keeps a revoked session invalid when an older session check completes in the
   let resolve!: (value: typeof adminSession) => void;
   const pending = new Promise<typeof adminSession>((done) => { resolve = done; });
   const getSession = vi.spyOn(auth, 'getAdminSession').mockReturnValue(pending);
+  localStorage.setItem('auth_token', 'legacy-fixture');
+  sessionStorage.setItem('histae_admin_access_token', 'legacy-fixture');
   window.history.replaceState({}, '', '/overview');
   render(<NotifierProvider><AppRoutes mode="light" toggleMode={() => undefined} /></NotifierProvider>);
   await waitFor(() => expect(getSession).toHaveBeenCalled());
@@ -26,6 +28,8 @@ it('keeps a revoked session invalid when an older session check completes in the
 
   expect(await screen.findByRole('heading', { name: 'Administration Histae' })).toBeVisible();
   expect(window.location.pathname).toBe('/login');
+  expect(localStorage.getItem('auth_token')).toBeNull();
+  expect(sessionStorage.getItem('histae_admin_access_token')).toBeNull();
 });
 
 it('clears the view before logout completes and reports a server failure on the login screen', async () => {

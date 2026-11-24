@@ -41,20 +41,45 @@ describe('public phone number policies', () => {
     expect(await screen.findByText('Non bloqué')).toBeVisible();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
-  it('does not request a superadmin reason and resolves an uncertain write by reading', async () => {
-    const user = userEvent.setup(); let current = { ...entry }; let body: unknown; let calls = 0;
+  it('filters the list and refreshes the searched entry after an uncertain superadmin write', async () => {
+    const user = userEvent.setup();
+    const second = { ...entry, id: 'second-entry', phone_hint: '+33……1111' };
+    let current = { ...entry };
+    const lookups: unknown[] = [];
+    const changes: unknown[] = [];
     server.use(
-      http.get(path, () => HttpResponse.json({ entries: [current], total: 1, ready: true, sources: [] })),
-      http.patch(path, async ({ request }) => { body = await request.json(); calls += 1; current = { ...current, blocked: false, version: 4 }; return HttpResponse.error(); }),
+      http.get(path, () => HttpResponse.json({ entries: [current, second], total: 2, ready: true, sources: [] })),
+      http.post(`${path}/lookup`, async ({ request }) => {
+        lookups.push(await request.json());
+        return HttpResponse.json(current);
+      }),
+      http.patch(path, async ({ request }) => {
+        changes.push(await request.json());
+        current = { ...current, blocked: false, version: 4 };
+        return HttpResponse.error();
+      }),
     );
     render(<PhoneBlocklistPanel isSuperadmin />);
-    await user.click(await screen.findByRole('button', { name: 'Examiner' }));
-    expect(screen.queryByLabelText(/Justification/)).not.toBeInTheDocument();
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmer' }));
-    expect(await screen.findByText('Non bloqué')).toBeVisible();
-    expect(calls).toBe(1);
-    expect(body).toEqual({ entry_id: entry.id, decision: 'allow', version: 3, valid_days: 30 });
+    expect(await screen.findByText(second.phone_hint)).toBeVisible();
+    const input = screen.getByLabelText('Numéro de téléphone');
+    await user.type(input, syntheticPhone);
+    const review = await screen.findByRole('button', { name: 'Examiner' });
+    expect(screen.queryByText(second.phone_hint)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Suivant' })).not.toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(lookups).toEqual([{ phone_number: syntheticPhone }]);
+
+    await user.click(review);
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.queryByLabelText(/Justification/)).not.toBeInTheDocument();
+    await user.click(dialog.getByRole('button', { name: 'Confirmer' }));
+    expect(await screen.findByText('Non bloqué')).toBeVisible();
+    expect(changes).toEqual([{ entry_id: entry.id, decision: 'allow', version: 3, valid_days: 30 }]);
+    expect(lookups).toEqual([{ phone_number: syntheticPhone }, { phone_number: syntheticPhone }]);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await user.clear(input);
+    expect(screen.getByText(second.phone_hint)).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Suivant' })).toBeDisabled();
   });
   it('looks up a phone in the request body and can add a temporary manual block', async () => {
     const user = userEvent.setup(); let lookup: unknown; let body: unknown;

@@ -35,7 +35,9 @@ pnpm run validate
 ```
 
 - `test:unit` couvre client HTTP, WebAuthn simulé, hooks, pagination, composants et actions administratives ;
-- `test:e2e` démarre Vite sur `http://localhost:4173`, exclut les tests marqués `@real` et utilise Chromium ;
+- `test:e2e` démarre Vite sur `http://localhost:4173` et exécute trois parcours Chromium avec une API simulée.
+  Ils couvrent l’enregistrement et la réutilisation d’une passkey, la redirection après révocation de session et
+  la rectification d’un profil jusqu’à la clôture de la demande RGPD. Le test marqué `@real` s’exécute séparément.
 - `test` exécute les deux niveaux autonomes ;
 - `validate` ajoute typecheck, lint et build de production.
 
@@ -64,9 +66,7 @@ navigateur ne doit pas empêcher le chargement de la connexion.
 - `tests/unit/ui-text.spec.ts` : analyse AST qui signale les textes d’interface probablement non traduits.
   Elle peut manquer les textes construits à l’exécution.
 - `tests/components/language-selector.spec.tsx` : changement des quatre langues dès la connexion,
-  conservation des saisies et des éditions françaises canoniques, abandon des résultats périmés ;
-- `tests/e2e/languages.spec.ts` vérifie le passage à l’anglais dans Chromium, la persistance après
-  rechargement, le retour au français et l’en-tête `Accept-Language`.
+  conservation des saisies et des éditions françaises canoniques, abandon des résultats périmés.
 
 Les tests réinitialisent aussi la préférence de langue après chaque scénario. Les données personnelles
 restent dans leur langue d’origine. Les noms de colonnes CSV et codes techniques ne sont pas des traductions.
@@ -113,7 +113,7 @@ restent testées dans `histae-api-rust`.
 Un échec E2E doit être diagnostiqué depuis la trace avant d’augmenter un timeout. Une validation verte ne remplace ni
 un test sur l’hébergement final, ni un pentest, ni une revue d’accessibilité manuelle.
 
-## Résultats actuels
+## Campagne de validation de l’internationalisation
 
 Validation locale de l’internationalisation le **20 octobre 2026** :
 
@@ -135,18 +135,21 @@ le matériel de secours ni le tunnel de production.
 
 `tests/components/sms-safety.spec.tsx` vérifie la lecture sans commandes pour un admin, la confirmation
 et la version de suspension, l’arrêt forcé par le serveur, le signalement des pics, le rejet d’un état
-API mal formé et la résolution d’une réponse perdue sans seconde mutation. Les traductions fr/en/es/it
-et les parcours navigateur de la vue d’ensemble sont conservés.
+API mal formé et la résolution d’une réponse perdue sans seconde mutation.
+`tests/components/phone-blocklist.spec.tsx` couvre le filtrage dynamique, les exceptions par rôle
+et le rafraîchissement du résultat après une réponse de mutation perdue.
 
 
-## Abonnements stores — 22 octobre 2026
+## Abonnements stores
+
+`tests/components/store-only-payments.spec.tsx` vérifie que l’admin consulte les rapports et que le superadmin
+doit confirmer l’aperçu de chaque import App Store ou Google Play avant l’envoi des montants en centimes.
+
+Campagne initiale du 22 octobre 2026
 
 - `pnpm check` : typage, lint et build réussis.
 - Suite Vitest complète : **98 tests réussis**, dont le parseur CSV et les contraintes financières.
 - Après ajout du récapitulatif de confirmation : dix contrôles ciblés traduction/texte/CSV réussis.
-- `pnpm exec playwright test tests/e2e/store-billing.spec.ts` : deux parcours Chromium réussis.
-  L’import n’est envoyé qu’après confirmation du fournisseur/rapport/fichier ; un admin ordinaire
-  n’a pas accès à cette action. Les réponses API et montants sont fictifs.
 
 Le contrôle du rôle courant, l’idempotence et le rollback d’un rapport contradictoire sont également
 testés sur un PostgreSQL jetable dans l’API. Aucun rapport réel n’a été importé ni serveur déployé.
