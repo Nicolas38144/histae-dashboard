@@ -16,19 +16,56 @@ describe('privacy request messages', () => {
     const user = userEvent.setup();
     const erasure = { ...erasureRequest, status: 'completed', erasure: { ...erasureRequest.erasure, step: 'completed', status: 'completed' } };
     const rectification = { ...erasureRequest, id: fixtureIds.secondUser, type: 'rectification', erasure: null };
-    server.use(http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({
-      requests: [erasure, rectification], next_cursor: null,
-    })));
+    server.use(
+      http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [erasure, rectification], next_cursor: null })),
+      http.get(`${apiUrl}/admin/data-subject-requests/${rectification.id}/messages`, () => HttpResponse.json({
+        messages: [{ id: 'archived', author: 'team', body: 'Échange conservé.', created_at: rectification.requested_at }],
+        next_cursor: null,
+        status: rectification.status,
+      })),
+    );
     renderDashboard(<PrivacyRequests />);
 
     const accountLabels = await screen.findAllByText('Compte supprimé', { exact: true });
     expect(accountLabels).toHaveLength(2);
     for (const label of accountLabels) expect(label.closest('a')).toBeNull();
     expect(screen.queryByRole('link', { name: 'Corriger le profil' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Échanges' })).toHaveLength(2);
-    await user.click(screen.getByRole('button', { name: 'Résoudre' }));
+    expect(screen.getAllByRole('button', { name: 'Historique des échanges' })).toHaveLength(2);
+    const row = within(screen.getByText(rectification.id).closest('tr')!);
+    await user.click(row.getByRole('button', { name: 'Historique des échanges' }));
+    const history = within(await screen.findByRole('dialog', { name: 'Historique des échanges' }));
+    expect(await history.findByText('Échange conservé.')).toBeVisible();
+    expect(history.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(history.queryByRole('button', { name: 'Envoyer la réponse' })).not.toBeInTheDocument();
+    await user.click(history.getByRole('button', { name: 'Fermer' }));
+    await user.click(await screen.findByRole('button', { name: 'Résoudre' }));
     const dialog = within(await screen.findByRole('dialog'));
     expect(dialog.queryByRole('link', { name: 'Corriger le profil' })).not.toBeInTheDocument();
+  });
+
+  it('keeps completed and rejected requests readable without offering a reply', async () => {
+    const user = userEvent.setup();
+    const completed = { ...erasureRequest, type: 'rectification', status: 'completed', erasure: null };
+    const outdated = { ...completed, id: fixtureIds.secondUser, status: 'in_progress' };
+    const requestsUrl = `${apiUrl}/admin/data-subject-requests`;
+    server.use(
+      http.get(requestsUrl, () => HttpResponse.json({ requests: [completed, outdated], next_cursor: null })),
+      http.get(`${requestsUrl}/:id/messages`, ({ params }) => HttpResponse.json({
+        messages: [{ id: 'previous', author: 'team', body: 'Réponse déjà envoyée.', created_at: completed.requested_at }],
+        next_cursor: null,
+        status: params.id === completed.id ? 'completed' : 'rejected',
+      })),
+    );
+    renderDashboard(<PrivacyRequests />);
+
+    for (const label of ['Historique des échanges', 'Échanges']) {
+      await user.click(await screen.findByRole('button', { name: label }));
+      const history = within(await screen.findByRole('dialog', { name: 'Historique des échanges' }));
+      expect(await history.findByText('Réponse déjà envoyée.')).toBeVisible();
+      expect(history.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(history.queryByRole('button', { name: 'Envoyer la réponse' })).not.toBeInTheDocument();
+      await user.click(history.getByRole('button', { name: 'Fermer' }));
+    }
   });
 
   it('places earlier messages between the original request and the latest messages without duplicates', async () => {
@@ -45,8 +82,8 @@ describe('privacy request messages', () => {
         const before = new URL(read.url).searchParams.get('before');
         cursors.push(before);
         return before === middle.id
-          ? HttpResponse.json({ messages: [middle, earliest], next_cursor: null })
-          : HttpResponse.json({ messages: [latest, middle], next_cursor: middle.id });
+          ? HttpResponse.json({ messages: [middle, earliest], next_cursor: null, status: request.status })
+          : HttpResponse.json({ messages: [latest, middle], next_cursor: middle.id, status: request.status });
       }),
     );
     renderDashboard(<PrivacyRequests />);
@@ -57,6 +94,7 @@ describe('privacy request messages', () => {
     expect(thread.getAllByText(/^(Demande initiale|Première réponse|Réponse suivante|Dernière réponse)\.$/).map((element) => element.textContent))
       .toEqual([request.details, earliest.body, middle.body, latest.body]);
     expect(cursors).toEqual([null, middle.id]);
+    expect(thread.getByRole('textbox', { name: /Réponse à l’utilisateur/ })).toBeEnabled();
   });
 
   it('shows user text safely and keeps it separate from editable internal notes', async () => {

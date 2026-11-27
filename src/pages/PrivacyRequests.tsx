@@ -13,6 +13,7 @@ import { PageHeader } from '../components/PageHeader';
 import { PrivacyRequestMessage } from '../components/PrivacyRequestMessage';
 import { StatusChip } from '../components/StatusChip';
 import { UserLink } from '../components/UserLink';
+import { canReplyToPrivacyRequest } from '../features/privacy-requests/actions';
 import { PrivacyRequestActionDialog, PrivacyRequestActions } from '../features/privacy-requests/request-actions';
 import { usePrivacyRequestAction } from '../features/privacy-requests/use-request-action';
 import { RightsConversation } from '../features/privacy-requests/rights-conversation';
@@ -34,6 +35,7 @@ export default function PrivacyRequests() {
   const pagination = useCursorPagination(loadPage, requestKey, undefined, 'privacy:'+filter);
   const action = usePrivacyRequestAction(session.role, pagination.reload);
   const deletedAccounts = new Set(pagination.items.filter((request) => request.erasure).map((request) => request.user_id));
+  const activeConversation = conversation && (pagination.items.find((request) => request.id === conversation.id) ?? conversation);
 
   return (
     <>
@@ -51,7 +53,9 @@ export default function PrivacyRequests() {
         <TableHead><TableRow><TableCell>{t("common.request")}</TableCell><TableCell>{t("common.user")}</TableCell><TableCell>{t("privacyRequests.requestAndMessage")}</TableCell><TableCell>{t("common.date")}</TableCell><TableCell>{t("common.statusProgress")}</TableCell><TableCell>{t("privacyRequests.internalNotes")}</TableCell><TableCell align="right">{t("common.action")}</TableCell></TableRow></TableHead>
         <TableBody>{pagination.items.map((request) => <TableRow key={request.id}>
           <TableCell>{request.id}</TableCell><TableCell><UserLink id={request.user_id} accountDeleted={deletedAccounts.has(request.user_id)} /></TableCell><TableCell>{domainLabel(request.type)}<PrivacyRequestMessage details={request.details} collapsible />
-            {request.type !== 'restriction' && request.type !== 'objection' && <Button size="small" onClick={() => setConversation(request)}>{t('casework.thread')}</Button>}
+            {request.type !== 'restriction' && request.type !== 'objection' && <Button size="small" onClick={() => setConversation(request)}>
+              {t(canReplyToPrivacyRequest(request, deletedAccounts.has(request.user_id)) ? 'casework.thread' : 'privacyRequests.exchangeHistory')}
+            </Button>}
           </TableCell><TableCell>{formatDate(request.requested_at)}</TableCell>
           <TableCell><StatusChip value={request.status} /><ErasureProgress request={request} />{request.response && <PrivacyRequestMessage details={request.response} label={t("privacyRequests.publicReply")} collapsible />}</TableCell><TableCell>{request.notes || t("common.missing")}</TableCell>
           <TableCell align="right"><PrivacyRequestActions request={request} accountDeleted={deletedAccounts.has(request.user_id)} disabled={action.saving} onSelect={action.start} /></TableCell>
@@ -67,7 +71,8 @@ export default function PrivacyRequests() {
         onCancel={action.close}
         onConfirm={() => void action.submit()}
       />}
-      {conversation && <RightsConversation key={conversation.id} request={conversation} onClose={() => setConversation(null)} onReply={pagination.reload} />}
+      {activeConversation && <RightsConversation key={activeConversation.id} request={activeConversation}
+        accountDeleted={deletedAccounts.has(activeConversation.user_id)} onClose={() => setConversation(null)} onReply={pagination.reload} />}
     </>
   );
 }

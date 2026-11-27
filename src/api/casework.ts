@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { CursorResponse } from './types';
+import type { CursorResponse, DataRequestStatus } from './types';
 
 export type RightsMessage = { id: string; author: 'user' | 'team'; body: string; created_at: string };
 export type ExportGrant = { id: string; expires_at: string };
@@ -16,7 +16,7 @@ export type SupportCase = {
 };
 
 export async function getRightsMessages(id: string, before?: string, signal?: AbortSignal) {
-  return (await api.get<CursorResponse<RightsMessage, 'messages'>>(`/admin/data-subject-requests/${id}/messages`, {
+  return (await api.get<CursorResponse<RightsMessage, 'messages'> & { status: DataRequestStatus }>(`/admin/data-subject-requests/${id}/messages`, {
     params: { before }, signal,
   })).data;
 }

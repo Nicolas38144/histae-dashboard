@@ -13,23 +13,32 @@ import { formatDate } from '../../utils/format';
 import { prependUniqueBy } from '../../utils/pagination';
 import { validateCaseReply } from '../casework/reply';
 import { useCaseworkAction } from '../casework/use-casework-action';
+import { canReplyToPrivacyRequest } from './actions';
 
 const messageKey = (message: RightsMessage) => message.id;
 
-export function RightsConversation({ request, onClose, onReply }: { request: DataSubjectRequest; onClose: () => void; onReply: () => void }) {
+export function RightsConversation({ request, accountDeleted, onClose, onReply }: {
+  request: DataSubjectRequest;
+  accountDeleted: boolean;
+  onClose: () => void;
+  onReply: () => void;
+}) {
   useLocale();
   const [draft, setDraft] = useState('');
+  const [threadClosed, setThreadClosed] = useState(false);
   const { saving, run } = useCaseworkAction();
   const load = useCallback(async (before: string | undefined, signal: AbortSignal) => {
     const page = await getRightsMessages(request.id, before, signal);
+    if (!signal.aborted && (page.status === 'completed' || page.status === 'rejected')) setThreadClosed(true);
     return { items: [...page.messages].reverse(), nextCursor: page.next_cursor };
   }, [request.id]);
   const page = useCursorPagination(load, messageKey, prependUniqueBy);
-  const canReply = !request.erasure && request.type !== 'restriction' && request.type !== 'objection';
+  const canReply = !threadClosed && canReplyToPrivacyRequest(request, accountDeleted);
+  const replyDisabled = saving || page.loading;
   const validReply = validateCaseReply(draft) === null;
 
   const send = () => {
-    if (!canReply || !validReply) return;
+    if (!canReply || replyDisabled || !validReply) return;
     void run(() => sendRightsMessage(request.id, draft), () => {
       setDraft('');
       page.reload();
@@ -37,7 +46,7 @@ export function RightsConversation({ request, onClose, onReply }: { request: Dat
     });
   };
   return <Dialog open onClose={saving ? undefined : onClose} fullWidth maxWidth="md" aria-labelledby="rights-conversation-title">
-    <DialogTitle id="rights-conversation-title">{t('casework.thread')}</DialogTitle>
+    <DialogTitle id="rights-conversation-title">{t(canReply ? 'casework.thread' : 'privacyRequests.exchangeHistory')}</DialogTitle>
     <DialogContent dividers>
       <AsyncState loading={page.loading} error={page.error} onRetry={page.reload} />
       {!page.loading && !page.error && <>
@@ -49,13 +58,13 @@ export function RightsConversation({ request, onClose, onReply }: { request: Dat
         </Box>
       </>}
       {canReply && <TextField fullWidth multiline minRows={3} label={t('privacyRequests.publicReply')} helperText={t('casework.replyLimit')} value={draft}
-        disabled={saving} onChange={event => setDraft(event.target.value)} />}
+        disabled={replyDisabled} onChange={event => setDraft(event.target.value)} />}
       {(request.type === 'access' || request.type === 'portability') && (request.status === 'in_progress' || request.status === 'completed')
         && <AssistedExport requestId={request.id} />}
     </DialogContent>
     <DialogActions>
       <Button onClick={onClose} disabled={saving}>{t('common.close')}</Button>
-      {canReply && <Button variant="contained" onClick={send} disabled={saving || !validReply}>{t('casework.sendReply')}</Button>}
+      {canReply && <Button variant="contained" onClick={send} disabled={replyDisabled || !validReply}>{t('casework.sendReply')}</Button>}
     </DialogActions>
   </Dialog>;
 }

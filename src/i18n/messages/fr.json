@@ -620,6 +620,7 @@
   "privacyRequests.publicReplyHelp": "Cette réponse sera visible dans les échanges de cette demande.",
   "privacyRequests.publicReplyTooLong": "La réponse doit contenir au maximum {limit} caractères.",
   "privacyRequests.historicalReadOnly": "Demande historique · lecture seule",
+  "privacyRequests.exchangeHistory": "Historique des échanges",
   "privacyRequests.exportGuidance": "Si le téléchargement répond à la demande, indiquez le parcours « Exporter mes données » dans l’application. Si un autre traitement est nécessaire, terminez-le avant de clôturer la demande. Ce formulaire envoie uniquement du texte.",
   "privacyRequests.erasureReplyUnavailable": "Le démarrage de l’effacement ferme immédiatement l’accès au compte. Communiquez toute information nécessaire avant de lancer cette étape.",
   "privacyRequests.resolve": "Résoudre",

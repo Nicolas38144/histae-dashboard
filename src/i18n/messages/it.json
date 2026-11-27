@@ -620,6 +620,7 @@
   "privacyRequests.publicReplyHelp": "La risposta sarà visibile nella conversazione di questa richiesta.",
   "privacyRequests.publicReplyTooLong": "La risposta può contenere al massimo {limit} caratteri.",
   "privacyRequests.historicalReadOnly": "Richiesta storica · sola lettura",
+  "privacyRequests.exchangeHistory": "Cronologia della conversazione",
   "privacyRequests.exportGuidance": "Se il download soddisfa la richiesta, indica dove trovare «Esporta i miei dati» nell’app. Completa le altre operazioni prima di chiudere la richiesta. Questo modulo invia solo testo.",
   "privacyRequests.erasureReplyUnavailable": "L’avvio della cancellazione chiude immediatamente l’accesso all’account. Comunica le informazioni necessarie prima di avviare questo passaggio.",
   "privacyRequests.resolve": "Risolvi",

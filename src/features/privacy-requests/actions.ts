@@ -5,6 +5,11 @@ export type PrivacyActionStatus = Exclude<DataRequestStatus, 'pending'> | 'retry
 export type PrivacyAction = { request: DataSubjectRequest; status: PrivacyActionStatus };
 export type PrivacyActionDraft = PrivacyAction & { notes: string; response: string };
 
+export function canReplyToPrivacyRequest(request: DataSubjectRequest, accountDeleted: boolean): boolean {
+  return !accountDeleted && !request.erasure && request.type !== 'restriction' && request.type !== 'objection'
+    && (request.status === 'pending' || request.status === 'in_progress');
+}
+
 export function availablePrivacyActions(request: DataSubjectRequest): PrivacyActionStatus[] {
   if (request.type === 'restriction' || request.type === 'objection') return [];
   const actions: PrivacyActionStatus[] = [];
