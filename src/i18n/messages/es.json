@@ -102,6 +102,8 @@
   "subscriptionDistribution.subscriptionBreakdown": "Distribución de suscripciones",
   "subscriptionDistribution.somePremiumAccountsHaveNoRecordedBillingPeriodFor": "Algunas cuentas Premium no tienen periodicidad registrada, por ejemplo los accesos concedidos manualmente.",
   "common.firstNameNotProvided": "Nombre no indicado",
+  "common.accountDeleted": "Cuenta eliminada",
+  "common.accountUnavailable": "Cuenta eliminada o no encontrada",
   "common.matches": "Matches",
   "userMatches.viewingIsRecordedInTheAccessLog": "La consulta se registra en el registro de acceso.",
   "common.match": "Match",

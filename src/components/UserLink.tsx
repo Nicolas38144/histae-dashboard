@@ -1,21 +1,20 @@
 import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
-import { Link, Tooltip } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Link, Tooltip, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { resolveUserName } from '../utils/userNames';
+import { useUserName } from '../hooks/useUserName';
 
-export function UserLink({ id, label }: { id: string; label?: string | null }) {
+export function UserLink({ id, label, accountDeleted = false }: { id: string; label?: string | null; accountDeleted?: boolean }) {
   useLocale();
-  const [resolved, setResolved] = useState<{ id: string; name: string | null } | null>(null);
-  useEffect(() => {
-    if (label) return;
-    let active = true;
-    void resolveUserName(id).then((name) => {
-      if (active) setResolved({ id, name });
-    });
-    return () => { active = false; };
-  }, [id, label]);
-  const name = label || (resolved?.id === id ? resolved.name : null);
-  return <Tooltip title={id} describeChild><Link component={RouterLink} to={`/users/${id}`}>{name || t("common.firstNameNotProvided")}</Link></Tooltip>;
+  const result = useUserName(accountDeleted || label ? undefined : id);
+  if (accountDeleted || result?.status === 'missing') {
+    return <Typography component="span" variant="body2" color="text.secondary">
+      {t(accountDeleted ? 'common.accountDeleted' : 'common.accountUnavailable')}
+    </Typography>;
+  }
+  if (!label && !result) return <Typography component="span" variant="body2" color="text.secondary">{t('common.loading')}</Typography>;
+  const name = label || (result?.status === 'found'
+    ? result.firstname || t('common.firstNameNotProvided')
+    : t('common.userProfile'));
+  return <Tooltip title={id} describeChild><Link component={RouterLink} to={`/users/${id}`}>{name}</Link></Tooltip>;
 }

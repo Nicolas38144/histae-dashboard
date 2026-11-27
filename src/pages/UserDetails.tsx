@@ -5,12 +5,13 @@ import { useLocale } from '../i18n/useLocale';
 import { t } from '../i18n/core';
 import { ContinuationCredits } from '../components/ContinuationCredits';
 import { ArrowBack, BlockOutlined, CheckCircleOutline } from '@mui/icons-material';
-import { Avatar, Box, Button, Chip, Divider, Paper, TextField, Tooltip, Typography } from '@mui/material';
+import { isAxiosError } from 'axios';
+import { Alert, Avatar, Box, Button, Chip, Divider, Paper, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useState, type FormEvent } from 'react';
 import { Link as RouterLink, useOutletContext, useParams } from 'react-router-dom';
 import { getUser, setUserBanned, setUserRole } from '../api/admin';
 import { errorMessage } from '../api/client';
-import type { AdminSession, AdminUserDetail } from '../api/types';
+import type { AdminSession, AdminUserDetail, ApiErrorBody } from '../api/types';
 import { AsyncState } from '../components/AsyncState';
 import { ConfirmActionDialog } from '../components/ConfirmActionDialog';
 import { PageHeader } from '../components/PageHeader';
@@ -50,7 +51,14 @@ function UserDetailsAccess({ id }: { id: string }) {
 
 function UserDetailsForId({ id, accessReason }: { id: string; accessReason: string }) {
   useLocale();
-  const loadUser = useCallback(() => getUser(id, accessReason), [id, accessReason]);
+  const loadUser = useCallback(async () => {
+    try {
+      return await getUser(id, accessReason);
+    } catch (error) {
+      if (isAxiosError<ApiErrorBody>(error) && error.response?.status === 404 && error.response.data?.error?.code === 'account_not_found') return null;
+      throw error;
+    }
+  }, [id, accessReason]);
   const userState = useAsyncData(loadUser);
   const session = useOutletContext<AdminSession>();
   const [action, setAction] = useState<'ban' | 'role' | null>(null);
@@ -99,6 +107,7 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
   };
 
   const user = !userState.loading && !userState.error ? userState.data : null;
+  const accountUnavailable = !userState.loading && !userState.error && !user;
   const canChangeRole = user && session?.role === 'superadmin'
     && user.user_id !== session.user_id
     && (user.role === 'admin' || (user.role === 'user' && !user.is_banned));
@@ -129,6 +138,7 @@ function UserDetailsForId({ id, accessReason }: { id: string; accessReason: stri
         )}
       />
       <AsyncState loading={userState.loading} error={userState.error} onRetry={userState.reload} />
+      {accountUnavailable && <Alert severity="info">{t('common.accountUnavailable')}</Alert>}
       {user && (
         <>
           <UserProfile user={user} canManagePremium={session.role === 'superadmin'} onPremiumUpdated={userState.reload} />

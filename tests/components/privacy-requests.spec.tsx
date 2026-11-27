@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PrivacyRequests from '../../src/pages/PrivacyRequests';
+import { clearUserNames } from '../../src/utils/userNames';
 import { adminSession, erasureRequest, fixtureIds } from '../fixtures';
 import { renderDashboard } from '../helpers/render';
 import { server } from '../mocks/server';
@@ -9,6 +10,27 @@ import { server } from '../mocks/server';
 const apiUrl = 'http://localhost/api';
 
 describe('privacy request messages', () => {
+  afterEach(clearUserNames);
+
+  it('labels an erased account across its request history and hides links to its profile', async () => {
+    const user = userEvent.setup();
+    const erasure = { ...erasureRequest, status: 'completed', erasure: { ...erasureRequest.erasure, step: 'completed', status: 'completed' } };
+    const rectification = { ...erasureRequest, id: fixtureIds.secondUser, type: 'rectification', erasure: null };
+    server.use(http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({
+      requests: [erasure, rectification], next_cursor: null,
+    })));
+    renderDashboard(<PrivacyRequests />);
+
+    const accountLabels = await screen.findAllByText('Compte supprimé', { exact: true });
+    expect(accountLabels).toHaveLength(2);
+    for (const label of accountLabels) expect(label.closest('a')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Corriger le profil' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Échanges' })).toHaveLength(2);
+    await user.click(screen.getByRole('button', { name: 'Résoudre' }));
+    const dialog = within(await screen.findByRole('dialog'));
+    expect(dialog.queryByRole('link', { name: 'Corriger le profil' })).not.toBeInTheDocument();
+  });
+
   it('places earlier messages between the original request and the latest messages without duplicates', async () => {
     const user = userEvent.setup();
     const request = { ...erasureRequest, type: 'rectification', erasure: null, details: 'Demande initiale.' };
@@ -112,6 +134,7 @@ describe('privacy request messages', () => {
     const user = userEvent.setup();
     let mutation: unknown;
     server.use(
+      http.get(`${apiUrl}/admin/user-names`, () => HttpResponse.json({ users: [{ user_id: erasureRequest.user_id, firstname: 'Camille' }] })),
       http.get(`${apiUrl}/admin/data-subject-requests`, () => HttpResponse.json({ requests: [{ ...erasureRequest, type: 'rectification', erasure: null, details: 'Une donnée historique est incorrecte.' }], next_cursor: null })),
       http.patch(`${apiUrl}/admin/data-subject-requests/${fixtureIds.request}`, async ({ request }) => {
         mutation = await request.json();
@@ -121,7 +144,7 @@ describe('privacy request messages', () => {
     renderDashboard(<PrivacyRequests />);
     await user.click(await screen.findByRole('button', { name: 'Résoudre' }));
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByRole('link', { name: 'Corriger le profil' })).toHaveAttribute('href', `/users/${erasureRequest.user_id}`);
+    expect(await within(dialog).findByRole('link', { name: 'Corriger le profil' })).toHaveAttribute('href', `/users/${erasureRequest.user_id}`);
     const confirm = within(dialog).getByRole('button', { name: 'Confirmer' });
     expect(confirm).toBeDisabled();
     await user.type(within(dialog).getByRole('textbox', { name: /Réponse à l’utilisateur/ }), 'La donnée historique a été corrigée après vérification.');

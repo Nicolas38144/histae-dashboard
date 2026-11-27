@@ -102,6 +102,8 @@
   "subscriptionDistribution.subscriptionBreakdown": "Subscription breakdown",
   "subscriptionDistribution.somePremiumAccountsHaveNoRecordedBillingPeriodFor": "Some Premium accounts have no recorded billing period, for example manually granted access.",
   "common.firstNameNotProvided": "First name not provided",
+  "common.accountDeleted": "Account deleted",
+  "common.accountUnavailable": "Account deleted or not found",
   "common.matches": "Matches",
   "userMatches.viewingIsRecordedInTheAccessLog": "Viewing is recorded in the access log.",
   "common.match": "Match",

@@ -3,16 +3,19 @@ import { getUserNames } from '../api/admin';
 const MAX_CACHED_NAMES = 1_000;
 const NAME_TTL_MS = 5 * 60_000;
 const MISSING_NAME_TTL_MS = 30_000;
-const cache = new Map<string, { name: string | null; expiresAt: number }>();
-const pending = new Map<string, { promise: Promise<string | null>; resolve: (name: string | null) => void }>();
+type ResolvedUserName = { status: 'found'; firstname: string | null } | { status: 'missing' };
+export type UserNameResult = ResolvedUserName | { status: 'unresolved' };
+
+const cache = new Map<string, { result: ResolvedUserName; expiresAt: number }>();
+const pending = new Map<string, { promise: Promise<UserNameResult>; resolve: (result: UserNameResult) => void }>();
 const queued = new Set<string>();
 let scheduled = false;
 let generation = 0;
 
-function cacheName(id: string, name: string | null): void {
-  const now = Date.now();
+function cacheName(id: string, result: ResolvedUserName): void {
+  const ttl = result.status === 'found' && result.firstname !== null ? NAME_TTL_MS : MISSING_NAME_TTL_MS;
   cache.delete(id);
-  cache.set(id, { name, expiresAt: now + (name === null ? MISSING_NAME_TTL_MS : NAME_TTL_MS) });
+  cache.set(id, { result, expiresAt: Date.now() + ttl });
   if (cache.size > MAX_CACHED_NAMES) cache.delete(cache.keys().next().value!);
 }
 
@@ -42,14 +45,16 @@ async function flush(): Promise<void> {
     if (entry.expiresAt <= now) cache.delete(key);
   }
   ids.forEach((id) => {
-    const name = names?.get(id) ?? null;
-    if (names) cacheName(id, name);
-    pending.get(id)?.resolve(name);
+    const firstname = names?.get(id);
+    const result: UserNameResult = firstname !== undefined ? { status: 'found', firstname }
+      : names ? { status: 'missing' } : { status: 'unresolved' };
+    if (result.status !== 'unresolved') cacheName(id, result);
+    pending.get(id)?.resolve(result);
     pending.delete(id);
   });
 }
 
-export function resolveUserName(id: string): Promise<string | null> {
+export function resolveUserName(id: string): Promise<UserNameResult> {
   const key = id.toLowerCase();
   const cached = cache.get(key);
   if (cached) {
@@ -57,14 +62,14 @@ export function resolveUserName(id: string): Promise<string | null> {
     if (cached.expiresAt > Date.now()) {
       // Keep recently used entries when the bounded cache reaches capacity.
       cache.set(key, cached);
-      return Promise.resolve(cached.name);
+      return Promise.resolve(cached.result);
     }
   }
   const existing = pending.get(key);
   if (existing) return existing.promise;
 
-  let resolve!: (name: string | null) => void;
-  const promise = new Promise<string | null>((done) => { resolve = done; });
+  let resolve!: (result: UserNameResult) => void;
+  const promise = new Promise<UserNameResult>((done) => { resolve = done; });
   pending.set(key, { promise, resolve });
   queued.add(key);
   schedule();
@@ -75,6 +80,6 @@ export function clearUserNames(): void {
   generation += 1;
   cache.clear();
   queued.clear();
-  pending.forEach(({ resolve }) => resolve(null));
+  pending.forEach(({ resolve }) => resolve({ status: 'unresolved' }));
   pending.clear();
 }

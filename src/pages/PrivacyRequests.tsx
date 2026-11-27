@@ -33,6 +33,7 @@ export default function PrivacyRequests() {
   }, [filter]);
   const pagination = useCursorPagination(loadPage, requestKey, undefined, 'privacy:'+filter);
   const action = usePrivacyRequestAction(session.role, pagination.reload);
+  const deletedAccounts = new Set(pagination.items.filter((request) => request.erasure).map((request) => request.user_id));
 
   return (
     <>
@@ -49,15 +50,16 @@ export default function PrivacyRequests() {
       {!pagination.loading && !pagination.error && <Paper variant="outlined" sx={{ overflowX: 'auto' }}><Table size="small">
         <TableHead><TableRow><TableCell>{t("common.request")}</TableCell><TableCell>{t("common.user")}</TableCell><TableCell>{t("privacyRequests.requestAndMessage")}</TableCell><TableCell>{t("common.date")}</TableCell><TableCell>{t("common.statusProgress")}</TableCell><TableCell>{t("privacyRequests.internalNotes")}</TableCell><TableCell align="right">{t("common.action")}</TableCell></TableRow></TableHead>
         <TableBody>{pagination.items.map((request) => <TableRow key={request.id}>
-          <TableCell>{request.id}</TableCell><TableCell><UserLink id={request.user_id} /></TableCell><TableCell>{domainLabel(request.type)}<PrivacyRequestMessage details={request.details} collapsible />
+          <TableCell>{request.id}</TableCell><TableCell><UserLink id={request.user_id} accountDeleted={deletedAccounts.has(request.user_id)} /></TableCell><TableCell>{domainLabel(request.type)}<PrivacyRequestMessage details={request.details} collapsible />
             {request.type !== 'restriction' && request.type !== 'objection' && <Button size="small" onClick={() => setConversation(request)}>{t('casework.thread')}</Button>}
           </TableCell><TableCell>{formatDate(request.requested_at)}</TableCell>
           <TableCell><StatusChip value={request.status} /><ErasureProgress request={request} />{request.response && <PrivacyRequestMessage details={request.response} label={t("privacyRequests.publicReply")} collapsible />}</TableCell><TableCell>{request.notes || t("common.missing")}</TableCell>
-          <TableCell align="right"><PrivacyRequestActions request={request} disabled={action.saving} onSelect={action.start} /></TableCell>
+          <TableCell align="right"><PrivacyRequestActions request={request} accountDeleted={deletedAccounts.has(request.user_id)} disabled={action.saving} onSelect={action.start} /></TableCell>
         </TableRow>)}{!pagination.items.length && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5 }}>{t("privacyRequests.noRequestsInThisQueue")}</TableCell></TableRow>}</TableBody>
       </Table><CursorPaginationControls nextCursor={pagination.nextCursor} loading={pagination.loadingMore} error={pagination.loadMoreError} onLoadMore={pagination.loadMore} onReload={pagination.reload} /></Paper>}
       {action.draft && <PrivacyRequestActionDialog
         draft={action.draft}
+        accountDeleted={deletedAccounts.has(action.draft.request.user_id)}
         role={session.role}
         saving={action.saving}
         onNotesChange={action.setNotes}

@@ -88,7 +88,7 @@ describe('profile identity corrections', () => {
         return new HttpResponse(null, { status: 204 });
       }),
       http.get(`${api}/matches/${profile.user_id}`, () => HttpResponse.json({ matches: [], next_cursor: null })),
-      http.get(`${api}/admin/user-names`, () => HttpResponse.json({ users: [] })),
+      http.get(`${api}/admin/user-names`, () => HttpResponse.json({ users: [{ user_id: profile.user_id, firstname: profile.firstname }] })),
     );
     window.history.replaceState({}, '', '/privacy-requests');
     render(<NotifierProvider><App /></NotifierProvider>);
@@ -96,7 +96,7 @@ describe('profile identity corrections', () => {
     await user.click(await screen.findByRole('button', { name: 'Prendre en charge' }));
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirmer' }));
     expect(await screen.findByRole('button', { name: 'Résoudre' })).toBeVisible();
-    await user.click(screen.getByRole('link', { name: 'Corriger le profil' }));
+    await user.click(await screen.findByRole('link', { name: 'Corriger le profil' }));
     await user.type(await screen.findByLabelText('Motif d’accès (3 à 500 caractères)'), accessReason);
     await user.click(screen.getByRole('button', { name: 'Consulter le dossier' }));
     await user.click(await screen.findByRole('button', { name: 'Corriger le profil' }));

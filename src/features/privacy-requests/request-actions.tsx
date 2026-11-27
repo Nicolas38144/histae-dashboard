@@ -3,24 +3,27 @@ import { Link as RouterLink } from 'react-router-dom';
 import type { AdminSession, DataSubjectRequest } from '../../api/types';
 import { ConfirmActionDialog } from '../../components/ConfirmActionDialog';
 import { PrivacyRequestMessage } from '../../components/PrivacyRequestMessage';
+import { useUserName } from '../../hooks/useUserName';
 import { t } from '../../i18n/core';
 import { useLocale } from '../../i18n/useLocale';
 import { CASE_REPLY_MAX_LENGTH, validateCaseReply } from '../casework/reply';
 import { availablePrivacyActions, privacyActionRules, validatePrivacyAction, type PrivacyAction, type PrivacyActionDraft, type PrivacyActionStatus } from './actions';
 
-export function PrivacyRequestActions({ request, disabled, onSelect }: {
+export function PrivacyRequestActions({ request, accountDeleted, disabled, onSelect }: {
   request: DataSubjectRequest;
+  accountDeleted: boolean;
   disabled: boolean;
   onSelect: (request: DataSubjectRequest, status: PrivacyActionStatus) => void;
 }) {
   useLocale();
   const actions = availablePrivacyActions(request);
+  const profile = useUserName(request.type === 'rectification' && actions.length && !accountDeleted ? request.user_id : undefined);
   if (request.type === 'restriction' || request.type === 'objection') {
     return <Typography variant="caption" color="text.secondary">{t('privacyRequests.historicalReadOnly')}</Typography>;
   }
   if (!actions.length) return null;
   return <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 1 }}>
-    {request.type === 'rectification' && <Button component={RouterLink} to={`/users/${request.user_id}`} disabled={disabled} size="small">{t('identityCorrection.edit')}</Button>}
+    {profile && profile.status !== 'missing' && <Button component={RouterLink} to={`/users/${request.user_id}`} disabled={disabled} size="small">{t('identityCorrection.edit')}</Button>}
     {actions.map(status => <Button
       key={status}
       disabled={disabled}
@@ -31,8 +34,9 @@ export function PrivacyRequestActions({ request, disabled, onSelect }: {
   </Box>;
 }
 
-export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange, onResponseChange, onCancel, onConfirm }: {
+export function PrivacyRequestActionDialog({ draft, accountDeleted, role, saving, onNotesChange, onResponseChange, onCancel, onConfirm }: {
   draft: PrivacyActionDraft;
+  accountDeleted: boolean;
   role: AdminSession['role'];
   saving: boolean;
   onNotesChange: (value: string) => void;
@@ -41,6 +45,8 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
   onConfirm: () => void;
 }) {
   useLocale();
+  const profile = useUserName(draft.request.type === 'rectification' && draft.status === 'completed' && !accountDeleted
+    ? draft.request.user_id : undefined);
   const rules = privacyActionRules(draft, role);
   const replyTooLong = validateCaseReply(draft.response, rules.requiresReply) === 'too_long';
   return <ConfirmActionDialog
@@ -62,7 +68,7 @@ export function PrivacyRequestActionDialog({ draft, role, saving, onNotesChange,
     onConfirm={onConfirm}
   >
     <PrivacyRequestMessage details={draft.request.details} />
-    {draft.request.type === 'rectification' && draft.status === 'completed' && <Button component={RouterLink} to={`/users/${draft.request.user_id}`} disabled={saving} sx={{ mb: 2 }}>{t('identityCorrection.edit')}</Button>}
+    {profile && profile.status !== 'missing' && <Button component={RouterLink} to={`/users/${draft.request.user_id}`} disabled={saving} sx={{ mb: 2 }}>{t('identityCorrection.edit')}</Button>}
     {rules.requiresReply && <Alert severity="info" sx={{ mb: 2 }}>{t('privacyRequests.resolveGuidance')}</Alert>}
     {draft.status === 'completed' && (draft.request.type === 'access' || draft.request.type === 'portability') &&
       <Alert severity="info" sx={{ mb: 2 }}>{t('privacyRequests.exportGuidance')}</Alert>}

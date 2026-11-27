@@ -25,23 +25,24 @@ describe('session-only name cache', () => {
     const first = resolveUserName('USER-A');
     expect(resolveUserName('user-a')).toBe(first);
     await vi.runAllTimersAsync();
-    await expect(first).resolves.toBe('Alice');
-    await expect(resolveUserName('user-a')).resolves.toBe('Alice');
+    await expect(first).resolves.toEqual({ status: 'found', firstname: 'Alice' });
+    await expect(resolveUserName('user-a')).resolves.toEqual({ status: 'found', firstname: 'Alice' });
     expect(lookup).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(5 * 60_000);
     lookup.mockResolvedValue([{ user_id: 'user-a', firstname: 'Updated' }]);
-    expect(await resolve('user-a')).toBe('Updated');
+    expect(await resolve('user-a')).toEqual({ status: 'found', firstname: 'Updated' });
     expect(lookup).toHaveBeenCalledTimes(2);
   });
 
-  it('only retains missing names for thirty seconds and never caches failures', async () => {
-    lookup.mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('unavailable'));
-    expect(await resolve('missing')).toBeNull();
-    await expect(resolveUserName('missing')).resolves.toBeNull();
+  it('distinguishes absent accounts, empty names and retryable lookup failures', async () => {
+    lookup.mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('unavailable'))
+      .mockResolvedValueOnce([{ user_id: 'missing', firstname: null }]);
+    expect(await resolve('missing')).toEqual({ status: 'missing' });
+    await expect(resolveUserName('missing')).resolves.toEqual({ status: 'missing' });
     expect(lookup).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(30_000);
-    expect(await resolve('missing')).toBeNull();
-    expect(await resolve('missing')).toBe('Alice');
+    expect(await resolve('missing')).toEqual({ status: 'unresolved' });
+    expect(await resolve('missing')).toEqual({ status: 'found', firstname: null });
     expect(lookup).toHaveBeenCalledTimes(3);
   });
 
@@ -65,10 +66,10 @@ describe('session-only name cache', () => {
     const pending = resolveUserName('user-a');
     await vi.runAllTimersAsync();
     clearUserNames();
-    await expect(pending).resolves.toBeNull();
+    await expect(pending).resolves.toEqual({ status: 'unresolved' });
     complete([{ user_id: 'user-a', firstname: 'Private old name' }]);
     await vi.runAllTimersAsync();
-    expect(await resolve('user-a')).toBe('Alice');
+    expect(await resolve('user-a')).toEqual({ status: 'found', firstname: 'Alice' });
     expect(lookup).toHaveBeenCalledTimes(2);
   });
 });
