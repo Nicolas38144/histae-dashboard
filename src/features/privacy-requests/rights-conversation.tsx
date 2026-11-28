@@ -1,9 +1,11 @@
 import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, TextField, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 import { getExportGrant, getRightsMessages, grantExport, sendRightsMessage, type RightsMessage } from '../../api/casework';
-import type { DataSubjectRequest } from '../../api/types';
+import type { AdminSession, DataSubjectRequest } from '../../api/types';
 import { AsyncState } from '../../components/AsyncState';
+import { ConfirmActionDialog } from '../../components/ConfirmActionDialog';
 import { CursorPaginationControls } from '../../components/CursorPaginationControls';
+import { PrivacyRequestMessage } from '../../components/PrivacyRequestMessage';
 import { useNotification } from '../../components/notification-context';
 import { useAsyncData } from '../../hooks/useAsyncData';
 import { useCursorPagination } from '../../hooks/useCursorPagination';
@@ -17,21 +19,47 @@ import { canReplyToPrivacyRequest } from './actions';
 
 const messageKey = (message: RightsMessage) => message.id;
 
-export function RightsConversation({ request, accountDeleted, onClose, onReply }: {
+type RightsConversationProps = {
   request: DataSubjectRequest;
   accountDeleted: boolean;
   onClose: () => void;
   onReply: () => void;
-}) {
+};
+
+export function RightsConversation({ role, ...props }: RightsConversationProps & { role: AdminSession['role'] }) {
+  useLocale();
+  const [reason, setReason] = useState('');
+  const [accessReason, setAccessReason] = useState<string>();
+  const trimmedReason = reason.trim();
+  const validReason = [...trimmedReason].length >= 3 && validateCaseReply(trimmedReason) === null;
+
+  if (role === 'superadmin' || accessReason) return <RightsThread {...props} reason={accessReason} />;
+
+  return <ConfirmActionDialog
+    open
+    title={t('userMatches.justifyAccessToTheConversation')}
+    description={t('userMatches.viewingIsRecordedInTheAccessLog')}
+    confirmLabel={t('userMatches.openConversation')}
+    value={reason}
+    onValueChange={setReason}
+    valueLabel={t('common.requiredReason')}
+    valueHelperText={t('privacyRequests.exchangeAccessReasonRange')}
+    confirmDisabled={!validReason}
+    onCancel={props.onClose}
+    onConfirm={() => { if (validReason) setAccessReason(trimmedReason); }}
+  />;
+}
+
+function RightsThread({ request, accountDeleted, onClose, onReply, reason }: RightsConversationProps & { reason?: string }) {
   useLocale();
   const [draft, setDraft] = useState('');
   const [threadClosed, setThreadClosed] = useState(false);
   const { saving, run } = useCaseworkAction();
   const load = useCallback(async (before: string | undefined, signal: AbortSignal) => {
-    const page = await getRightsMessages(request.id, before, signal);
+    const page = await getRightsMessages(request.id, { before, reason, signal });
     if (!signal.aborted && (page.status === 'completed' || page.status === 'rejected')) setThreadClosed(true);
     return { items: [...page.messages].reverse(), nextCursor: page.next_cursor };
-  }, [request.id]);
+  }, [request.id, reason]);
   const page = useCursorPagination(load, messageKey, prependUniqueBy);
   const canReply = !threadClosed && canReplyToPrivacyRequest(request, accountDeleted);
   const replyDisabled = saving || page.loading;
@@ -54,13 +82,14 @@ export function RightsConversation({ request, accountDeleted, onClose, onReply }
         <Box sx={{ display: 'grid', gap: 1.5, my: 2 }}>
           {request.details && <ThreadEntry label={t('privacyRequests.userMessage')} body={request.details} date={request.requested_at} />}
           {page.items.map(message => <ThreadEntry key={message.id} label={t(message.author === 'team' ? 'casework.team' : 'privacyRequests.userMessage')} body={message.body} date={message.created_at} />)}
-          {!request.details && !page.items.length && <Typography color="text.secondary">{t('casework.noMessages')}</Typography>}
+          {request.response && <PrivacyRequestMessage details={request.response} label={t('privacyRequests.publicReply')} />}
+          {!request.details && !page.items.length && !request.response && <Typography color="text.secondary">{t('casework.noMessages')}</Typography>}
         </Box>
       </>}
       {canReply && <TextField fullWidth multiline minRows={3} label={t('privacyRequests.publicReply')} helperText={t('casework.replyLimit')} value={draft}
         disabled={replyDisabled} onChange={event => setDraft(event.target.value)} />}
       {(request.type === 'access' || request.type === 'portability') && (request.status === 'in_progress' || request.status === 'completed')
-        && <AssistedExport requestId={request.id} />}
+        && <AssistedExport requestId={request.id} reason={reason} />}
     </DialogContent>
     <DialogActions>
       <Button onClick={onClose} disabled={saving}>{t('common.close')}</Button>
@@ -76,8 +105,8 @@ function ThreadEntry({ label, body, date }: { label: string; body: string; date:
   </Paper>;
 }
 
-function AssistedExport({ requestId }: { requestId: string }) {
-  const load = useCallback(() => getExportGrant(requestId), [requestId]);
+function AssistedExport({ requestId, reason }: { requestId: string; reason?: string }) {
+  const load = useCallback(() => getExportGrant(requestId, reason), [requestId, reason]);
   const grant = useAsyncData(load);
   const { saving, run } = useCaseworkAction();
   const { showNotification } = useNotification();

@@ -621,6 +621,7 @@
   "privacyRequests.publicReplyTooLong": "La respuesta debe tener un máximo de {limit} caracteres.",
   "privacyRequests.historicalReadOnly": "Solicitud histórica · solo lectura",
   "privacyRequests.exchangeHistory": "Historial de la conversación",
+  "privacyRequests.exchangeAccessReasonRange": "De 3 a 1000 caracteres.",
   "privacyRequests.exportGuidance": "Si la descarga satisface la solicitud, indique dónde encontrar «Exportar mis datos» en la app. Complete cualquier otra gestión antes de cerrar la solicitud. Este formulario solo envía texto.",
   "privacyRequests.erasureReplyUnavailable": "Al iniciar la supresión, se cierra inmediatamente el acceso a la cuenta. Comunique la información necesaria antes de iniciar este paso.",
   "privacyRequests.resolve": "Resolver",

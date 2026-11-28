@@ -621,6 +621,7 @@
   "privacyRequests.publicReplyTooLong": "The reply must be no longer than {limit} characters.",
   "privacyRequests.historicalReadOnly": "Historical request · read-only",
   "privacyRequests.exchangeHistory": "Conversation history",
+  "privacyRequests.exchangeAccessReasonRange": "3 to 1,000 characters.",
   "privacyRequests.exportGuidance": "If a download fulfils the request, point the user to “Export my data” in the app. Complete any other work before closing the request. This form sends text only.",
   "privacyRequests.erasureReplyUnavailable": "Starting erasure immediately closes access to the account. Share any necessary information before starting this step.",
   "privacyRequests.resolve": "Resolve",

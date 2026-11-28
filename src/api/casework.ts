@@ -15,9 +15,13 @@ export type SupportCase = {
   created_at: string;
 };
 
-export async function getRightsMessages(id: string, before?: string, signal?: AbortSignal) {
+export async function getRightsMessages(id: string, { before, reason, signal }: {
+  before?: string;
+  reason?: string;
+  signal?: AbortSignal;
+}) {
   return (await api.get<CursorResponse<RightsMessage, 'messages'> & { status: DataRequestStatus }>(`/admin/data-subject-requests/${id}/messages`, {
-    params: { before }, signal,
+    params: { before, reason }, signal,
   })).data;
 }
 
@@ -25,8 +29,8 @@ export async function sendRightsMessage(id: string, message: string) {
   await api.post(`/admin/data-subject-requests/${id}/messages`, { message: message.trim() });
 }
 
-export async function getExportGrant(id: string) {
-  return (await api.get<ExportGrant | null>(`/admin/data-subject-requests/${id}/assisted-export`)).data;
+export async function getExportGrant(id: string, reason?: string) {
+  return (await api.get<ExportGrant | null>(`/admin/data-subject-requests/${id}/assisted-export`, { params: { reason } })).data;
 }
 
 export async function grantExport(id: string) {
