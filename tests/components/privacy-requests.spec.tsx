@@ -50,7 +50,8 @@ describe('privacy request messages', () => {
 
   it('keeps completed and rejected requests readable without offering a reply', async () => {
     const user = userEvent.setup();
-    const completed = { ...erasureRequest, type: 'rectification', status: 'completed', erasure: null };
+    const completed = { ...erasureRequest, type: 'rectification', status: 'completed', erasure: null,
+      response: 'Réponse déjà envoyée.' };
     const outdated = { ...completed, id: fixtureIds.secondUser, status: 'in_progress' };
     const requestsUrl = `${apiUrl}/admin/data-subject-requests`;
     server.use(
@@ -67,6 +68,7 @@ describe('privacy request messages', () => {
       await user.click(await screen.findByRole('button', { name: label }));
       const history = within(await screen.findByRole('dialog', { name: 'Historique des échanges' }));
       expect(await history.findByText('Réponse déjà envoyée.')).toBeVisible();
+      expect(history.queryByText('Réponse à l’utilisateur')).not.toBeInTheDocument();
       expect(history.queryByRole('textbox')).not.toBeInTheDocument();
       expect(history.queryByRole('button', { name: 'Envoyer la réponse' })).not.toBeInTheDocument();
       await user.click(history.getByRole('button', { name: 'Fermer' }));
@@ -75,7 +77,8 @@ describe('privacy request messages', () => {
 
   it('authorizes and paginates an admin thread while preserving the initial message', async () => {
     const user = userEvent.setup();
-    const request = { ...erasureRequest, type: 'access', erasure: null, details: 'Demande initiale.' };
+    const request = { ...erasureRequest, type: 'access', erasure: null, details: 'Demande initiale.',
+      response: 'Première réponse.' };
     const message = (id: string, body: string) => ({ id, body, author: 'team', created_at: request.requested_at });
     const latest = message('latest', 'Dernière réponse.');
     const middle = message('middle', 'Réponse suivante.');
@@ -107,10 +110,10 @@ describe('privacy request messages', () => {
     await user.type(access.getByRole('textbox', { name: 'Motif obligatoire' }), ` ${accessReason} `);
     await user.click(open);
     const thread = within(await screen.findByRole('dialog', { name: 'Échanges' }));
+    expect(await thread.findByText(earliest.body)).toBeVisible();
     await user.click(await thread.findByRole('button', { name: 'Charger les messages précédents' }));
-    await thread.findByText(earliest.body);
-    expect(thread.getAllByText(/^(Demande initiale|Première réponse|Réponse suivante|Dernière réponse)\.$/).map((element) => element.textContent))
-      .toEqual([request.details, earliest.body, middle.body, latest.body]);
+    await waitFor(() => expect(thread.getAllByText(/^(Demande initiale|Première réponse|Réponse suivante|Dernière réponse)\.$/).map((element) => element.textContent))
+      .toEqual([request.details, earliest.body, middle.body, latest.body]));
     expect(reads).toEqual([{ before: null, reason: accessReason }, { before: middle.id, reason: accessReason }]);
     expect(exportReads).toEqual([accessReason]);
     expect(thread.getByRole('textbox', { name: /Réponse à l’utilisateur/ })).toBeEnabled();

@@ -2,7 +2,7 @@ import { api } from './client';
 import type { CursorResponse, DataRequestStatus } from './types';
 
 export type RightsMessage = { id: string; author: 'user' | 'team'; body: string; created_at: string };
-export type ExportGrant = { id: string; expires_at: string };
+type ExportGrant = { id: string; expires_at: string };
 export type SupportStatus = 'pending' | 'in_progress' | 'closed';
 export type SupportCategory = 'login' | 'billing' | 'appeal' | 'privacy' | 'other';
 export type SupportCase = {

@@ -64,6 +64,9 @@ function RightsThread({ request, accountDeleted, onClose, onReply, reason }: Rig
   const canReply = !threadClosed && canReplyToPrivacyRequest(request, accountDeleted);
   const replyDisabled = saving || page.loading;
   const validReply = validateCaseReply(draft) === null;
+  const recordedReply = request.response?.trim();
+  const showRecordedReply = Boolean(recordedReply) && !page.items.some((message) =>
+    message.author === 'team' && message.body.trim() === recordedReply);
 
   const send = () => {
     if (!canReply || replyDisabled || !validReply) return;
@@ -82,8 +85,8 @@ function RightsThread({ request, accountDeleted, onClose, onReply, reason }: Rig
         <Box sx={{ display: 'grid', gap: 1.5, my: 2 }}>
           {request.details && <ThreadEntry label={t('privacyRequests.userMessage')} body={request.details} date={request.requested_at} />}
           {page.items.map(message => <ThreadEntry key={message.id} label={t(message.author === 'team' ? 'casework.team' : 'privacyRequests.userMessage')} body={message.body} date={message.created_at} />)}
-          {request.response && <PrivacyRequestMessage details={request.response} label={t('privacyRequests.publicReply')} />}
-          {!request.details && !page.items.length && !request.response && <Typography color="text.secondary">{t('casework.noMessages')}</Typography>}
+          {showRecordedReply && <PrivacyRequestMessage details={request.response} label={t('privacyRequests.publicReply')} />}
+          {!request.details && !page.items.length && !recordedReply && <Typography color="text.secondary">{t('casework.noMessages')}</Typography>}
         </Box>
       </>}
       {canReply && <TextField fullWidth multiline minRows={3} label={t('privacyRequests.publicReply')} helperText={t('casework.replyLimit')} value={draft}

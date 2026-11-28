@@ -1,7 +1,7 @@
 import { api } from './client';
 
 export type PhoneDecision = 'automatic' | 'block' | 'allow';
-export interface PhoneObservation { source: string; last_seen_at: string; expires_at: string }
+interface PhoneObservation { source: string; last_seen_at: string; expires_at: string }
 export interface PhoneEntry {
   id: string | null;
   phone_hint: string;
@@ -11,7 +11,7 @@ export interface PhoneEntry {
   blocked: boolean;
   observations: PhoneObservation[];
 }
-export interface PhoneBlocklist {
+interface PhoneBlocklist {
   entries: PhoneEntry[];
   total: number;
   ready: boolean;
